@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/card_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_1" >
+    
+    <TextView
+	    android:id="@+id/card_title"
+	    android:layout_height="wrap_content"
+	    android:layout_width="match_parent"
+	    android:padding="5dp"
+	    android:layout_marginBottom="10dp"
+	    android:textSize="30sp"
+	    android:background="@drawable/module_title_background"/>
+
+</LinearLayout>

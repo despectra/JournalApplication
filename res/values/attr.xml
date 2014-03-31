@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TitledCard">
+        <attr name="title" format="string"/>
+    </declare-styleable>
+
+    <declare-styleable name="PercentLinearLayout">
+        <attr name="layout_width_percent" format="integer"/>
+        <attr name="layout_height_percent" format="integer"/>
+        <attr name="direction" format="enum" >
+            <enum name="direct" value="0"/>
+            <enum name="inverse" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>

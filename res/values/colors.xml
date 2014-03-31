@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="login_background">#030303</color>
+    <color name="actionbar_color">#ff29a670</color>
+    <color name="actionbar_shadow_color">#ff186945</color>
+    <color name="menu_text">#222222</color>
+    <color name="gray_85">#ff858585</color>
+    <color name="gray_a0">#ffa0a0a0</color>
+    <color name="gray_af">#ffafafaf</color>
+    <color name="gray240">#fff0f0f0</color>
+    <color name="gray250">#fff3f3f3</color>
+    <color name="lighten">#aaffffff</color>
+    
+    <color name="lesson_completed_background">#77e6e6e6</color>
+    <color name="lesson_current_background">#669af588</color>
+    <color name="lesson_current_stroke">#ff9af588</color>
+    <color name="lesson_future_background">#77c0dff5</color>
+    <color name="lesson_future_stroke">#ccc0dff5</color>
+
+    <color name="pressed_list_item_bg">#9933b5e5</color>
+</resources>

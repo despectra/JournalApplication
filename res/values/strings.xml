@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ClassJournal</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="login_welcome">Войти в систему</string>
+
+
+    <string name="settings">Настройки приложения</string>
+    <string name="settings_category_network">Сеть</string>
+    <string name="settings_host">Сервер</string>
+    <string name="settings_host_summary">Адрес сервера, содержащего данные</string>
+</resources>

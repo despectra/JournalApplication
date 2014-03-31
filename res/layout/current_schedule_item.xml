@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/test_sched_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="80dp">
+
+    <View
+        android:id="@+id/subject_icon_view"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:background="@android:color/holo_green_dark"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="19dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="5dp"
+        android:layout_alignParentTop="true"/>
+
+    <TextView
+        android:id="@+id/subject_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:layout_toRightOf="@+id/subject_icon_view"
+        android:paddingTop="10dp"
+        android:textColor="@color/gray_85"
+        android:text="Математика"/>
+
+    <View
+        android:id="@+id/group_icon_view"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:background="@android:color/holo_green_dark"
+        android:layout_toLeftOf="@+id/group_view"
+        android:layout_marginTop="19dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="5dp"
+        android:layout_alignParentTop="true"/>
+
+    <TextView
+        android:id="@+id/group_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:paddingTop="10dp"
+        android:paddingRight="20dp"
+        android:textColor="@color/gray_85"
+        android:text="Класс 8 '45'"/>
+
+    <TextView
+        android:id="@+id/time_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:layout_below="@+id/subject_view"
+        android:layout_alignParentLeft="true"
+        android:paddingTop="8dp"
+        android:paddingLeft="25dp"
+        android:textColor="@color/gray_a0"
+        android:text="8:30 - 9:15"/>
+
+    <TextView
+        android:id="@+id/status_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:layout_below="@+id/group_view"
+        android:layout_alignParentRight="true"
+        android:paddingTop="8dp"
+        android:paddingRight="20dp"
+        android:textColor="@color/gray_af"
+        android:text="урок окончен"/>
+
+</RelativeLayout>
