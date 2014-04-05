@@ -34,5 +34,9 @@
         <service android:name=".Services.ApiService">
         </service>
 
+        <provider
+            android:authorities="com.despectra.android.journal.provider"
+            android:name=".Data.MainProvider"/>
+
     </application>
 </manifest>

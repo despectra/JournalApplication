@@ -9,10 +9,7 @@ import com.despectra.android.journal.Activities.ApiActivity;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Server.APICodes;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -44,7 +41,7 @@ public class ApiServiceHelper {
         mAppContext = context;
     }
 
-    public Controller registerActivity(ApiActivity activity, Callback callback) {
+    public void registerActivity(ApiActivity activity, Callback callback) {
         String activityName = activity.getClass().getSimpleName();
         //УБРАТЬ КАК МОЖНО СКОРЕЕ
         if (callback == null) {
@@ -59,8 +56,8 @@ public class ApiServiceHelper {
             holder = new RegisteredActivityHolder(callback);
             mRegisteredActivities.put(activityName, holder);
         }
+        activity.setServiceHelperController(new ActivityController(activityName));
         notifyCompletedActions(activityName);
-        return new ActivityController(activityName);
     }
 
     public void unregisterActivity(ApiActivity activity) {
@@ -99,7 +96,22 @@ public class ApiServiceHelper {
     private void tryRunApiAction(String senderTag, ApiAction action) {
         RegisteredActivityHolder holder = mRegisteredActivities.get(senderTag);
         if (holder.runningAction != null || !mBound) {
-            holder.pendingActions.offer(action);
+            ApiAction actionBefore;
+            if (holder.runningAction != null) {
+                if (holder.pendingActions.isEmpty()) {
+                    actionBefore = holder.runningAction;
+                } else {
+                    actionBefore = holder.pendingActions.peekLast();
+                }
+            } else if(!holder.pendingActions.isEmpty()) {
+                actionBefore = holder.pendingActions.peekLast();
+            } else {
+                holder.pendingActions.offer(action);
+                return;
+            }
+            if (!action.equals(actionBefore)) {
+                holder.pendingActions.offer(action);
+            }
         } else {
             holder.runningAction = action;
             mService.processApiAction(senderTag, action);
@@ -184,12 +196,17 @@ public class ApiServiceHelper {
         public void getMinProfile(String token) {
             runApiQuery(mActivityName, APICodes.ACTION_GET_MIN_PROFILE, token);
         }
+
+        @Override
+        public void getEvents(String token, int offset, int count) {
+            runApiQuery(mActivityName, APICodes.ACTION_GET_EVENTS, token, String.valueOf(offset), String.valueOf(count));
+        }
     }
 
     private class RegisteredActivityHolder {
-        public Queue<ApiAction> pendingActions;
+        public Deque<ApiAction> pendingActions;
         public ApiAction runningAction;
-        public Queue<ApiAction> completedActions;
+        public Deque<ApiAction> completedActions;
         public Callback callback;
 
         public RegisteredActivityHolder(Callback callback) {
@@ -212,6 +229,15 @@ public class ApiServiceHelper {
             this.actionData = actionData;
             creationTime = System.currentTimeMillis();
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof ApiAction)) {
+                return false;
+            }
+            ApiAction action = (ApiAction) o;
+            return apiCode == action.apiCode && actionData.equals(action.actionData);
+        }
     }
 
     public interface Controller {
@@ -219,6 +245,7 @@ public class ApiServiceHelper {
         public void logout(String token);
         public void getApiInfo(String host);
         public void getMinProfile(String token);
+        public void getEvents(String token, int offset, int count);
     }
 
     public interface Callback {

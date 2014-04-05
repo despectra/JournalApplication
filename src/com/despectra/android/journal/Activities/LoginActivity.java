@@ -2,6 +2,7 @@ package com.despectra.android.journal.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
@@ -41,23 +42,25 @@ public class LoginActivity extends ApiActivity implements TextView.OnEditorActio
     private SimpleInfoDialog mErrorDialog;
 
     private int mLoggingStatus;
+    private String mLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String token = PreferenceManager.getDefaultSharedPreferences(this).getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
-        if (!token.equals("")) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String token = prefs.getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
+        int uid = prefs.getInt(JournalApplication.PREFERENCE_KEY_UID, 0);
+        if (!token.equals("") && uid > 0) {
             launchMainActivity();
         } else {
             initUi(savedInstanceState);
         }
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mServiceHelperController = mApplicationContext.getApiServiceHelper().registerActivity(this, this);
+        mApplicationContext.getApiServiceHelper().registerActivity(this, this);
     }
 
     @Override
@@ -151,6 +154,7 @@ public class LoginActivity extends ApiActivity implements TextView.OnEditorActio
         mResponseText.setText(null);
         mLoggingStatus = STATUS_LOGGING;
         mLoggingDialog.show(getFragmentManager(), PROGRESS_DIALOG_TAG);
+        mLogin = login;
         mServiceHelperController.login(login, pass);
     }
 
@@ -170,6 +174,7 @@ public class LoginActivity extends ApiActivity implements TextView.OnEditorActio
                         PreferenceManager.getDefaultSharedPreferences(this)
                                 .edit()
                                 .putString(JournalApplication.PREFERENCE_KEY_TOKEN, token)
+                                .putString(JournalApplication.PREFERENCE_KEY_LOGIN, mLogin)
                                 .commit();
                         mLoggingStatus = STATUS_RETRIEVING_DATA;
                         updateProgressDialogMessage();

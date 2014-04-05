@@ -13,11 +13,12 @@ import java.util.Map;
  */
 public class JournalApplication extends Application {
 
-    public static String PACKAGE;
+    public static final String PACKAGE = "com.despectra.android.journal";
     public static final String TAG = "JOURNAL_APPLICATION";
     public static final String PREFERENCE_KEY_HOST = "settings_host";
 
     public static final String PREFERENCE_KEY_TOKEN = "token";
+    public static final String PREFERENCE_KEY_LOGIN = "login";
     public static final String PREFERENCE_KEY_UID = "uid";
     public static final String PREFERENCE_KEY_NAME = "name";
     public static final String PREFERENCE_KEY_MIDDLENAME = "middlename";
@@ -36,7 +37,6 @@ public class JournalApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        PACKAGE = getApplicationContext().getPackageName();
     }
 
     public void activityStateChanged(String activityName, int state) {

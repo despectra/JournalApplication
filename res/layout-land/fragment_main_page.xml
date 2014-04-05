@@ -9,6 +9,7 @@
     android:padding="10dp">
 
     <com.despectra.android.journal.Views.TitledCard
+        android:id="@+id/wall_card"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="5"

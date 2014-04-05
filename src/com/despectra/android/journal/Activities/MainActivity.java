@@ -1,17 +1,29 @@
 package com.despectra.android.journal.Activities;
 
+import android.app.*;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
 import android.support.v4.app.*;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ViewDragHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.Data.MainProvider;
 import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
 import com.despectra.android.journal.Fragments.MainPageFragment;
 import com.despectra.android.journal.R;
@@ -21,11 +33,13 @@ import com.despectra.android.journal.Services.ApiServiceHelper;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Field;
 
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class MainActivity extends ApiActivity implements AdapterView.OnItemClickListener, ApiServiceHelper.Callback {
+public class MainActivity extends ApiActivity implements AdapterView.OnItemClickListener,
+        ApiServiceHelper.Callback {
 
     public static final String[] USER_DATA_PREFS_KEYS = new String[]{"token", "uid", "name", "surname", "middlename", "level", "avatar"};
 
@@ -38,6 +52,8 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
 
     public static final int STATUS_IDLE = 0;
     public static final int STATUS_LOGGING_OUT = 1;
+
+
 
     public static final String PROGRESS_DIALOG_TAG = "progressDialog";
     public static final String FRAGMENT_EVENTS = "EventsFragment";
@@ -75,6 +91,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     private TextView mUserNameView;
     private int mSelectedDrawerItem;
     private int mStatus;
+    private boolean mLoadWall;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,12 +111,14 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
             mCurrentFragmentTag = savedFragmentTag;
             mActionBarTitle = savedInstanceState.getString(KEY_AB_TITLE);
             mStatus = savedInstanceState.getInt(KEY_STATUS);
+            mLoadWall = false;
         } else {
             restoreDrawerState(ACTION_EVENTS);
             mCurrentFragment = new MainPageFragment();
             mCurrentFragmentTag = FRAGMENT_EVENTS;
             mActionBarTitle = "Главная";
             mStatus = STATUS_IDLE;
+            mLoadWall = true;
         }
 
         restoreActionBar();
@@ -119,7 +138,11 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     @Override
     protected void onResume() {
         super.onResume();
-        mServiceHelperController = mApplicationContext.getApiServiceHelper().registerActivity(this, this);
+        mApplicationContext.getApiServiceHelper().registerActivity(this, this);
+        if (mLoadWall) {
+            updateWall();
+            mLoadWall = false;
+        }
     }
 
     @Override
@@ -184,6 +207,11 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
             }
         }
         return f;
+    }
+
+    private void updateWall() {
+        mServiceHelperController.getEvents(mToken, 0, 5);
+        ((MainPageFragment)mCurrentFragment).setWallStateLoading();
     }
 
     private void setStatus(int status) {
@@ -258,11 +286,25 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
         mSurname = PreferenceManager.getDefaultSharedPreferences(this).getString(JournalApplication.PREFERENCE_KEY_SURNAME, "");
         mMiddlename = PreferenceManager.getDefaultSharedPreferences(this).getString(JournalApplication.PREFERENCE_KEY_MIDDLENAME, "");
         mLevel = PreferenceManager.getDefaultSharedPreferences(this).getInt(JournalApplication.PREFERENCE_KEY_LEVEL, 0);
-        //mAvatar = "404";
     }
 
     private void initDrawer() {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        //MEGA HACK GOOGLE SUCK A DICK!!!
+        try {
+            Field mDragger = mDrawerLayout.getClass().getDeclaredField("mLeftDragger");
+            mDragger.setAccessible(true);
+            ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(mDrawerLayout);
+            Field mEdgeSize = draggerObj.getClass().getDeclaredField("mEdgeSize");
+            mEdgeSize.setAccessible(true);
+            int edge = mEdgeSize.getInt(draggerObj);
+            mEdgeSize.setInt(draggerObj, edge * 3);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        //
         mDrawer = (ListView)findViewById(R.id.nav_drawer);
         mDrawerUserItemLayout = (RelativeLayout) LayoutInflater.from(this).inflate(R.layout.user_drawer_item, null);
         mDrawer.addHeaderView(mDrawerUserItemLayout);
@@ -283,7 +325,6 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
                 0,
                 0);
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-
         loadUserData();
     }
 
@@ -309,6 +350,11 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
         PreferenceManager.getDefaultSharedPreferences(this)
                 .edit()
                 .remove(JournalApplication.PREFERENCE_KEY_TOKEN)
+                .remove(JournalApplication.PREFERENCE_KEY_NAME)
+                .remove(JournalApplication.PREFERENCE_KEY_MIDDLENAME)
+                .remove(JournalApplication.PREFERENCE_KEY_SURNAME)
+                .remove(JournalApplication.PREFERENCE_KEY_UID)
+                .remove(JournalApplication.PREFERENCE_KEY_LEVEL)
                 .commit();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -324,18 +370,23 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     @Override
     public void onResponse(int actionCode, Object response) {
         if (actionCode != -1) {
-            if (actionCode == APICodes.ACTION_LOGOUT) {
-                try {
-                    JSONObject jsonData = (JSONObject) response;
-                    int success = jsonData.getInt("success");
-                    if (success == 1) {
-                        completeLogout();
-                    } else {
-                        respondError("Ошибка при выходе. Попробуйте еще раз");
+            switch (actionCode) {
+                case APICodes.ACTION_LOGOUT:
+                    try {
+                        JSONObject jsonData = (JSONObject) response;
+                        int success = jsonData.getInt("success");
+                        if (success == 1) {
+                            completeLogout();
+                        } else {
+                            respondError("Ошибка при выходе. Попробуйте еще раз");
+                        }
+                    } catch (Exception ex) {
+                        respondError("Ошибка " + ex.getMessage());
                     }
-                } catch (Exception ex) {
-                    respondError("Ошибка " + ex.getMessage());
-                }
+                    break;
+                case APICodes.ACTION_GET_EVENTS:
+                    ((MainPageFragment)mCurrentFragment).setWallStateIdle();
+                    break;
             }
         }
     }

@@ -25,7 +25,6 @@ public class PreferencesActivity extends ApiActivity implements ApiServiceHelper
     private SimpleProgressDialog mCheckingDialog;
     private boolean mIsChecking;
     private String mCheckedHost;
-    private ApiServiceHelper.Controller mHelperController;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +50,7 @@ public class PreferencesActivity extends ApiActivity implements ApiServiceHelper
     @Override
     protected void onResume() {
         super.onResume();
-        mHelperController = mApplicationContext.getApiServiceHelper().registerActivity(this, this);
+        mApplicationContext.getApiServiceHelper().registerActivity(this, this);
     }
 
     @Override
@@ -94,7 +93,7 @@ public class PreferencesActivity extends ApiActivity implements ApiServiceHelper
         }
         mCheckedHost = host;
         setCheckingState(true);
-        mHelperController.getApiInfo(mCheckedHost);
+        mServiceHelperController.getApiInfo(mCheckedHost);
     }
 
     @Override

@@ -50,4 +50,8 @@ public abstract class ApiActivity extends FragmentActivity {
         super.onDestroy();
         mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONDESTROY);
     }
+
+    public void setServiceHelperController(ApiServiceHelper.Controller controller) {
+        mServiceHelperController = controller;
+    }
 }
