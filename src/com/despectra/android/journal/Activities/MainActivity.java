@@ -1,39 +1,36 @@
 package com.despectra.android.journal.Activities;
 
-import android.app.*;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
-import android.database.Cursor;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.BaseColumns;
 import android.support.v4.app.*;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Data.MainProvider;
 import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
 import com.despectra.android.journal.Fragments.MainPageFragment;
+import com.despectra.android.journal.Model.DaySchedule;
+import com.despectra.android.journal.Model.WeekSchedule;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.Server.APICodes;
 import com.despectra.android.journal.Server.ServerAPI;
 import com.despectra.android.journal.Services.ApiServiceHelper;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
+import java.util.Scanner;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -64,7 +61,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     public static final String KEY_SELECTED_DRAWER_ITEM = "selectedDrawer";
     public static final String KEY_AB_TITLE = "actionBarTitle";
     public static final String KEY_STATUS = "status";
-    private static final String TAG = "MAIN_ACTIVITY";
+    private static final String TAG = "MainActivity";
 
     /*private MainPageFragment mEventsFragment;
     private JournalFragment mJournalFragment;*/
@@ -127,7 +124,41 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag);
         ft.commit();
+
+
+        testWeekSchedFromJson();
     }
+
+    private void testSchedFromJson() {
+        try {
+            Scanner scanner = new Scanner(getApplicationContext().getResources().openRawResource(R.raw.dayschedule));
+            StringBuilder stringBuilder = new StringBuilder();
+            while (scanner.hasNext()) {
+                stringBuilder.append(scanner.nextLine());
+            }
+            JSONObject json = new JSONObject(stringBuilder.toString());
+            DaySchedule sched = DaySchedule.fromJson(json);
+            Log.v(TAG, sched.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void testWeekSchedFromJson() {
+        try {
+            Scanner scanner = new Scanner(getApplicationContext().getResources().openRawResource(R.raw.weekschedule));
+            StringBuilder stringBuilder = new StringBuilder();
+            while (scanner.hasNext()) {
+                stringBuilder.append(scanner.nextLine());
+            }
+            JSONObject json = new JSONObject(stringBuilder.toString());
+            WeekSchedule sched = WeekSchedule.fromJson(json);
+            Log.v(TAG, sched.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void onPostCreate(Bundle savedInstanceState) {

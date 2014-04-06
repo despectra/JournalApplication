@@ -5,9 +5,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by Dmitry on 05.04.14.
  */
@@ -26,12 +23,22 @@ public class DaySchedule {
         return items.get(lessonNum, null);
     }
 
-    public static DaySchedule fromJson(JSONArray jsonArray) throws JSONException{
+    public static DaySchedule fromJson(JSONObject json) throws JSONException{
         DaySchedule daySchedule = new DaySchedule();
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject lesson = jsonArray.getJSONObject(i);
+        JSONArray lessons = json.getJSONArray("lessons");
+        for (int i = 0; i < lessons.length(); i++) {
+            JSONObject lesson = lessons.getJSONObject(i);
             daySchedule.addItem(lesson.getInt("lessonNum"), ScheduleItem.fromJson(lesson));
         }
         return daySchedule;
+    }
+
+    @Override
+    public String toString() {
+        String repres = String.format("Lessons count: %d\nLessons: ", items.size());
+        for (int i = 0; i < items.size(); i++) {
+            repres += String.format("\n    No.%d, %s",items.keyAt(i), items.valueAt(i).toString());
+        }
+        return repres;
     }
 }

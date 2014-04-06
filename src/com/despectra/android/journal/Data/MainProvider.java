@@ -55,16 +55,10 @@ public class MainProvider extends ContentProvider {
     private SQLiteDatabase mDb;
 
     private String mDbName;
+    private String mLogin;
 
     @Override
     public boolean onCreate() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String currentLogin = prefs.getString(JournalApplication.PREFERENCE_KEY_LOGIN, "");
-        if (currentLogin.isEmpty()) {
-            return false;
-        }
-        mDbName = String.format("%s_db", currentLogin);
-        mDbHelper = new DBHelper(getContext(), mDbName);
         return true;
     }
 
@@ -89,7 +83,7 @@ public class MainProvider extends ContentProvider {
             default:
                 throw new IllegalStateException("Wrong URI while selecting: " + uri);
         }
-        mDb = mDbHelper.getReadableDatabase();
+        mDb = getDBHelper().getReadableDatabase();
         Cursor result = mDb.query(
                 tableName,
                 projection,
@@ -115,7 +109,7 @@ public class MainProvider extends ContentProvider {
             default:
                 throw new IllegalStateException("Wrong URI while inserting: " + uri);
         }
-        mDb = mDbHelper.getWritableDatabase();
+        mDb = getDBHelper().getWritableDatabase();
         long rowId = mDb.insert(
                 tableName,
                 null,
@@ -152,7 +146,7 @@ public class MainProvider extends ContentProvider {
             default:
                 throw new IllegalStateException("Wrong URI while updating: " + uri);
         }
-        mDb = mDbHelper.getWritableDatabase();
+        mDb = getDBHelper().getWritableDatabase();
         int affected = mDb.update(tableName, contentValues, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         return affected;
@@ -167,6 +161,20 @@ public class MainProvider extends ContentProvider {
                 return EVENT_CONTENT_ITEM_TYPE;
         }
         return null;
+    }
+
+    private DBHelper getDBHelper() {
+        String login = PreferenceManager
+                .getDefaultSharedPreferences(getContext())
+                .getString(JournalApplication.PREFERENCE_KEY_LOGIN, "");
+        if (login.isEmpty()) {
+            return null;
+        }
+        if (!login.equals(mLogin)) {
+            mDbHelper = new DBHelper(getContext(), login);
+            mLogin = login;
+        }
+        return mDbHelper;
     }
 
     private static class DBHelper extends SQLiteOpenHelper {

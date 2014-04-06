@@ -36,4 +36,9 @@ public class ScheduleItem {
                 json.getString("teacher")
         );
     }
+
+    @Override
+    public String toString() {
+        return String.format("\n........id: %d, subject: %s, group %s, teacher %s", id, subject, group, teacher);
+    }
 }

@@ -5,8 +5,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.IllegalFormatException;
-
 /**
  * Created by Dmitry on 05.04.14.
  */
@@ -50,15 +48,24 @@ public class WeekSchedule {
 
     public static WeekSchedule fromJson(JSONObject jsonObject) throws JSONException {
         WeekSchedule schedule = new WeekSchedule();
-        JSONArray days = jsonObject.getJSONArray("days");
+        JSONArray days = jsonObject.getJSONArray("weekSchedule");
         for (int i = 0; i < days.length(); i++) {
             JSONObject day = days.getJSONObject(i);
             int dayOfWeek = day.getInt("dayOfWeek");
             if(dayOfWeek < 0 || dayOfWeek > 6) {
                 throw new IllegalArgumentException("Wrong JSON data describing day of week");
             }
-            schedule.addDayItem(dayOfWeek, DaySchedule.fromJson(day.getJSONArray("lessons")));
+            schedule.addDayItem(dayOfWeek, DaySchedule.fromJson(day));
         }
         return schedule;
+    }
+
+    @Override
+    public String toString() {
+        String repres = String.format("WeekScheule: items count: %d", dayItems.size());
+        for (int i = 0; i < dayItems.size(); i++) {
+            repres += String.format("\n....Day: %d, %s", dayItems.keyAt(i), dayItems.valueAt(i).toString());
+        }
+        return repres;
     }
 }
