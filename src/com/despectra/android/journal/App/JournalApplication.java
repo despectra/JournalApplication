@@ -33,13 +33,14 @@ public class JournalApplication extends Application {
     public static final int ONDESTROY = 5;
 
     private Map<String, Integer> mActivitiesStates;
+    private Map<String, Integer> mFragmentsStates;
 
     @Override
     public void onCreate() {
         super.onCreate();
     }
 
-    public void activityStateChanged(String activityName, int state) {
+    public void lifecycleStateChanged(String activityName, int state) {
         if (mActivitiesStates == null) {
             mActivitiesStates = new HashMap<String, Integer>(32);
         }
@@ -49,6 +50,10 @@ public class JournalApplication extends Application {
             Log.v(TAG, curState.toString());
         }
         //
+    }
+
+    public void fragmentStateChanged(String fragmentName, int state) {
+
     }
 
     public int getActivityState(String activityName) {

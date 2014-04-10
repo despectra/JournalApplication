@@ -5,9 +5,16 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.DropBoxManager;
+import android.util.SparseArray;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by Dmitry on 01.04.14.
@@ -16,64 +23,111 @@ public class ProviderUpdater {
 
     // insert new, update existing
     public static final int MODE_APPEND = 0;
-    //insert new, update existing, delete nonexistent
+    //insert new, update existing, delete non-existing
     public static final int MODE_REPLACE = 1;
 
     private Context mContext;
+    private ContentResolver mResolver;
     private String mProviderUri;
 
     public ProviderUpdater(Context context, String providerUri) {
         mContext = context;
+        mResolver = mContext.getContentResolver();
         mProviderUri = providerUri;
     }
 
-    public void updateTableWithRows(String table, ContentValues[] rows) {
-
-    }
-
-    public void updateTableWithJSONArray(String table,
+    public void updateTableWithJSONArray(int updatingMode,
+                                         String table,
                                          JSONArray json,
                                          String[] from,
                                          String[] to,
                                          String primaryInJson,
                                          String primaryInTable) throws JSONException {
-        ContentResolver resolver = mContext.getContentResolver();
         String tableUri = mProviderUri + "/" + table;
-        for (int i = 0; i < json.length(); i++) {
-            JSONObject element = json.getJSONObject(i);
-            int id = element.getInt(primaryInJson);
-            String checkingUri = String.format("%s/%d", tableUri, id);
-            Cursor lookUpRow = resolver.query(Uri.parse(checkingUri), new String[]{primaryInTable}, null, null, null);
-            int count = lookUpRow.getCount();
-            if (count >= 0) {
-                ContentValues row = new ContentValues();
-                for (int j = 0; j < from.length; j++) {
-                    try {
-                        row.put(to[j], element.getString(from[j]));
-                    } catch(JSONException ex1) {
-                        try {
-                            row.put(to[j], element.getInt(from[j]));
-                        } catch (JSONException ex2) {
-                            try {
-                                row.put(to[j], element.getLong(from[j]));
-                            } catch (JSONException ex3) {
-                                //nothing here.. SUppose, it's unreachable
-                            }
-                        }
-                    }
-                }
-
-                if (count == 0) {
-                    //insert new
-                    resolver.insert(Uri.parse(tableUri), row);
-                    ;
-                } else if (count == 1) {
-                    //update existing
-                    resolver.update(Uri.parse(checkingUri), row, null, null);
-                    ;
-                }
-            }
-
+        Map<Long, Void> localRows = new HashMap<Long, Void>();
+        Map<Long, JSONObject> jsonRows = new HashMap<Long, JSONObject>();
+        Cursor allRows = mResolver.query(Uri.parse(tableUri), new String[]{primaryInTable}, null, null, null);
+        if (allRows.moveToFirst()) {
+            do {
+                localRows.put(allRows.getLong(0), null);
+            } while(allRows.moveToNext());
         }
+
+        for (int i = 0; i < json.length(); i++) {
+            jsonRows.put(json.getJSONObject(i).getLong(primaryInJson), json.getJSONObject(i));
+        }
+
+        //update existing
+        Iterator localRowsIt = localRows.entrySet().iterator();
+        while(localRowsIt.hasNext()) {
+            Map.Entry<Long, Void> row = (Map.Entry<Long, Void>)localRowsIt.next();
+            long key = row.getKey();
+            if (jsonRows.containsKey(key)) {
+                updateSingleRow(tableUri, String.format("%s = %d", primaryInTable, key), jsonRows.get(key), from, to);
+                localRowsIt.remove();
+                jsonRows.remove(key);
+            }
+        }
+        //insert new
+        Iterator jsonRowsIt = jsonRows.entrySet().iterator();
+        while(jsonRowsIt.hasNext()) {
+            Map.Entry<Long, JSONObject> row = (Map.Entry<Long, JSONObject>)jsonRowsIt.next();
+            insertNewRow(tableUri, row.getValue(), from, to);
+            jsonRowsIt.remove();
+        }
+        if (updatingMode == MODE_REPLACE) {
+            //delete non-existing
+            for (Map.Entry<Long, Void> row : localRows.entrySet()) {
+                long key = row.getKey();
+                mResolver.delete(Uri.parse(tableUri), String.format("%s = %d", primaryInTable, key), null);
+            }
+        }
+    }
+
+    private void insertNewRow(String tableUri, JSONObject jsonRow, String[] from, String[] to) throws JSONException {
+        ContentValues data = getContentValuesFromJson(jsonRow, from, to);
+        mResolver.insert(Uri.parse(tableUri), data);
+    }
+
+    private void updateSingleRow(String tableUri, String where, JSONObject jsonData, String[] from, String[] to) throws JSONException {
+        ContentValues data = getContentValuesFromJson(jsonData, from, to);
+        mResolver.update(Uri.parse(tableUri), data, where, null);
+    }
+
+    private ContentValues getContentValuesFromJson(JSONObject json, String[] from, String[] to) throws JSONException {
+        ContentValues data = new ContentValues();
+        for (int i = 0; i < from.length; i++) {
+            data.put(to[i], json.getString(from[i]));
+        }
+        return data;
+    }
+
+    public long insertTempRow(String table, ContentValues data) {
+        data.put(Contract.FIELD_ENTITY_STATUS, Contract.STATUS_INSERTING);
+        Uri result = mResolver.insert(
+                Uri.parse(mProviderUri + "/" + table),
+                data
+        );
+        return Long.valueOf(result.getLastPathSegment());
+    }
+
+    public void persistTempRow(String table, long localId, long remoteId) {
+        ContentValues data = new ContentValues();
+        data.put(Contract.FIELD_REMOTE_ID, remoteId);
+        data.put(Contract.FIELD_ENTITY_STATUS, Contract.STATUS_IDLE);
+        mResolver.update(
+                Uri.parse(mProviderUri + "/" + table),
+                data,
+                "_id = " + localId,
+                null
+        );
+    }
+
+    public void markRowAsUpdating(String table, long localId) {
+
+    }
+
+    public void markRowAsDeleting(String table, long localId) {
+
     }
 }

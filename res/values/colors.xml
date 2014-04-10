@@ -12,10 +12,14 @@
     <color name="lighten">#aaffffff</color>
     
     <color name="lesson_completed_background">#77e6e6e6</color>
-    <color name="lesson_current_background">#669af588</color>
+    <color name="lesson_current_background">#799af588</color>
     <color name="lesson_current_stroke">#ff9af588</color>
     <color name="lesson_future_background">#77c0dff5</color>
     <color name="lesson_future_stroke">#ccc0dff5</color>
+
+    <color name="item_updating">#7fdfd728</color>
+    <color name="item_inserting">@color/lesson_current_background</color>
+    <color name="item_deleting">#8fdf0a00</color>
 
     <color name="pressed_list_item_bg">#9933b5e5</color>
 </resources>

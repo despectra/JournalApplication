@@ -1,8 +1,6 @@
 package com.despectra.android.journal.Activities;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Services.ApiServiceHelper;
@@ -10,7 +8,7 @@ import com.despectra.android.journal.Services.ApiServiceHelper;
 /**
  * Created by Dmitry on 28.03.14.
  */
-public abstract class ApiActivity extends FragmentActivity {
+public abstract class AbstractApiActivity extends FragmentActivity implements ApiServiceHelper.Callback, ApiServiceHelper.ApiClient {
     JournalApplication mApplicationContext;
     ApiServiceHelper.Controller mServiceHelperController;
 
@@ -18,40 +16,46 @@ public abstract class ApiActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mApplicationContext = (JournalApplication) getApplicationContext();
-        mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONCREATE);
+        mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONCREATE);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONSTART);
+        mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONSTART);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONRESUME);
+        mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONRESUME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONPAUSE);
+        mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONPAUSE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONSTOP);
+        mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONSTOP);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mApplicationContext.activityStateChanged(getClass().getSimpleName(), JournalApplication.ONDESTROY);
+        mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONDESTROY);
     }
 
+    @Override
     public void setServiceHelperController(ApiServiceHelper.Controller controller) {
         mServiceHelperController = controller;
+    }
+
+    @Override
+    public String getClientName() {
+        return getClass().getSimpleName();
     }
 }

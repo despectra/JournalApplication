@@ -16,6 +16,10 @@ public class SimpleInfoDialog extends DialogFragment {
     private String mTitle;
     private String mMessage;
 
+    public SimpleInfoDialog() {
+        super();
+    }
+
     public static SimpleInfoDialog newInstance(String title, String message) {
         SimpleInfoDialog dialog = new SimpleInfoDialog();
         Bundle args = new Bundle();

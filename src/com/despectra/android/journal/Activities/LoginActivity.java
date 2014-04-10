@@ -22,8 +22,9 @@ import org.json.JSONObject;
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class LoginActivity extends ApiActivity implements TextView.OnEditorActionListener, ApiServiceHelper.Callback {
+public class LoginActivity extends AbstractApiActivity implements TextView.OnEditorActionListener, ApiServiceHelper.Callback {
     private static final String KEY_STATUS = "isLogging";
+    public static final String KEY_LOGIN = "login";
 
     public static final String PROGRESS_DIALOG_TAG = "progressDialog";
     public static final String ERROR_DIALOG_TAG = "errorDialog";
@@ -60,18 +61,19 @@ public class LoginActivity extends ApiActivity implements TextView.OnEditorActio
     @Override
     protected void onResume() {
         super.onResume();
-        mApplicationContext.getApiServiceHelper().registerActivity(this, this);
+        mApplicationContext.getApiServiceHelper().registerClient(this, this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterActivity(this);
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putString(KEY_LOGIN, mLogin);
         outState.putInt(KEY_STATUS, mLoggingStatus);
     }
 
@@ -92,6 +94,7 @@ public class LoginActivity extends ApiActivity implements TextView.OnEditorActio
         }
         if (savedState != null) {
             mLoggingStatus = savedState.getInt(KEY_STATUS);
+            mLogin = savedState.getString(KEY_LOGIN);
             updateProgressDialogMessage();
         }
 

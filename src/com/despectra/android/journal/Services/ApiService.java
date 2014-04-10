@@ -1,12 +1,14 @@
 package com.despectra.android.journal.Services;
 
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.*;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.Data.Contract;
 import com.despectra.android.journal.Data.MainProvider;
 import com.despectra.android.journal.Data.ProviderUpdater;
 import com.despectra.android.journal.Server.APICodes;
@@ -62,7 +64,7 @@ public class ApiService extends Service {
                 mServiceHelper.onServiceResponse(response.senderTag, response.action);
             }
         };
-        mUpdater = new ProviderUpdater(getApplicationContext(), MainProvider.STRING_URI);
+        mUpdater = new ProviderUpdater(getApplicationContext(), Contract.STRING_URI);
     }
 
     @Override
@@ -88,6 +90,9 @@ public class ApiService extends Service {
                 try {
                     JSONObject data = new JSONObject();
                     response.senderTag = senderTag;
+                    for (int i = 0; i < parameters.length; i++) {
+                        parameters[i] = parameters[i].replaceAll("\"", "\\\"");
+                    }
                     switch (apiActionCode) {
                         case APICodes.ACTION_LOGIN:
                             data = mServer.login(parameters[0], parameters[1]);
@@ -108,7 +113,8 @@ public class ApiService extends Service {
                             data = mServer.getEvents(parameters[0], String.valueOf(parameters[1]), String.valueOf(parameters[2]));
                             if (data.has("events")) {
                                 mUpdater.updateTableWithJSONArray(
-                                            MainProvider.TABLE_EVENTS,
+                                            ProviderUpdater.MODE_APPEND,
+                                            Contract.Events.TABLE,
                                             data.getJSONArray("events"),
                                             new String[]{"id", "text", "datetime"},
                                             new String[]{"_id", "text", "datetime"},
@@ -116,16 +122,36 @@ public class ApiService extends Service {
                                             "_id"
                                         );
                             }
-                            /*JSONArray events = data.getJSONArray("events");
-                            ArrayList<ContentValues> toInsert = new ArrayList<ContentValues>();
-                            for (int i = 0; i < events.length(); i++) {
-                                JSONObject event = events.getJSONObject(i);
-                                ContentValues newEvent = new ContentValues();
-                                newEvent.put(BaseColumns._ID, event.getLong("id"));
-                                newEvent.put("text", event.getString("text"));
-                                newEvent.put("datetime", event.getString("datetime"));
-                                toInsert.add(newEvent);
-                            }*/
+                            break;
+                        case APICodes.ACTION_ADD_GROUP:
+                            ContentValues group = new ContentValues();
+                            group.put("name", parameters[1]);
+                            if (parameters[2] == null) {
+                                parameters[2] = "0";
+                            }
+                            group.put("parent_id", parameters[2]);
+                            long localId = mUpdater.insertTempRow("groups", group);
+                            //########   FOR DEBUG ########################
+                            SystemClock.sleep(30000);
+                            //##############################################
+                            data = mServer.addGroup(parameters[0], parameters[1], parameters[2]);
+                            if (data.has("group_id")) {
+                                mUpdater.persistTempRow("groups", localId, data.getLong("group_id"));
+                            }
+                            break;
+                        case APICodes.ACTION_GET_GROUPS:
+                            data = mServer.getGroups(parameters[0], parameters[1], parameters[2], parameters[3]);
+                            if (data.has("groups")) {
+                                mUpdater.updateTableWithJSONArray(
+                                        ProviderUpdater.MODE_REPLACE,
+                                        Contract.Groups.TABLE,
+                                        data.getJSONArray("groups"),
+                                        new String[]{"id", "name", "parent_id"},
+                                        new String[]{"remote_id", "name", "parent_id"},
+                                        "id",
+                                        "remote_id"
+                                );
+                            }
                             break;
                     }
                     response.action = new ApiServiceHelper.ApiAction(apiActionCode, data);

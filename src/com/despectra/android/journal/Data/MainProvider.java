@@ -11,45 +11,21 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 import com.despectra.android.journal.App.JournalApplication;
-
-import java.sql.SQLException;
+import org.apache.http.auth.AUTH;
 
 /**
  * Created by Dmitry on 01.04.14.
  */
 public class MainProvider extends ContentProvider {
-    //base
-    public static final String AUTHORITY = JournalApplication.PACKAGE + ".provider";
-    public static final String STRING_URI = "content://" + AUTHORITY;
 
-    //tables
-    public static final String TABLE_EVENTS = "events";
-
-    //fields
-    public static final String EVENTS_ID = BaseColumns._ID;
-    public static final String EVENTS_TEXT = "text";
-    public static final String EVENTS_DATETIME = "datetime";
-
-    //URIs
-    public static final Uri EVENTS_URI = Uri.parse(STRING_URI + "/" + TABLE_EVENTS);
-
-    //data types
-    public static final String DIR_VND = "vnd.android.cursor.dir/vnd.";
-    public static final String ITEM_VND = "vnd.android.cursor.item/vnd.";
-
-    public static final String EVENT_CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE_EVENTS;
-    public static final String EVENT_CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE_EVENTS;
-
-    //URIMatcher
-    public static final int URI_EVENT = 1;
-    public static final int URI_EVENT_ID = 2;
     private static final UriMatcher mMatcher;
     static {
         mMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        mMatcher.addURI(AUTHORITY, TABLE_EVENTS, URI_EVENT);
-        mMatcher.addURI(AUTHORITY, TABLE_EVENTS + "/#", URI_EVENT_ID);
+        mMatcher.addURI(Contract.AUTHORITY, Contract.Events.TABLE, Contract.Events.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, Contract.Events.TABLE + "/#", Contract.Events.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, Contract.Groups.TABLE, Contract.Groups.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, Contract.Groups.TABLE + "/#", Contract.Groups.ID_URI_CODE);
     }
-
 
     private DBHelper mDbHelper;
     private SQLiteDatabase mDb;
@@ -65,20 +41,31 @@ public class MainProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         String tableName;
+        Uri notificationUri;
         switch (mMatcher.match(uri)) {
-            case URI_EVENT:
-                tableName = TABLE_EVENTS;
+            case Contract.Events.URI_CODE:
+                tableName = Contract.Events.TABLE;
+                notificationUri = Contract.Events.URI;
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = EVENTS_DATETIME + " DESC";
+                    sortOrder = Contract.Events.FIELD_DATETIME + " DESC";
                 }
                 break;
-            case URI_EVENT_ID:
-                tableName = TABLE_EVENTS;
-                String id = uri.getLastPathSegment();
-                if (selection == null) {
-                    selection = "";
+            case Contract.Events.ID_URI_CODE:
+                tableName = Contract.Events.TABLE;
+                notificationUri = Contract.Events.URI;
+                selection = prepareWhereClauseWithId(selection, uri.getLastPathSegment());
+                break;
+            case Contract.Groups.URI_CODE:
+                tableName = Contract.Groups.TABLE;
+                notificationUri = Contract.Groups.URI;
+                if (TextUtils.isEmpty(sortOrder)) {
+                    sortOrder = Contract.Groups.FIELD_NAME + " ASC";
                 }
-                selection += ( !TextUtils.isEmpty(selection) ? " AND " : "") + EVENTS_ID + " = " + id;
+                break;
+            case Contract.Groups.ID_URI_CODE:
+                tableName = Contract.Groups.TABLE;
+                notificationUri = Contract.Groups.URI;
+                selection = prepareWhereClauseWithId(selection, uri.getLastPathSegment());
                 break;
             default:
                 throw new IllegalStateException("Wrong URI while selecting: " + uri);
@@ -94,7 +81,7 @@ public class MainProvider extends ContentProvider {
                 sortOrder,
                 null
         );
-        result.setNotificationUri(getContext().getContentResolver(), EVENTS_URI);
+        result.setNotificationUri(getContext().getContentResolver(), notificationUri);
         return result;
     }
 
@@ -102,9 +89,13 @@ public class MainProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues contentValues) {
         String tableName;
         switch (mMatcher.match(uri)) {
-            case URI_EVENT:
-            case URI_EVENT_ID:
-                tableName = TABLE_EVENTS;
+            case Contract.Events.URI_CODE:
+            case Contract.Events.ID_URI_CODE:
+                tableName = Contract.Events.TABLE;
+                break;
+            case Contract.Groups.URI_CODE:
+            case Contract.Groups.ID_URI_CODE:
+                tableName = Contract.Groups.TABLE;
                 break;
             default:
                 throw new IllegalStateException("Wrong URI while inserting: " + uri);
@@ -125,29 +116,36 @@ public class MainProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        return updateOrDelete(false, uri, null, selection, selectionArgs);
     }
 
     @Override
     public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+        return updateOrDelete(true, uri, contentValues, selection, selectionArgs);
+    }
+
+    private int updateOrDelete(boolean doUpdate, Uri uri, ContentValues dataForUpdate, String selection, String[] selectionArgs) {
         String tableName;
         switch (mMatcher.match(uri)) {
-            case URI_EVENT:
-                tableName = TABLE_EVENTS;
+            case Contract.Events.URI_CODE:
+                tableName = Contract.Events.TABLE;
                 break;
-            case URI_EVENT_ID:
-                tableName = TABLE_EVENTS;
-                String id = uri.getLastPathSegment();
-                if (selection == null) {
-                    selection = "";
-                }
-                selection += ( selection != null && !TextUtils.isEmpty(selection) ? " AND " : "") + EVENTS_ID + " = " + id;
+            case Contract.Events.ID_URI_CODE:
+                tableName = Contract.Events.TABLE;
+                selection = prepareWhereClauseWithId(selection, uri.getLastPathSegment());
+                break;
+            case Contract.Groups.URI_CODE:
+                tableName = Contract.Groups.TABLE;
+                break;
+            case Contract.Groups.ID_URI_CODE:
+                tableName = Contract.Groups.TABLE;
+                selection = prepareWhereClauseWithId(selection, uri.getLastPathSegment());
                 break;
             default:
                 throw new IllegalStateException("Wrong URI while updating: " + uri);
         }
         mDb = getDBHelper().getWritableDatabase();
-        int affected = mDb.update(tableName, contentValues, selection, selectionArgs);
+        int affected = (doUpdate) ? mDb.update(tableName, dataForUpdate, selection, selectionArgs) : mDb.delete(tableName, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         return affected;
     }
@@ -155,10 +153,14 @@ public class MainProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         switch (mMatcher.match(uri)) {
-            case URI_EVENT:
-                return EVENT_CONTENT_TYPE;
-            case URI_EVENT_ID:
-                return EVENT_CONTENT_ITEM_TYPE;
+            case Contract.Events.URI_CODE:
+                return Contract.Events.CONTENT_TYPE;
+            case Contract.Events.ID_URI_CODE:
+                return Contract.Events.CONTENT_ITEM_TYPE;
+            case Contract.Groups.URI_CODE:
+                return Contract.Groups.CONTENT_TYPE;
+            case Contract.Groups.ID_URI_CODE:
+                return Contract.Groups.CONTENT_ITEM_TYPE;
         }
         return null;
     }
@@ -177,6 +179,17 @@ public class MainProvider extends ContentProvider {
         return mDbHelper;
     }
 
+    private String prepareWhereClauseWithId(String selection, String id) {
+        if (selection == null) {
+            selection = "";
+        }
+        if (!TextUtils.isEmpty(selection)) {
+            selection += " AND ";
+        }
+        selection += "_id = " + id;
+        return selection;
+    }
+
     private static class DBHelper extends SQLiteOpenHelper {
 
         public static final int VERSION = 1;
@@ -186,6 +199,14 @@ public class MainProvider extends ContentProvider {
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "text TEXT, " +
                 "datetime DATETIME NOT NULL)";
+
+        public static final String CREATE_TABLE_GROUPS = "" +
+                "CREATE TABLE IF NOT EXISTS groups (" +
+                "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "remote_id INTEGER DEFAULT 0 NOT NULL," +
+                "name TEXT," +
+                "parent_id INTEGER DEFAULT 0 NOT NULL," +
+                "entity_status INTEGER DEFAULT 0 NOT NULL)";
 
         private String mName;
 
@@ -197,6 +218,7 @@ public class MainProvider extends ContentProvider {
         @Override
         public void onCreate(SQLiteDatabase sqLiteDatabase) {
             sqLiteDatabase.execSQL(CREATE_TABLE_EVENTS);
+            sqLiteDatabase.execSQL(CREATE_TABLE_GROUPS);
         }
 
         @Override

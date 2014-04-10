@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import com.despectra.android.journal.Activities.ApiActivity;
+import com.despectra.android.journal.Activities.AbstractApiActivity;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Server.APICodes;
 
@@ -20,13 +20,13 @@ public class ApiServiceHelper {
     private ServiceConnection mServiceConnection;
     private ApiService.ApiServiceBinder mServiceBinder;
     private boolean mBound;
-    private Map<String, RegisteredActivityHolder> mRegisteredActivities;
+    private Map<String, RegisteredClientHolder> mRegisteredClients;
 
     private static ApiServiceHelper mInstance;
 
     private ApiServiceHelper() {
         mBound = false;
-        mRegisteredActivities = new HashMap<String, RegisteredActivityHolder>(32);
+        mRegisteredClients = new HashMap<String, RegisteredClientHolder>(32);
     }
 
     public synchronized static ApiServiceHelper newInstance(Context context) {
@@ -41,37 +41,32 @@ public class ApiServiceHelper {
         mAppContext = context;
     }
 
-    public void registerActivity(ApiActivity activity, Callback callback) {
-        String activityName = activity.getClass().getSimpleName();
-        //УБРАТЬ КАК МОЖНО СКОРЕЕ
-        if (callback == null) {
-            callback = (Callback) activity;
-        }
-        //ЭТОТ КОШМАР
-        RegisteredActivityHolder holder = null;
-        if (mRegisteredActivities.containsKey(activityName)) {
-            holder = mRegisteredActivities.get(activityName);
+    public void registerClient(ApiClient client, Callback callback) {
+        String name = client.getClientName();
+        RegisteredClientHolder holder;
+        if (mRegisteredClients.containsKey(name)) {
+            holder = mRegisteredClients.get(name);
             holder.setCallback(callback);
         } else {
-            holder = new RegisteredActivityHolder(callback);
-            mRegisteredActivities.put(activityName, holder);
+            holder = new RegisteredClientHolder(callback);
+            mRegisteredClients.put(name, holder);
         }
-        activity.setServiceHelperController(new ActivityController(activityName));
-        notifyCompletedActions(activityName);
+        client.setServiceHelperController(new BaseClientController(name));
+        notifyCompletedActions(name);
     }
 
-    public void unregisterActivity(ApiActivity activity) {
-        String activityName = activity.getClass().getSimpleName();
-        RegisteredActivityHolder holder = mRegisteredActivities.get(activityName);
+    public void unregisterClient(ApiClient client) {
+        String activityName = client.getClientName();
+        RegisteredClientHolder holder = mRegisteredClients.get(activityName);
         if (holder != null) {
             holder.setCallback(null);
         }
     }
 
-    private void notifyCompletedActions(String activityName) {
-        int activityState = ((JournalApplication) mAppContext).getActivityState(activityName);
+    private void notifyCompletedActions(String clientName) {
+        int activityState = ((JournalApplication) mAppContext).getActivityState(clientName);
         if (activityState == JournalApplication.ONRESUME) {
-            RegisteredActivityHolder holder = mRegisteredActivities.get(activityName);
+            RegisteredClientHolder holder = mRegisteredClients.get(clientName);
             Queue<ApiAction> completedActions = holder.completedActions;
             if (completedActions != null && completedActions.size() > 0) {
                 Callback callback = holder.callback;
@@ -85,16 +80,27 @@ public class ApiServiceHelper {
         }
     }
 
+    private int hasRunningActionForClient(String clientName) {
+        RegisteredClientHolder holder = mRegisteredClients.get(clientName);
+        if (holder.runningAction != null) {
+            return holder.runningAction.apiCode;
+        } else {
+            return -1;
+        }
+    }
+
     private void runAllPendingActions(String senderTag) {
-        RegisteredActivityHolder holder = mRegisteredActivities.get(senderTag);
+        RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
         if (holder.runningAction != null) {
             return;
         }
-        mService.processApiAction(senderTag, holder.pendingActions.poll());
+        ApiAction startingAction = holder.pendingActions.poll();
+        holder.runningAction = startingAction;
+        mService.processApiAction(senderTag, startingAction);
     }
 
     private void tryRunApiAction(String senderTag, ApiAction action) {
-        RegisteredActivityHolder holder = mRegisteredActivities.get(senderTag);
+        RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
         if (holder.runningAction != null || !mBound) {
             ApiAction actionBefore;
             if (holder.runningAction != null) {
@@ -155,7 +161,7 @@ public class ApiServiceHelper {
     }
 
     public final void onServiceResponse(String senderTag, ApiAction action) {
-        RegisteredActivityHolder holder = mRegisteredActivities.get(senderTag);
+        RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
         holder.runningAction = null;
         Queue<ApiAction> completedActions = holder.completedActions;
         completedActions.offer(action);
@@ -166,50 +172,75 @@ public class ApiServiceHelper {
         }
     }
 
-    private class ActivityController implements Controller {
-        private String mActivityName;
+    private class BaseClientController implements Controller {
+        private String mClientName;
 
-        public ActivityController(String activityName) {
-            mActivityName = activityName;
+        public BaseClientController(String activityName) {
+            mClientName = activityName;
         }
 
-        public String getActivityName() {
-            return mActivityName;
+        @Override
+        public int hasRunningAction() {
+            return hasRunningActionForClient(mClientName);
         }
 
         @Override
         public void login(String login, String passwd) {
-            runApiQuery(mActivityName, APICodes.ACTION_LOGIN, login, passwd);
+            runApiQuery(mClientName, APICodes.ACTION_LOGIN, login, passwd);
         }
 
         @Override
         public void logout(String token) {
-            runApiQuery(mActivityName, APICodes.ACTION_LOGOUT, token);
+            runApiQuery(mClientName, APICodes.ACTION_LOGOUT, token);
         }
 
         @Override
         public void getApiInfo(String host) {
-            runApiQuery(mActivityName, APICodes.ACTION_GET_INFO, host);
+            runApiQuery(mClientName, APICodes.ACTION_GET_INFO, host);
         }
 
         @Override
         public void getMinProfile(String token) {
-            runApiQuery(mActivityName, APICodes.ACTION_GET_MIN_PROFILE, token);
+            runApiQuery(mClientName, APICodes.ACTION_GET_MIN_PROFILE, token);
         }
 
         @Override
         public void getEvents(String token, int offset, int count) {
-            runApiQuery(mActivityName, APICodes.ACTION_GET_EVENTS, token, String.valueOf(offset), String.valueOf(count));
+            runApiQuery(mClientName, APICodes.ACTION_GET_EVENTS, token, String.valueOf(offset), String.valueOf(count));
+        }
+
+        @Override
+        public void getAllEvents(String token) {
+            getEvents(token, 0, 0);
+        }
+
+        @Override
+        public void addGroup(String token, String name, long parentId) {
+            runApiQuery(mClientName, APICodes.ACTION_ADD_GROUP, token, name, String.valueOf(parentId));
+        }
+
+        @Override
+        public void getAllGroups(String token, long parentGroupId) {
+            getGroups(token, parentGroupId, 0, 0);
+        }
+
+        @Override
+        public void getGroups(String token, long parentGroupId, int offset, int count) {
+            runApiQuery(mClientName, APICodes.ACTION_GET_GROUPS,
+                    token,
+                    String.valueOf(parentGroupId),
+                    String.valueOf(offset),
+                    String.valueOf(count));
         }
     }
 
-    private class RegisteredActivityHolder {
+    private class RegisteredClientHolder {
         public Deque<ApiAction> pendingActions;
         public ApiAction runningAction;
         public Deque<ApiAction> completedActions;
         public Callback callback;
 
-        public RegisteredActivityHolder(Callback callback) {
+        public RegisteredClientHolder(Callback callback) {
             this.callback = callback;
             pendingActions = new LinkedList<ApiAction>();
             completedActions = new LinkedList<ApiAction>();
@@ -241,11 +272,22 @@ public class ApiServiceHelper {
     }
 
     public interface Controller {
+        public int hasRunningAction();
+
         public void login(String login, String passwd);
         public void logout(String token);
         public void getApiInfo(String host);
         public void getMinProfile(String token);
         public void getEvents(String token, int offset, int count);
+        public void getAllEvents(String token);
+        public void addGroup(String token, String name, long parentId);
+        public void getAllGroups(String token, long parentGroupId);
+        public void getGroups(String token, long parentGroupId, int offset, int count);
+    }
+
+    public interface ApiClient {
+        public void setServiceHelperController(Controller controller);
+        public String getClientName();
     }
 
     public interface Callback {

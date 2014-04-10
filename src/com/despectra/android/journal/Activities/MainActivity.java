@@ -4,58 +4,55 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.*;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.Dialogs.SimpleInfoDialog;
 import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
+import com.despectra.android.journal.Fragments.GroupsFragment;
 import com.despectra.android.journal.Fragments.MainPageFragment;
-import com.despectra.android.journal.Model.DaySchedule;
-import com.despectra.android.journal.Model.WeekSchedule;
+import com.despectra.android.journal.Fragments.StaffFragment;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.Server.APICodes;
 import com.despectra.android.journal.Server.ServerAPI;
 import com.despectra.android.journal.Services.ApiServiceHelper;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
-import java.util.Scanner;
 
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class MainActivity extends ApiActivity implements AdapterView.OnItemClickListener,
-        ApiServiceHelper.Callback {
+public class MainActivity extends AbstractApiActivity implements AdapterView.OnItemClickListener {
 
     public static final String[] USER_DATA_PREFS_KEYS = new String[]{"token", "uid", "name", "surname", "middlename", "level", "avatar"};
 
     public static final int ACTION_EVENTS = 1;
-    public static final int ACTION_JOURNAL = 2;
-    public static final int ACTION_SCHEDULE = 3;
-    public static final int ACTION_GROUPS = 4;
-    public static final int ACTION_SETTINGS = 5;
-    public static final int ACTION_ABOUT = 6;
+    public static final int ACTION_STAFF = 2;
+    public static final int ACTION_GROUPS = 3;
+    public static final int ACTION_JOURNAL = 4;
+    public static final int ACTION_SCHEDULE = 5;
+    public static final int ACTION_SETTINGS = 6;
+    public static final int ACTION_ABOUT = 7;
 
     public static final int STATUS_IDLE = 0;
     public static final int STATUS_LOGGING_OUT = 1;
-
-
 
     public static final String PROGRESS_DIALOG_TAG = "progressDialog";
     public static final String FRAGMENT_EVENTS = "EventsFragment";
     public static final String FRAGMENT_JOURNAL = "JournalFragment";
     private static final String FRAGMENT_SCHEDULE = "ScheduleFragment";
+    private static final String FRAGMENT_GROUPS = "GroupsFragment";
 
     public static final String KEY_CUR_FRAGMENT = "curFragment";
     public static final String KEY_SELECTED_DRAWER_ITEM = "selectedDrawer";
@@ -63,11 +60,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     public static final String KEY_STATUS = "status";
     private static final String TAG = "MainActivity";
 
-    /*private MainPageFragment mEventsFragment;
-    private JournalFragment mJournalFragment;*/
-
     private Fragment mCurrentFragment;
-
     private String mActionBarTitle;
     private String mCurrentFragmentTag;
     private String mToken;
@@ -116,20 +109,16 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
             mActionBarTitle = "Главная";
             mStatus = STATUS_IDLE;
             mLoadWall = true;
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag);
+            ft.commit();
         }
 
         restoreActionBar();
         restoreSpinnerDialog();
-
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag);
-        ft.commit();
-
-
-        testWeekSchedFromJson();
     }
 
-    private void testSchedFromJson() {
+    /*private void testSchedFromJson() {
         try {
             Scanner scanner = new Scanner(getApplicationContext().getResources().openRawResource(R.raw.dayschedule));
             StringBuilder stringBuilder = new StringBuilder();
@@ -157,7 +146,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
 
     @Override
@@ -169,17 +158,13 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     @Override
     protected void onResume() {
         super.onResume();
-        mApplicationContext.getApiServiceHelper().registerActivity(this, this);
-        if (mLoadWall) {
-            updateWall();
-            mLoadWall = false;
-        }
+        mApplicationContext.getApiServiceHelper().registerClient(this, this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterActivity(this);
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override
@@ -230,19 +215,16 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     }
 
     private Fragment restoreFragment(String savedFragmentTag) {
-        FragmentManager fm = getSupportFragmentManager();
+        FragmentManager fm = getFragmentManager();
         Fragment f = fm.findFragmentByTag(savedFragmentTag);
         if (f == null) {
             if (savedFragmentTag.equals(FRAGMENT_EVENTS)) {
                 f = new MainPageFragment();
+            } else if(savedFragmentTag.equals(FRAGMENT_GROUPS)) {
+                f = new GroupsFragment();
             }
         }
         return f;
-    }
-
-    private void updateWall() {
-        mServiceHelperController.getEvents(mToken, 0, 5);
-        ((MainPageFragment)mCurrentFragment).setWallStateLoading();
     }
 
     private void setStatus(int status) {
@@ -285,18 +267,25 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
             startActivity(intent);
             return;
         }
-
         mDrawer.setSelection(mSelectedDrawerItem);
         mSelectedDrawerItem = position;
-
-
-        /*switch(mSelectedDrawerItem) {
+        switch(mSelectedDrawerItem) {
+            case ACTION_STAFF:
+                mCurrentFragment = new StaffFragment();
+                mCurrentFragmentTag = StaffFragment.FRAGMENT_TAG;
+                mActionBarTitle = "Персонал";
+                break;
             case ACTION_EVENTS:
                 mCurrentFragment = new MainPageFragment();
                 mCurrentFragmentTag = FRAGMENT_EVENTS;
-                mActionBarTitle = "Стена";
+                mActionBarTitle = "Главная";
                 break;
-            case ACTION_JOURNAL:
+            case ACTION_GROUPS:
+                mCurrentFragment = new GroupsFragment();
+                mCurrentFragmentTag = GroupsFragment.FRAGMENT_TAG;
+                mActionBarTitle = "Классы";
+                break;
+            /*case ACTION_JOURNAL:
                 mCurrentFragment = new JournalFragment();
                 mCurrentFragmentTag = FRAGMENT_JOURNAL;
                 mActionBarTitle = "Журналы";
@@ -304,10 +293,10 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
             case ACTION_SCHEDULE:
                 mCurrentFragment = new ScheduleFragment();
                 mCurrentFragmentTag = FRAGMENT_SCHEDULE;
-                mActionBarTitle = "Расписание";
+                mActionBarTitle = "Расписание";*/
         }
         replaceCurrentFragment();
-        restoreActionBar();*/
+        restoreActionBar();
     }
 
     private void readNewPreferences() {
@@ -321,7 +310,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
 
     private void initDrawer() {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-        //MEGA HACK GOOGLE SUCK A DICK!!!
+        //MEGA HACK, GOOGLE SUCK A DICK!!!
         try {
             Field mDragger = mDrawerLayout.getClass().getDeclaredField("mLeftDragger");
             mDragger.setAccessible(true);
@@ -345,7 +334,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
         mDrawer.setAdapter(new ArrayAdapter<String>(
                 this,
                 R.layout.drawer_item,
-                new String[]{"События", "Журнал", "Расписание", "Классы", "Настройки", "О программе"}
+                new String[]{"Главная", "Персонал", "Классы", "Журнал", "Расписание", "Настройки", "О программе"}
         ));
         mDrawer.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
         mDrawer.setOnItemClickListener(this);
@@ -370,7 +359,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
     }
 
     private void replaceCurrentFragment() {
-        getSupportFragmentManager()
+        getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
@@ -381,6 +370,7 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
         PreferenceManager.getDefaultSharedPreferences(this)
                 .edit()
                 .remove(JournalApplication.PREFERENCE_KEY_TOKEN)
+                .remove(JournalApplication.PREFERENCE_KEY_LOGIN)
                 .remove(JournalApplication.PREFERENCE_KEY_NAME)
                 .remove(JournalApplication.PREFERENCE_KEY_MIDDLENAME)
                 .remove(JournalApplication.PREFERENCE_KEY_SURNAME)
@@ -414,9 +404,6 @@ public class MainActivity extends ApiActivity implements AdapterView.OnItemClick
                     } catch (Exception ex) {
                         respondError("Ошибка " + ex.getMessage());
                     }
-                    break;
-                case APICodes.ACTION_GET_EVENTS:
-                    ((MainPageFragment)mCurrentFragment).setWallStateIdle();
                     break;
             }
         }

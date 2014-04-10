@@ -10,4 +10,6 @@ public class APICodes {
     public static final int ACTION_GET_MIN_PROFILE = 3;
     public static final int ACTION_CHECK_TOKEN = 4;
     public static final int ACTION_GET_EVENTS = 5;
+    public static final int ACTION_ADD_GROUP = 6;
+    public static final int ACTION_GET_GROUPS = 7;
 }

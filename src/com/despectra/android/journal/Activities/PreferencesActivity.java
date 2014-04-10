@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class PreferencesActivity extends ApiActivity implements ApiServiceHelper.Callback {
+public class PreferencesActivity extends AbstractApiActivity implements ApiServiceHelper.Callback {
     public static final String KEY_CHEKING_STATE = "checking";
 
     public static final String PROGRESS_DIALOG_TAG = "checkingDialog";
@@ -50,13 +50,13 @@ public class PreferencesActivity extends ApiActivity implements ApiServiceHelper
     @Override
     protected void onResume() {
         super.onResume();
-        mApplicationContext.getApiServiceHelper().registerActivity(this, this);
+        mApplicationContext.getApiServiceHelper().registerClient(this, this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterActivity(this);
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override
@@ -133,6 +133,9 @@ public class PreferencesActivity extends ApiActivity implements ApiServiceHelper
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
             updateSummaries(getPreferenceScreen());
+            SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
+            String token = prefs.getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
+            findPreference(JournalApplication.PREFERENCE_KEY_HOST).setEnabled(token.isEmpty());
         }
 
         @Override

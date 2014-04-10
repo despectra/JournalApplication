@@ -185,6 +185,35 @@ public class ServerAPI {
         );
     }
 
+    public JSONObject addGroup(String token, String name, String parentId) throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("token", token);
+        json.put("name", name);
+        json.put("parent_id", parentId);
+        String response = doGetApiQuery(
+                "groups.addGroup",
+                json.toString());
+        return processApiResponse(
+                response,
+                SIMPLE_PREDICATE,
+                null);
+    }
+
+    public JSONObject getGroups(String token, String parentGroupId, String offset, String count) throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("token", token);
+        json.put("parent_group_id", parentGroupId);
+        json.put("offset", offset);
+        json.put("count", count);
+        String response = doGetApiQuery(
+                "groups.getGroups",
+                json.toString());
+        return processApiResponse(
+                response,
+                SIMPLE_PREDICATE,
+                null);
+    }
+
     private String getHost(){
         String host = PreferenceManager.getDefaultSharedPreferences(mContext).getString(JournalApplication.PREFERENCE_KEY_HOST, "");
         return host;

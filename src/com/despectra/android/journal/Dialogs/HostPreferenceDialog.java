@@ -1,16 +1,9 @@
 package com.despectra.android.journal.Dialogs;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.preference.EditTextPreference;
 import android.util.AttributeSet;
-import android.widget.Toast;
 import com.despectra.android.journal.Activities.PreferencesActivity;
-import com.despectra.android.journal.Server.APICodes;
-import com.despectra.android.journal.Services.ApiServiceHelper;
-import org.json.JSONObject;
-
-import java.util.regex.Pattern;
 
 /**
  * Created by Dmitry on 25.03.14.

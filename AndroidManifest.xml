@@ -9,7 +9,8 @@
         android:name=".App.JournalApplication"
         android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:debuggable="true">
 
         <activity
             android:name=".Activities.LoginActivity"

@@ -4,29 +4,33 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.app.LoaderManager.LoaderCallbacks;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import com.despectra.android.journal.Adapters.CurrentScheduleAdapter;
+import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.Data.Contract;
 import com.despectra.android.journal.Data.MainProvider;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.Server.APICodes;
 import com.despectra.android.journal.Views.TitledCard;
 
 /**
  * Created by Dmirty on 17.02.14.
  */
-public class MainPageFragment extends Fragment implements LoaderCallbacks<Cursor> {
+public class MainPageFragment extends AbstractApiFragment implements LoaderCallbacks<Cursor> {
 
     public static final int WALL_LOADER_ID = 0;
     public static final int SCHED_LOADER_ID = 1;
 
+    public static final String KEY_DO_WALL_LOAD = "wallLoad";
     public static final String KEY_WALL_LOAD_STATE = "wallLoading";
 
     private TitledCard mWallCard;
@@ -37,6 +41,17 @@ public class MainPageFragment extends Fragment implements LoaderCallbacks<Cursor
     private Cursor mCursor;
 
     private boolean mWallLoading;
+    private boolean mLoadWall;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mLoadWall = savedInstanceState.getBoolean(KEY_DO_WALL_LOAD);
+        } else {
+            mLoadWall = true;
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -61,23 +76,48 @@ public class MainPageFragment extends Fragment implements LoaderCallbacks<Cursor
                 getActivity(),
                 R.layout.wall_item,
                 mCursor,
-                new String[]{ MainProvider.EVENTS_TEXT, MainProvider.EVENTS_DATETIME },
+                new String[]{ Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME},
                 new int[]{R.id.wall_item_content, R.id.wall_item_time},
                 0);
         mWallListView.setAdapter(mWallAdapter);
-        getLoaderManager().initLoader(WALL_LOADER_ID, null, this);
+        getLoaderManager().restartLoader(WALL_LOADER_ID, null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        mApplicationContext.getApiServiceHelper().registerClient(this, this);
+        if (mLoadWall) {
+            updateWall();
+            mWallLoading = true;
+            mLoadWall = false;
+        }
         updateWallState();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_DO_WALL_LOAD, mLoadWall);
         outState.putBoolean(KEY_WALL_LOAD_STATE, mWallLoading);
+    }
+
+
+    private void updateWall() {
+        String token = PreferenceManager
+                .getDefaultSharedPreferences(getActivity())
+                .getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
+        if (token.isEmpty()) {
+            return;
+        }
+        mServiceHelperController.getAllEvents(token);
+        setWallStateLoading();
     }
 
     public void setWallStateLoading() {
@@ -157,8 +197,8 @@ public class MainPageFragment extends Fragment implements LoaderCallbacks<Cursor
         String orderBy;
         switch (id) {
             case WALL_LOADER_ID:
-                baseUri = MainProvider.EVENTS_URI;
-                projection = new String[]{BaseColumns._ID, MainProvider.EVENTS_TEXT, MainProvider.EVENTS_DATETIME};
+                baseUri = Contract.Events.URI;
+                projection = new String[]{BaseColumns._ID, Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME};
                 orderBy = "datetime DESC";
                 break;
             default:
@@ -175,13 +215,25 @@ public class MainPageFragment extends Fragment implements LoaderCallbacks<Cursor
     }
 
     @Override
-    public void onLoadFinished(android.support.v4.content.Loader<Cursor> cursorLoader, Cursor cursor) {
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mWallAdapter.swapCursor(cursor);
     }
 
     @Override
-    public void onLoaderReset(android.support.v4.content.Loader<Cursor> cursorLoader) {
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
         mWallAdapter.swapCursor(null);
     }
 
+    @Override
+    public void onResponse(int actionCode, Object response) {
+        if (actionCode != -1) {
+            switch (actionCode) {
+                case APICodes.ACTION_GET_EVENTS:
+                    setWallStateIdle();
+                    break;
+            }
+        } else {
+            setWallStateIdle();
+        }
+    }
 }
