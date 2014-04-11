@@ -2,8 +2,6 @@ package com.despectra.android.journal.Adapters;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.util.SparseArray;
-import android.util.SparseBooleanArray;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,7 +97,7 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        final View v = super.getView(position, convertView, parent);
+        final View view = super.getView(position, convertView, parent);
         Cursor cursor = getCursor();
         if (cursor != null) {
             cursor.moveToPosition(position);
@@ -108,40 +106,40 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
             boolean isItemChecked = mCheckedItemIds.containsKey(localId);
             int status = cursor.getInt(mEntityStatusColId);
 
-            final CheckBox checkBox = (CheckBox) v.findViewById(mCheckBoxId);
+            final CheckBox checkBox = (CheckBox) view.findViewById(mCheckBoxId);
             checkBox.setOnCheckedChangeListener(null);
             checkBox.setChecked(isItemChecked);
-            final ImageButton popupBtn = (ImageButton) v.findViewById(mPopupMenuBtnId);
+            final ImageButton popupBtn = (ImageButton) view.findViewById(mPopupMenuBtnId);
 
             if (status != Contract.STATUS_IDLE) {
-                v.setEnabled(false);
+                view.setEnabled(false);
                 checkBox.setEnabled(false);
                 popupBtn.setEnabled(false);
                 switch (status) {
                     case Contract.STATUS_INSERTING:
-                        v.setBackgroundColor(mContext.getResources().getColor(R.color.item_inserting));
+                        view.setBackgroundColor(mContext.getResources().getColor(R.color.item_inserting));
                         break;
                     case Contract.STATUS_UPDATING:
-                        v.setBackgroundColor(mContext.getResources().getColor(R.color.item_updating));
+                        view.setBackgroundColor(mContext.getResources().getColor(R.color.item_updating));
                         break;
                     case Contract.STATUS_DELETING:
-                        v.setBackgroundColor(mContext.getResources().getColor(R.color.item_deleting));
+                        view.setBackgroundColor(mContext.getResources().getColor(R.color.item_deleting));
                         break;
                 }
             } else {
-                v.setEnabled(true);
+                view.setEnabled(true);
                 checkBox.setEnabled(true);
                 popupBtn.setEnabled(true);
-                v.setBackgroundResource(R.drawable.item_checkable_background);
+                view.setBackgroundResource(R.drawable.item_checkable_background);
             }
             popupBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view) {
-                    showItemPopupMenu(view, localId, remoteId);
+                public void onClick(View anchorView) {
+                    showItemPopupMenu(anchorView, view, localId, remoteId);
                 }
             });
-            v.setActivated(isItemChecked);
-            v.setOnLongClickListener(new View.OnLongClickListener() {
+            view.setActivated(isItemChecked);
+            view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
                     checkBox.setChecked(true);
@@ -151,7 +149,7 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
             checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                    v.setActivated(checked);
+                    view.setActivated(checked);
                     if (checked) {
                         mCheckedItemIds.put(localId, remoteId);
                     } else {
@@ -163,17 +161,17 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
                 }
             });
         }
-        return v;
+        return view;
     }
 
-    private void showItemPopupMenu(View view, final long localId, final long remoteId) {
-        PopupMenu menu = new PopupMenu(mContext, view);
+    private void showItemPopupMenu(View anchorView, final View adapterItemView, final long localId, final long remoteId) {
+        PopupMenu menu = new PopupMenu(mContext, anchorView);
         menu.inflate(mPopupMenuRes);
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 if (mPopupMenuListener != null) {
-                    mPopupMenuListener.onMenuItemSelected(menuItem, localId, remoteId);
+                    mPopupMenuListener.onMenuItemSelected(menuItem, adapterItemView, localId, remoteId);
                 }
                 return true;
             }
@@ -196,6 +194,6 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
     }
 
     public interface OnItemPopupMenuListener {
-        public void onMenuItemSelected(MenuItem item, long listItemLocalId, long listItemRemoteId);
+        public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId);
     }
 }

@@ -130,9 +130,6 @@ public class ApiService extends Service {
                             }
                             group.put("parent_id", parameters[2]);
                             long localId = mUpdater.insertTempRow("groups", group);
-                            //########   FOR DEBUG ########################
-                            SystemClock.sleep(30000);
-                            //##############################################
                             data = mServer.addGroup(parameters[0], parameters[1], parameters[2]);
                             if (data.has("group_id")) {
                                 mUpdater.persistTempRow("groups", localId, data.getLong("group_id"));
@@ -162,6 +159,17 @@ public class ApiService extends Service {
                             data = mServer.deleteGroups(parameters[0], groupsToDel);
                             if (data.has("success") && data.getInt("success") == 1) {
                                 mUpdater.deleteMarkedRows("groups");
+                            }
+                            break;
+                        case APICodes.ACTION_UPDATE_GROUP:
+                            long groupId = Long.valueOf(parameters[1]);
+                            mUpdater.markRowAsUpdating(Contract.Groups.TABLE, groupId);
+                            data = mServer.updateGroup(parameters[0], parameters[1], parameters[2], parameters[3]);
+                            if (data.has("success") && data.getInt("success") == 1) {
+                                ContentValues updated = new ContentValues();
+                                updated.put("name", parameters[2]);
+                                updated.put("parent_id", parameters[3]);
+                                mUpdater.persistUpdatingRow("groups", groupId, updated);
                             }
                             break;
                     }

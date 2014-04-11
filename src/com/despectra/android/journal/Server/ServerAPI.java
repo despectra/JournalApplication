@@ -238,6 +238,23 @@ public class ServerAPI {
                 null);
     }
 
+    public JSONObject updateGroup(String token, String groupId, String updName, String updParentId) throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("token", token);
+        json.put("id", groupId);
+        JSONObject data = new JSONObject();
+        data.put("name", updName);
+        data.put("parent_id", updParentId);
+        json.put("data", data);
+        String response = doGetApiQuery(
+                "groups.editGroup",
+                json.toString());
+        return processApiResponse(
+                response,
+                SIMPLE_PREDICATE,
+                null);
+    }
+
     private String getHost(){
         String host = PreferenceManager.getDefaultSharedPreferences(mContext).getString(JournalApplication.PREFERENCE_KEY_HOST, "");
         return host;

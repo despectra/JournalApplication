@@ -19,7 +19,7 @@
 
     <color name="item_updating">#7fdfd728</color>
     <color name="item_inserting">@color/lesson_current_background</color>
-    <color name="item_deleting">#8fdf0a00</color>
+    <color name="item_deleting">#6fdf0a00</color>
 
     <color name="pressed_list_item_bg">#9933b5e5</color>
 </resources>

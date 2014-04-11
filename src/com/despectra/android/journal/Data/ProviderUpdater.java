@@ -123,6 +123,16 @@ public class ProviderUpdater {
         );
     }
 
+    public void persistUpdatingRow(String table, long remoteId, ContentValues data) {
+        data.put(Contract.FIELD_ENTITY_STATUS, Contract.STATUS_IDLE);
+        mResolver.update(
+                Uri.parse(mProviderUri + "/" + table),
+                data,
+                Contract.FIELD_REMOTE_ID + " = " + remoteId,
+                null
+        );
+    }
+
     public void markRowAsIdle(String table, long remoteId) {
         markRowEntityWithStatus(table, remoteId, Contract.STATUS_IDLE);
     }

@@ -12,7 +12,8 @@ import android.widget.*;
 import com.despectra.android.journal.Adapters.RemoteIdCursorAdapter;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Data.Contract;
-import com.despectra.android.journal.Dialogs.AddGroupDialog;
+import com.despectra.android.journal.Dialogs.AddEditDialog;
+import com.despectra.android.journal.Dialogs.AddEditGroupDialog;
 import com.despectra.android.journal.Dialogs.SimpleConfirmationDialog;
 import com.despectra.android.journal.Dialogs.SimpleInfoDialog;
 import com.despectra.android.journal.R;
@@ -41,7 +42,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
     private StatusBar mStatusBar;
     private RemoteIdCursorAdapter mGroupsAdapter;
     private ActionMode mActionMode;
-    private AddGroupDialog mGroupDialog;
+    private AddEditGroupDialog mGroupDialog;
     private SimpleInfoDialog mTestDialog;
     private Cursor mCursor;
 
@@ -50,18 +51,36 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
     private boolean mLoadGroups;
     private boolean mIsInActionMode;
 
-    private AddGroupDialog.PositiveClickListener mAddGroupCallback = new AddGroupDialog.PositiveClickListener() {
+    private AddEditDialog.DialogButtonsAdapter mAddEditGroupCallback = new AddEditDialog.DialogButtonsAdapter() {
         @Override
-        public void onAddGroup(String name) {
-            if (!mToken.isEmpty()) {
-                int runningCount = mServiceHelperController.getRunningActionsCount();
-                if (runningCount > 0) {
-                    mStatusBar.setStatusText(String.format("Добавление класса %s. Выполняется: %d", name, runningCount));
-                } else {
-                    mStatusBar.showStatus("Добавление класса " + name);
-                    mStatusBar.showSpinner();
-                }
-                mServiceHelperController.addGroup(mToken, name, 0, ApiServiceHelper.PRIORITY_HIGH);
+        public void onPositiveClicked(int mode, Object... args) {
+            String name = (String) args[0];
+            long groupId = (Long) args[1];
+            switch (mode) {
+                case AddEditDialog.MODE_ADD:
+                    if (!mToken.isEmpty()) {
+                        int runningCount = mServiceHelperController.getRunningActionsCount();
+                        if (runningCount > 0) {
+                            mStatusBar.setStatusText(String.format("Добавление класса %s. Выполняется: %d", name, runningCount));
+                        } else {
+                            mStatusBar.showStatus("Добавление класса " + name);
+                            mStatusBar.showSpinner();
+                        }
+                        mServiceHelperController.addGroup(mToken, name, 0, ApiServiceHelper.PRIORITY_HIGH);
+                    }
+                    break;
+                case AddEditDialog.MODE_EDIT:
+                    if (!mToken.isEmpty()) {
+                        int runningCount = mServiceHelperController.getRunningActionsCount();
+                        if (runningCount > 0) {
+                            mStatusBar.setStatusText(String.format("Обновление класса %s. Выполняется: %d", name, runningCount));
+                        } else {
+                            mStatusBar.showStatus("Обновление класса " + name);
+                            mStatusBar.showSpinner();
+                        }
+                        mServiceHelperController.updateGroup(mToken, groupId, name, 0, ApiServiceHelper.PRIORITY_HIGH);
+                    }
+                    break;
             }
         }
     };
@@ -121,22 +140,33 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
 
     private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
         @Override
-        public void onMenuItemSelected(MenuItem item, long listItemLocalId, long listItemRemoteId) {
+        public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
+            int runningCount = mServiceHelperController.getRunningActionsCount();
+            String status;
             switch (item.getItemId()) {
                 case R.id.action_edit:
-                    //TODO
+                    mGroupDialog = (AddEditGroupDialog) getFragmentManager().findFragmentByTag(AddEditGroupDialog.FRAGMENT_TAG);
+                    String groupName = ((TextView) adapterItemView.findViewById(R.id.text1)).getText().toString();
+                    if (mGroupDialog == null) {
+                        mGroupDialog = AddEditGroupDialog.newInstance("Добавление класса", "Редактирование класса", groupName, listItemRemoteId);
+                    }
+                    mGroupDialog.setDialogListener(mAddEditGroupCallback);
+                    mGroupDialog.setGroupId(listItemRemoteId);
+                    mGroupDialog.setGroupText(groupName);
+                    mGroupDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
-                    int runningCount = mServiceHelperController.getRunningActionsCount();
                     if (runningCount > 0) {
-                        mStatusBar.setStatusText(String.format("Удаление классов. Выполняется: %d", runningCount));
+                        status = String.format("Удаление классов. Выполняется: %d", runningCount);
                     } else {
-                        mStatusBar.showStatus("Удаление классов");
-                        mStatusBar.showSpinner();
+                        status = "Удаление классов";
                     }
+                    mStatusBar.showStatus(status);
+                    mStatusBar.showSpinner();
                     mServiceHelperController.deleteGroups(mToken, new long[]{listItemRemoteId}, ApiServiceHelper.PRIORITY_HIGH);
-
                     break;
+                default:
+                    return;
             }
         }
     };
@@ -182,9 +212,9 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
             if (confirmDeletingDialog != null) {
                 confirmDeletingDialog.setOnConfirmListener(mConfirmDeletingListener);
             }
-            mGroupDialog = (AddGroupDialog) getFragmentManager().findFragmentByTag(AddGroupDialog.FRAGMENT_TAG);
+            mGroupDialog = (AddEditGroupDialog) getFragmentManager().findFragmentByTag(AddEditGroupDialog.FRAGMENT_TAG);
             if (mGroupDialog != null) {
-                mGroupDialog.setPositiveClickListener(mAddGroupCallback);
+                mGroupDialog.setDialogListener(mAddEditGroupCallback);
             }
 
         } else {
@@ -255,10 +285,10 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
         switch (item.getItemId()) {
             case R.id.action_group_add:
                 if (mGroupDialog == null) {
-                    mGroupDialog = new AddGroupDialog();
+                    mGroupDialog = AddEditGroupDialog.newInstance("Добавить класс", "Редактировать класс", "", -1);
                 }
-                mGroupDialog.setPositiveClickListener(mAddGroupCallback);
-                mGroupDialog.show(getFragmentManager(), AddGroupDialog.FRAGMENT_TAG);
+                mGroupDialog.setDialogListener(mAddEditGroupCallback);
+                mGroupDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
                 break;
         }
         return true;
@@ -266,6 +296,9 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
 
     @Override
     public void onResponse(int actionCode, int remainingActions, Object response) {
+        if (mStatusBar == null) {
+            return;
+        }
         if (actionCode != -1) {
             if (remainingActions > 0) {
                 mStatusBar.setStatusText("Выполняемые запросы: " + remainingActions);
@@ -284,11 +317,14 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                 case APICodes.ACTION_DELETE_GROUPS:
                     mStatusBar.hideSpinner();
                     mStatusBar.showStatusThenHide("Удалено", 1500);
-                    //getLoaderManager().restartLoader(LOADER_GROUPS, null, this);
+                    break;
+                case APICodes.ACTION_UPDATE_GROUP:
+                    mStatusBar.hideSpinner();
+                    mStatusBar.showStatusThenHide("Инфрмация о классах обновлена", 1500);
             }
         } else {
             mStatusBar.hideSpinner();
-            mStatusBar.setStatusText((String)response);
+            mStatusBar.setStatusText((String) response);
         }
     }
 

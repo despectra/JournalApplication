@@ -307,6 +307,11 @@ public class ApiServiceHelper {
             }
             startApiQuery(mClientName, APICodes.ACTION_DELETE_GROUPS, priority, params);
         }
+
+        @Override
+        public void updateGroup(String token, long groupId, String updName, long updParentId, int priority) {
+            startApiQuery(mClientName, APICodes.ACTION_UPDATE_GROUP, priority, token, String.valueOf(groupId), updName, String.valueOf(updParentId));
+        }
     }
 
     private class RegisteredClientHolder {
@@ -362,6 +367,7 @@ public class ApiServiceHelper {
         public void getGroups(String token, long parentGroupId, int offset, int count, int priority);
         public void deleteGroup(String token, long groupId, int priority);
         public void deleteGroups(String token, long[] groupIds, int priority);
+        public void updateGroup(String token, long groupId, String updName, long updParentId, int priority);
     }
 
     public interface ApiClient {
