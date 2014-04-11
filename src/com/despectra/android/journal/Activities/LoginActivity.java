@@ -158,11 +158,11 @@ public class LoginActivity extends AbstractApiActivity implements TextView.OnEdi
         mLoggingStatus = STATUS_LOGGING;
         mLoggingDialog.show(getFragmentManager(), PROGRESS_DIALOG_TAG);
         mLogin = login;
-        mServiceHelperController.login(login, pass);
+        mServiceHelperController.login(login, pass, ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
-    public void onResponse(int actionCode, Object response) {
+    public void onResponse(int actionCode, int remainingActions, Object response) {
         if (actionCode != -1) {
             JSONObject jsonData = (JSONObject)response;
             try {
@@ -181,7 +181,7 @@ public class LoginActivity extends AbstractApiActivity implements TextView.OnEdi
                                 .commit();
                         mLoggingStatus = STATUS_RETRIEVING_DATA;
                         updateProgressDialogMessage();
-                        mServiceHelperController.getMinProfile(token);
+                        mServiceHelperController.getMinProfile(token, ApiServiceHelper.PRIORITY_LOW);
                         break;
                     case APICodes.ACTION_GET_MIN_PROFILE:
                         if (jsonData.has("success")) {

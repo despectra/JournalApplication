@@ -58,7 +58,7 @@ public class AddGroupDialog extends DialogFragment {
         super.onSaveInstanceState(outState);
     }
 
-    public void setPositiveCLickListener(PositiveClickListener listener) {
+    public void setPositiveClickListener(PositiveClickListener listener) {
         mListener = listener;
     }
 

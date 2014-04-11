@@ -16,7 +16,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Dialogs.SimpleInfoDialog;
 import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
 import com.despectra.android.journal.Fragments.GroupsFragment;
 import com.despectra.android.journal.Fragments.MainPageFragment;
@@ -253,7 +252,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
 
     private void performLogout() {
         setStatus(STATUS_LOGGING_OUT);
-        mServiceHelperController.logout(mToken);
+        mServiceHelperController.logout(mToken, ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
@@ -389,7 +388,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     }
 
     @Override
-    public void onResponse(int actionCode, Object response) {
+    public void onResponse(int actionCode, int remainingActions, Object response) {
         if (actionCode != -1) {
             switch (actionCode) {
                 case APICodes.ACTION_LOGOUT:

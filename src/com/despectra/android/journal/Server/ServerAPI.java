@@ -1,11 +1,14 @@
 package com.despectra.android.journal.Server;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.http.AndroidHttpClient;
+import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.Log;
+import android.webkit.WebSettings;
 import com.despectra.android.journal.App.JournalApplication;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -13,27 +16,34 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.scheme.SocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -74,13 +84,10 @@ public class ServerAPI {
     private ServerAPI(Context context, String host) {
         setHost(host);
         setContext(context);
-        final HttpParams httpParams = new BasicHttpParams();
-        HttpConnectionParams.setConnectionTimeout(httpParams, CONN_TIMEOUT_MS);
-        HttpConnectionParams.setSoTimeout(httpParams, IO_TIMEOUT_MS);
-        mClient = new DefaultHttpClient(httpParams);
+        mClient = AndroidHttpClient.newInstance(System.getProperty("http.agent"));
     }
 
-    public  static ServerAPI instantiate(Context context, String host) {
+    public synchronized static ServerAPI instantiate(Context context, String host) {
         if (mServerInstance == null) {
             mServerInstance = new ServerAPI(context, host);
         } else {
@@ -214,6 +221,23 @@ public class ServerAPI {
                 null);
     }
 
+    public JSONObject deleteGroups(String token, String[] groupIds) throws Exception {
+        JSONObject json = new JSONObject();
+        json.put("token", token);
+        JSONArray groupsArray = new JSONArray();
+        for (int i = 0; i < groupIds.length; i++) {
+            groupsArray.put(groupIds[i]);
+        }
+        json.put("groups", groupsArray);
+        String response = doGetApiQuery(
+                "groups.deleteGroups",
+                json.toString());
+        return processApiResponse(
+                response,
+                SIMPLE_PREDICATE,
+                null);
+    }
+
     private String getHost(){
         String host = PreferenceManager.getDefaultSharedPreferences(mContext).getString(JournalApplication.PREFERENCE_KEY_HOST, "");
         return host;
@@ -240,7 +264,6 @@ public class ServerAPI {
 
     private String doQuery(HttpUriRequest request) throws Exception {
         try {
-            //LETS TRY APACHE HTTPClient
             HttpResponse response = mClient.execute(request);
             HttpEntity entity = response.getEntity();
             return EntityUtils.toString(entity, "UTF-8");

@@ -35,7 +35,7 @@ public class StaffFragment extends AbstractApiFragment {
     }
 
     @Override
-    public void onResponse(int actionCode, Object response) {
+    public void onResponse(int actionCode, int remainingActions, Object response) {
 
     }
 }

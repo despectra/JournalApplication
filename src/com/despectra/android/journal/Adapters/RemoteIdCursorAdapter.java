@@ -25,7 +25,7 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
     private int mEntityStatusColId;
     private Context mContext;
     private OnItemCheckedListener mListener;
-    private Map<Long, Boolean> mCheckedItemIds;
+    private Map<Long, Long> mCheckedItemIds;
     private int mPopupMenuRes;
     private OnItemPopupMenuListener mPopupMenuListener;
 
@@ -34,7 +34,7 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
         mContext = context;
         mCheckBoxId = checkBoxId;
         mPopupMenuBtnId = popupMenuBtn;
-        mCheckedItemIds = new HashMap<Long, Boolean>();
+        mCheckedItemIds = new HashMap<Long, Long>();
     }
 
     public void setOnItemCheckedListener(OnItemCheckedListener listener) {
@@ -52,7 +52,7 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
         notifyDataSetChanged();
     }
 
-    public long[] getCheckedItemIdsAsArray() {
+    public long[] getCheckedLocalIdsAsArray() {
         if (mCheckedItemIds != null && mCheckedItemIds.size() > 0) {
             long[] items = new long[mCheckedItemIds.size()];
             int i = 0;
@@ -65,9 +65,22 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
         return new long[]{};
     }
 
-    public void setCheckedItemIdsAsArray(long[] items, boolean notifyAdapter) {
-        for (int i = 0; i < items.length; i++) {
-            mCheckedItemIds.put(items[i], true);
+    public long[] getCheckedRemoteIdsAsArray() {
+        if (mCheckedItemIds != null && mCheckedItemIds.size() > 0) {
+            long[] items = new long[mCheckedItemIds.size()];
+            int i = 0;
+            for (Long value : mCheckedItemIds.values()) {
+                items[i] = value;
+                i++;
+            }
+            return items;
+        }
+        return new long[]{};
+    }
+
+    public void setCheckedItemIdsAsArray(long[] localIds, long[] remoteIds, boolean notifyAdapter) {
+        for (int i = 0; i < localIds.length; i++) {
+            mCheckedItemIds.put(localIds[i], remoteIds[i]);
         }
         if (notifyAdapter) {
             notifyDataSetChanged();
@@ -140,7 +153,7 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
                 public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
                     v.setActivated(checked);
                     if (checked) {
-                        mCheckedItemIds.put(localId, true);
+                        mCheckedItemIds.put(localId, remoteId);
                     } else {
                         mCheckedItemIds.remove(localId);
                     }

@@ -61,7 +61,7 @@ public class ApiService extends Service {
             @Override
             public void handleMessage(Message msg) {
                 Response response = (Response) msg.obj;
-                mServiceHelper.onServiceResponse(response.senderTag, response.action);
+                mServiceHelper.onServiceResponse(response);
             }
         };
         mUpdater = new ProviderUpdater(getApplicationContext(), Contract.STRING_URI);
@@ -79,10 +79,6 @@ public class ApiService extends Service {
     }
 
     public void processApiAction(final String senderTag, final ApiServiceHelper.ApiAction action) {
-        processApiAction(senderTag, action.apiCode, (String[])action.actionData);
-    }
-
-    public void processApiAction(final String senderTag, final int apiActionCode, final String... parameters) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -90,6 +86,9 @@ public class ApiService extends Service {
                 try {
                     JSONObject data = new JSONObject();
                     response.senderTag = senderTag;
+                    response.initialAction = action;
+                    int apiActionCode = action.apiCode;
+                    String[] parameters = (String[]) action.actionData;
                     for (int i = 0; i < parameters.length; i++) {
                         parameters[i] = parameters[i].replaceAll("\"", "\\\"");
                     }
@@ -153,11 +152,23 @@ public class ApiService extends Service {
                                 );
                             }
                             break;
+                        case APICodes.ACTION_DELETE_GROUPS:
+                            String[] groupsToDel = new String[parameters.length - 1];
+                            for (int i = 1; i < parameters.length; i++) {
+                                groupsToDel[i - 1] = parameters[i];
+                                long groupRemoteId = Long.valueOf(parameters[i]);
+                                mUpdater.markRowAsDeleting(Contract.Groups.TABLE, groupRemoteId);
+                            }
+                            data = mServer.deleteGroups(parameters[0], groupsToDel);
+                            if (data.has("success") && data.getInt("success") == 1) {
+                                mUpdater.deleteMarkedRows("groups");
+                            }
+                            break;
                     }
-                    response.action = new ApiServiceHelper.ApiAction(apiActionCode, data);
+                    response.responseAction = new ApiServiceHelper.ApiAction(apiActionCode, data);
                     mResponseHandler.sendMessage(Message.obtain(mResponseHandler, apiActionCode, response));
                 } catch (Exception ex) {
-                    response.action = new ApiServiceHelper.ApiAction(-1, ex.getMessage());
+                    response.responseAction = new ApiServiceHelper.ApiAction(-1, ex.getMessage());
                     mResponseHandler.sendMessage(Message.obtain(mResponseHandler, -1, response));
                 }
             }
@@ -169,9 +180,10 @@ public class ApiService extends Service {
         return preferences.getString(JournalApplication.PREFERENCE_KEY_HOST, "");
     }
 
-    private static class Response {
+    public static class Response {
         String senderTag;
-        ApiServiceHelper.ApiAction action;
+        ApiServiceHelper.ApiAction initialAction;
+        ApiServiceHelper.ApiAction responseAction;
     }
 
     class ApiServiceBinder extends Binder {

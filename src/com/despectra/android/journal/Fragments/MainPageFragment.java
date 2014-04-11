@@ -17,9 +17,9 @@ import android.widget.SimpleCursorAdapter;
 import com.despectra.android.journal.Adapters.CurrentScheduleAdapter;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Data.Contract;
-import com.despectra.android.journal.Data.MainProvider;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.Server.APICodes;
+import com.despectra.android.journal.Services.ApiServiceHelper;
 import com.despectra.android.journal.Views.TitledCard;
 
 /**
@@ -116,7 +116,7 @@ public class MainPageFragment extends AbstractApiFragment implements LoaderCallb
         if (token.isEmpty()) {
             return;
         }
-        mServiceHelperController.getAllEvents(token);
+        mServiceHelperController.getAllEvents(token, ApiServiceHelper.PRIORITY_LOW);
         setWallStateLoading();
     }
 
@@ -225,7 +225,7 @@ public class MainPageFragment extends AbstractApiFragment implements LoaderCallb
     }
 
     @Override
-    public void onResponse(int actionCode, Object response) {
+    public void onResponse(int actionCode, int remainingActions, Object response) {
         if (actionCode != -1) {
             switch (actionCode) {
                 case APICodes.ACTION_GET_EVENTS:

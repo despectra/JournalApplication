@@ -93,11 +93,11 @@ public class PreferencesActivity extends AbstractApiActivity implements ApiServi
         }
         mCheckedHost = host;
         setCheckingState(true);
-        mServiceHelperController.getApiInfo(mCheckedHost);
+        mServiceHelperController.getApiInfo(mCheckedHost, ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
-    public void onResponse(int actionCode, Object response) {
+    public void onResponse(int actionCode, int remainingActions, Object response) {
         if (actionCode != -1) {
             if (actionCode == APICodes.ACTION_GET_INFO) {
                 try {

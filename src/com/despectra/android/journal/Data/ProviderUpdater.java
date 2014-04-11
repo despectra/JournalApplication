@@ -123,11 +123,34 @@ public class ProviderUpdater {
         );
     }
 
-    public void markRowAsUpdating(String table, long localId) {
-
+    public void markRowAsIdle(String table, long remoteId) {
+        markRowEntityWithStatus(table, remoteId, Contract.STATUS_IDLE);
     }
 
-    public void markRowAsDeleting(String table, long localId) {
+    public void markRowAsUpdating(String table, long remoteId) {
+        markRowEntityWithStatus(table, remoteId, Contract.STATUS_UPDATING);
+    }
 
+    public void markRowAsDeleting(String table, long remoteId) {
+        markRowEntityWithStatus(table, remoteId, Contract.STATUS_DELETING);
+    }
+
+    private void markRowEntityWithStatus(String table, long remoteId, int status) {
+        ContentValues data = new ContentValues();
+        data.put(Contract.FIELD_ENTITY_STATUS, status);
+        mResolver.update(
+                Uri.parse(mProviderUri + "/" + table),
+                data,
+                Contract.FIELD_REMOTE_ID + " = " + remoteId,
+                null
+        );
+    }
+
+    public void deleteMarkedRows(String table) {
+        mResolver.delete(
+                Uri.parse(mProviderUri + "/" + table),
+                Contract.FIELD_ENTITY_STATUS + " = " + Contract.STATUS_DELETING,
+                null
+        );
     }
 }
