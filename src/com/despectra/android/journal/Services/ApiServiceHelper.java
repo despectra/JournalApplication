@@ -334,11 +334,6 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void deleteGroup(String token, long localId, long remoteId, int priority) {
-            deleteGroups(token, new long[] {localId}, new long[] {remoteId}, priority);
-        }
-
-        @Override
         public void deleteGroups(String token, long[] localIds, long[] remoteIds, int priority) {
             JSONObject data = new JSONObject();
             try {
@@ -401,6 +396,26 @@ public class ApiServiceHelper {
             } catch (JSONException e) {
             }
         }
+
+        @Override
+        public void deleteStudents(String token, long[] localIds, long[] remoteIds, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                JSONArray localStudents = new JSONArray();
+                JSONArray remoteStudents = new JSONArray();
+                for (int i = 0; i < localIds.length; i++) {
+                    localStudents.put(localIds[i]);
+                    remoteStudents.put(remoteIds[i]);
+                }
+                data.put("LOCAL_students", localStudents);
+                data.put("students", remoteStudents);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_STUDENTS, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+
     }
 
     private class RegisteredClientHolder {
@@ -454,11 +469,11 @@ public class ApiServiceHelper {
         public void addGroup(String token, String name, long localParentId, long remoteParentId, int priority);
         public void getAllGroups(String token, long localParentId, long remoteParentId, int priority);
         public void getGroups(String token, long localParentId, long remoteParentId, int offset, int count, int priority);
-        public void deleteGroup(String token, long localId, long remoteId, int priority);
         public void deleteGroups(String token, long[] localIds, long[] remoteIds, int priority);
         public void updateGroup(String token, long localId, long remoteId, String updName, long updLocalParentId, long updRemoteParentId, int priority);
         public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority);
         public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority);
+        public void deleteStudents(String token, long[] localIds, long[] remoteIds, int priority);
     }
 
     public interface FeedbackApiClient extends ApiClient {

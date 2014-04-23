@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 17;
+    public static final int VERSION = 19;
 
     public static final String CREATE_TABLE_ENTITY_REMOTE = "" +
             "CREATE TABLE IF NOT EXISTS %1$s_remote (" +

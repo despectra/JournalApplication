@@ -46,6 +46,16 @@
         android:text="Александрович"
         android:textColor="@drawable/list_item_text_color"/>
 
+    <TextView
+        android:id="@+id/login_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/dropdown_btn1"
+        android:textAppearance="?android:textAppearanceListItemSmall"
+        android:text="omg"
+        android:textColor="@drawable/list_item_text_color"/>
+
     <include layout="@layout/item_dropdown_button"/>
 
 </RelativeLayout>

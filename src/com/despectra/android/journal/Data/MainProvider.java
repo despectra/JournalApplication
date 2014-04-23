@@ -43,6 +43,7 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "students/#", Contract.Students.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_remote", Contract.Students.Remote.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_remote/#", Contract.Students.Remote.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students/users", Contract.Users.URI_STUDENTS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "users", Contract.Users.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "users/#", Contract.Users.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "users_remote", Contract.Users.Remote.URI_CODE);
@@ -71,20 +72,26 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.Students.ID_URI_CODE, Contract.Students.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.Students.Remote.URI_CODE, Contract.Students.Remote.TABLE);
         mReadTables.append(Contract.Students.Remote.ID_URI_CODE, Contract.Students.Remote.TABLE);
-        mReadTables.append(Contract.Students.Remote.URI_BY_GROUP_CODE, new DBHelper.JoinBuilder(Contract.Users.Remote.TABLE)
+        mReadTables.append(Contract.Students.Remote.URI_BY_GROUP_CODE,
+                new DBHelper.JoinBuilder(Contract.Users.Remote.TABLE)
                 .join(Contract.Users.TABLE).onEq(Contract.Users.Remote._ID, Contract.Users._ID)
                 .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .join(Contract.Students.Remote.TABLE).onEq(Contract.Students.Remote._ID, Contract.Students._ID)
                 .join(Contract.StudentsGroups.TABLE).onEq(Contract.StudentsGroups.FIELD_STUDENT_ID, Contract.Students._ID)
                 .join(Contract.StudentsGroups.Remote.TABLE).onEq(Contract.StudentsGroups._ID, Contract.StudentsGroups.Remote._ID)
                 .create());
-        mReadTables.append(Contract.Students.URI_BY_GROUP_CODE, new DBHelper.JoinBuilder(Contract.Users.TABLE)
+        mReadTables.append(Contract.Students.URI_BY_GROUP_CODE,
+                new DBHelper.JoinBuilder(Contract.Users.TABLE)
                 .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .join(Contract.StudentsGroups.TABLE).onEq(Contract.Students._ID, Contract.StudentsGroups.FIELD_STUDENT_ID)
                 .create());
 
         mReadTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE_JOIN_REMOTE);
+        mReadTables.append(Contract.Users.URI_STUDENTS_CODE,
+                new DBHelper.JoinBuilder(Contract.Users.TABLE)
+                .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
+                .create());
         mReadTables.append(Contract.Users.Remote.URI_CODE, Contract.Users.Remote.TABLE);
         mReadTables.append(Contract.Users.Remote.ID_URI_CODE, Contract.Users.Remote.TABLE);
 

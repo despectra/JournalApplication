@@ -158,6 +158,24 @@ public class ProviderUpdater {
         );
     }
 
+    public void deleteMarkedEntities(Contract.EntityColumnsHolder local, Contract.RemoteColumnsHolder remote) {
+        Cursor localDeletingIds = mResolver.query(
+                Uri.parse(mProviderUri + "/" + local.TABLE),
+                new String[]{local._ID},
+                local.ENTITY_STATUS + " = ?",
+                new String[]{String.valueOf(Contract.STATUS_DELETING)},
+                null);
+        deleteMarkedRows(local);
+        localDeletingIds.moveToFirst();
+        do {
+            mResolver.delete(
+                    Uri.parse(mProviderUri + "/" + remote.TABLE),
+                    remote._ID + " = ?",
+                    new String[]{localDeletingIds.getString(0)}
+            );
+        } while (localDeletingIds.moveToNext());
+    }
+
     public void deleteMarkedRows(Contract.EntityColumnsHolder table) {
         mResolver.delete(
                 Uri.parse(mProviderUri + "/" + table.TABLE),
@@ -188,29 +206,5 @@ public class ProviderUpdater {
                 table._ID + " = ?",
                 new String[]{localId}
         );
-    }
-
-    public String getLocalIdByRemote(Contract.RemoteColumnsHolder remoteTable, String remoteId) {
-        Cursor result = mResolver.query(
-                Uri.parse(mProviderUri + "/" + remoteTable.TABLE),
-                new String[]{remoteTable._ID},
-                remoteTable.REMOTE_ID + " = ?",
-                new String[]{remoteId},
-                null
-        );
-        result.moveToFirst();
-        return result.getString(0);
-    }
-
-    public String getRemoteIdByLocal(Contract.RemoteColumnsHolder remoteTable, String localId) {
-        Cursor result = mResolver.query(
-                Uri.parse(mProviderUri + "/" + remoteTable.TABLE),
-                new String[]{remoteTable.REMOTE_ID},
-                remoteTable._ID + " = ?",
-                new String[]{localId},
-                null
-        );
-        result.moveToFirst();
-        return result.getString(0);
     }
 }

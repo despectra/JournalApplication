@@ -63,8 +63,8 @@ public class Contract {
         public static final Uri URI = Uri.parse(STRING_URI + "/" + TABLE);
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
-        public static final int URI_CODE = 5;
-        public static final int ID_URI_CODE = 6;
+        public static final int URI_CODE = 50;
+        public static final int ID_URI_CODE = 51;
 
         public static final class Remote implements RemoteColumns {
             public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("Groups");
@@ -72,8 +72,8 @@ public class Contract {
             public static final String _ID = TABLE + RemoteColumns._ID;
             public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
             public static final Uri URI = Uri.parse(STRING_URI + "/groups_remote");
-            public static final int URI_CODE = 7;
-            public static final int ID_URI_CODE = 8;
+            public static final int URI_CODE = 52;
+            public static final int ID_URI_CODE = 53;
         }
     }
 
@@ -87,10 +87,10 @@ public class Contract {
         public static final Uri URI = Uri.parse(STRING_URI + "/students");
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
-        public static final int URI_CODE = 9;
-        public static final int URI_BY_GROUP_CODE = 10;
-        public static final int ID_URI_CODE = 11;
-        public static final int ID_URI_BY_GROUP_CODE = 12;
+        public static final int URI_CODE = 100;
+        public static final int URI_BY_GROUP_CODE = 101;
+        public static final int ID_URI_CODE = 102;
+        public static final int ID_URI_BY_GROUP_CODE = 103;
 
         public static final class Remote implements RemoteColumns {
             public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("Students");
@@ -98,9 +98,9 @@ public class Contract {
             public static final String _ID = TABLE + RemoteColumns._ID;
             public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
             public static final Uri URI = Uri.parse(STRING_URI + "/students_remote");
-            public static final int URI_CODE = 13;
-            public static final int URI_BY_GROUP_CODE = 14;
-            public static final int ID_URI_CODE = 15;
+            public static final int URI_CODE = 104;
+            public static final int URI_BY_GROUP_CODE = 105;
+            public static final int ID_URI_CODE = 106;
         }
     }
 
@@ -116,10 +116,12 @@ public class Contract {
         public static final String FIELD_MIDDLENAME = "users_middlename";
         public static final String FIELD_LEVEL = "users_level";
         public static final Uri URI = Uri.parse(STRING_URI + "/users");
+        public static final Uri URI_STUDENTS = Uri.parse(STRING_URI + "/students/users");
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
-        public static final int URI_CODE = 16;
-        public static final int ID_URI_CODE = 17;
+        public static final int URI_CODE = 150;
+        public static final int ID_URI_CODE = 151;
+        public static final int URI_STUDENTS_CODE = 152;
 
         public static final class Remote implements RemoteColumns {
             public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("Users");
@@ -127,8 +129,8 @@ public class Contract {
             public static final String _ID = TABLE + RemoteColumns._ID;
             public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
             public static final Uri URI = Uri.parse(STRING_URI + "/users_remote");
-            public static final int URI_CODE = 18;
-            public static final int ID_URI_CODE = 19;
+            public static final int URI_CODE = 153;
+            public static final int ID_URI_CODE = 154;
         }
     }
 
@@ -143,8 +145,8 @@ public class Contract {
         public static final Uri URI = Uri.parse(STRING_URI + "/students_groups");
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
-        public static final int URI_CODE = 20;
-        public static final int ID_URI_CODE = 21;
+        public static final int URI_CODE = 200;
+        public static final int ID_URI_CODE = 201;
 
         public static final class Remote implements RemoteColumns {
             public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("StudentsGroups");
@@ -152,8 +154,8 @@ public class Contract {
             public static final String _ID = TABLE + RemoteColumns._ID;
             public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
             public static final Uri URI = Uri.parse(STRING_URI + "/students_groups_remote");
-            public static final int URI_CODE = 22;
-            public static final int ID_URI_CODE = 23;
+            public static final int URI_CODE = 202;
+            public static final int ID_URI_CODE = 203;
         }
     }
 

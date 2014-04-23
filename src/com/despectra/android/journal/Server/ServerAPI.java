@@ -139,6 +139,10 @@ public class ServerAPI {
         return doGetApiQuery("students.addStudentInGroup", data.toString());
     }
 
+    public JSONObject deleteStudents(JSONObject data) throws Exception {
+        return doGetApiQuery("students.deleteStudents", data.toString());
+    }
+
     private String getHost(){
         String host = PreferenceManager.getDefaultSharedPreferences(mContext).getString(JournalApplication.PREFERENCE_KEY_HOST, "");
         return host;

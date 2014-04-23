@@ -191,21 +191,6 @@ public class ApiService extends Service {
                                         new String[]{"name", "parent_id"},
                                         new String[]{Contract.Groups.FIELD_NAME, Contract.Groups.FIELD_PARENT_ID}
                                 );
-                                //update links to parent ids
-                                /*for (int i = 0; i < groups.length(); i++) {
-                                    String parentId = groups.getJSONObject(i).getString("parent_id");
-                                    String remoteId = groups.getJSONObject(i).getString("id");
-                                    if (!parentId.equals("0")) {
-                                        ContentValues cv = new ContentValues();
-                                        cv.put(Contract.Groups.FIELD_PARENT_ID, mUpdater.getLocalIdByRemote(Contract.Groups.Remote.HOLDER, parentId));
-                                        getContentResolver().update(
-                                                Contract.Groups.URI,
-                                                cv,
-                                                Contract.Groups._ID + " = ?",
-                                                new String[]{mUpdater.getLocalIdByRemote(Contract.Groups.Remote.HOLDER, remoteId)}
-                                        );
-                                    }
-                                }*/
                             }
                             break;
                         case APICodes.ACTION_DELETE_GROUPS:
@@ -216,7 +201,8 @@ public class ApiService extends Service {
                             }
                             jsonResponse = mServer.deleteGroups(jsonRequest);
                             if (jsonResponse.has("success") && jsonResponse.getInt("success") == 1) {
-                                mUpdater.deleteMarkedRows(Contract.Groups.HOLDER);
+                                //mUpdater.deleteMarkedRows(Contract.Groups.HOLDER);
+                                mUpdater.deleteMarkedEntities(Contract.Groups.HOLDER, Contract.Groups.Remote.HOLDER);
                             }
                             break;
                         case APICodes.ACTION_UPDATE_GROUP:
@@ -296,6 +282,7 @@ public class ApiService extends Service {
                                 );
                             }
                             break;
+
                         case APICodes.ACTION_ADD_STUDENT_IN_GROUP:
                             //add user info in cache
                             ContentValues tempUser = new ContentValues();
@@ -337,6 +324,9 @@ public class ApiService extends Service {
                             }
 
                             break;
+                        case APICodes.ACTION_DELETE_STUDENTS:
+                            jsonResponse = deleteStudents(senderTag, jsonRequest);
+                            break;
                     }
                     response.responseAction = new ApiServiceHelper.ApiAction(apiActionCode, jsonResponse);
                     mResponseHandler.sendMessage(Message.obtain(mResponseHandler, MSG_RESPONSE, response));
@@ -352,6 +342,40 @@ public class ApiService extends Service {
                 }
             }
         }).start();
+    }
+
+    private JSONObject deleteStudents(String senderTag, JSONObject jsonRequest) throws Exception {
+        JSONArray localStudents = jsonRequest.getJSONArray("LOCAL_students");
+        jsonRequest.remove("LOCAL_students");
+        for (int i = 0; i < localStudents.length(); i++) {
+            String localStudentId = localStudents.getString(i);
+            Cursor localUser = getContentResolver().query(Contract.Users.URI_STUDENTS,
+                    new String[]{Contract.Users._ID},
+                    Contract.Students._ID + " = ?",
+                    new String[]{ localStudentId },
+                    null);
+            localUser.moveToFirst();
+            String localUserId = localUser.getString(0);
+            mUpdater.markRowAsDeleting(Contract.Users.HOLDER, localUserId);
+            mUpdater.markRowAsDeleting(Contract.Students.HOLDER, localStudentId);
+            Cursor localSGLink = getContentResolver().query(
+                    Contract.StudentsGroups.URI,
+                    new String[]{Contract.StudentsGroups._ID},
+                    Contract.StudentsGroups.FIELD_STUDENT_ID + " = ?",
+                    new String[]{ localStudentId },
+                    null);
+            localSGLink.moveToFirst();
+            String localSGLinkId = localSGLink.getString(0);
+            mUpdater.markRowAsDeleting(Contract.StudentsGroups.HOLDER, localSGLinkId);
+        }
+        mResponseHandler.sendMessage(Message.obtain(mResponseHandler, MSG_PROGRESS, new Pair<String, String>(senderTag, "cached")));
+        JSONObject response = mServer.deleteStudents(jsonRequest);
+        if (response.has("success") && response.getInt("success") == 1) {
+            mUpdater.deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
+            mUpdater.deleteMarkedEntities(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER);
+            mUpdater.deleteMarkedEntities(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER);
+        }
+        return response;
     }
 
     private String getHostFromPreferences(){

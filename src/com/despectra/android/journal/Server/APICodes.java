@@ -16,4 +16,5 @@ public class APICodes {
     public static final int ACTION_UPDATE_GROUP = 9;
     public static final int ACTION_GET_STUDENTS_BY_GROUP = 10;
     public static final int ACTION_ADD_STUDENT_IN_GROUP = 11;
+    public static final int ACTION_DELETE_STUDENTS = 12;
 }

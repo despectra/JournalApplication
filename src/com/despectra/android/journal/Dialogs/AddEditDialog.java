@@ -59,6 +59,9 @@ public abstract class AddEditDialog extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mMode = savedInstanceState.getInt(KEY_MODE);
+        }
     }
 
     protected abstract void setCustomArgs(Bundle arguments);
@@ -69,7 +72,8 @@ public abstract class AddEditDialog extends DialogFragment {
         mMainView = LayoutInflater.from(getActivity()).inflate(mMainViewId, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setTitle(mMode == MODE_ADD ? mAdditionTitle : mEditionTitle)
-                .setView(mMainView);
+                .setView(mMainView)
+                .setMultiChoiceItems(new String[]{"Не закрывать диалог при добавлении"}, new boolean[]{false}, null);
         return completeDialogCreation(builder);
     }
 
@@ -78,6 +82,7 @@ public abstract class AddEditDialog extends DialogFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putInt(KEY_MODE, mMode);
     }
 
     public void showInMode(int mode, FragmentManager fm, String tag) {

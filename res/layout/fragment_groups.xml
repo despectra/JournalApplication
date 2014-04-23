@@ -6,14 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ListView
-        android:id="@+id/groups_list_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:animateLayoutChanges="true"
-        android:layout_weight="1">
-
-    </ListView>
+    <include layout="@layout/entities_list"/>
 
     <com.despectra.android.journal.Views.StatusBar
         android:id="@+id/groups_status_bar"
@@ -32,5 +25,4 @@
         android:textAppearance="?android:textAppearanceLarge"
         android:textColor="@color/gray_85"
         android:text="Классов нет. Добавьте с помощью кнопки вверху."/>
-
 </LinearLayout>
