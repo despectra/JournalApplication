@@ -1,14 +1,17 @@
 package com.despectra.android.journal.Fragments;
 
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.provider.BaseColumns;
 import android.view.*;
 import android.widget.*;
+import com.despectra.android.journal.Activities.GroupActivity;
 import com.despectra.android.journal.Adapters.RemoteIdCursorAdapter;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Data.Contract;
@@ -24,7 +27,10 @@ import com.despectra.android.journal.Views.StatusBar;
 /**
  * Created by Dmitry on 08.04.14.
  */
-public class GroupsFragment extends AbstractApiFragment implements LoaderCallbacks<Cursor>,RemoteIdCursorAdapter.OnItemCheckedListener {
+public class GroupsFragment extends AbstractApiFragment implements LoaderCallbacks<Cursor>,
+        RemoteIdCursorAdapter.OnItemCheckedListener,
+        RemoteIdCursorAdapter.OnItemClickListener
+{
 
     public static final int LOADER_GROUPS = 0;
     public static final String FRAGMENT_TAG = "GroupsFragment";
@@ -55,7 +61,8 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
         @Override
         public void onPositiveClicked(int mode, Object... args) {
             String name = (String) args[0];
-            long groupId = (Long) args[1];
+            long localGroupId = (Long) args[1];
+            long remoteGroupId = (Long) args[2];
             switch (mode) {
                 case AddEditDialog.MODE_ADD:
                     if (!mToken.isEmpty()) {
@@ -66,7 +73,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                             mStatusBar.showStatus("Добавление класса " + name);
                             mStatusBar.showSpinner();
                         }
-                        mServiceHelperController.addGroup(mToken, name, 0, ApiServiceHelper.PRIORITY_HIGH);
+                        mServiceHelperController.addGroup(mToken, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
                     }
                     break;
                 case AddEditDialog.MODE_EDIT:
@@ -78,7 +85,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                             mStatusBar.showStatus("Обновление класса " + name);
                             mStatusBar.showSpinner();
                         }
-                        mServiceHelperController.updateGroup(mToken, groupId, name, 0, ApiServiceHelper.PRIORITY_HIGH);
+                        mServiceHelperController.updateGroup(mToken, localGroupId, remoteGroupId, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
                     }
                     break;
             }
@@ -95,7 +102,11 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                 mStatusBar.showStatus("Удаление классов");
                 mStatusBar.showSpinner();
             }
-            mServiceHelperController.deleteGroups(mToken, mGroupsAdapter.getCheckedRemoteIdsAsArray(), ApiServiceHelper.PRIORITY_LOW);
+
+            mServiceHelperController.deleteGroups(mToken,
+                    mGroupsAdapter.getCheckedLocalIdsAsArray(),
+                    mGroupsAdapter.getCheckedRemoteIdsAsArray(),
+                    ApiServiceHelper.PRIORITY_LOW);
             if (mIsInActionMode) {
                 mActionMode.finish();
             }
@@ -148,10 +159,13 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                     mGroupDialog = (AddEditGroupDialog) getFragmentManager().findFragmentByTag(AddEditGroupDialog.FRAGMENT_TAG);
                     String groupName = ((TextView) adapterItemView.findViewById(R.id.text1)).getText().toString();
                     if (mGroupDialog == null) {
-                        mGroupDialog = AddEditGroupDialog.newInstance("Добавление класса", "Редактирование класса", groupName, listItemRemoteId);
+                        mGroupDialog = AddEditGroupDialog.newInstance("Добавление класса",
+                                "Редактирование класса",
+                                groupName,
+                                listItemLocalId, listItemRemoteId);
                     }
                     mGroupDialog.setDialogListener(mAddEditGroupCallback);
-                    mGroupDialog.setGroupId(listItemRemoteId);
+                    mGroupDialog.setGroupIds(listItemLocalId, listItemRemoteId);
                     mGroupDialog.setGroupText(groupName);
                     mGroupDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
                     break;
@@ -163,7 +177,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                     }
                     mStatusBar.showStatus(status);
                     mStatusBar.showSpinner();
-                    mServiceHelperController.deleteGroups(mToken, new long[]{listItemRemoteId}, ApiServiceHelper.PRIORITY_HIGH);
+                    mServiceHelperController.deleteGroups(mToken, new long[]{listItemLocalId}, new long[]{listItemRemoteId}, ApiServiceHelper.PRIORITY_HIGH);
                     break;
                 default:
                     return;
@@ -175,6 +189,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_groups, container, false);
         mGroupsListView = (ListView) v.findViewById(R.id.groups_list_view);
+        mGroupsListView.setEmptyView(v.findViewById(R.id.listview_empty_message));
         mStatusBar = (StatusBar) v.findViewById(R.id.groups_status_bar);
         setHasOptionsMenu(true);
         return v;
@@ -192,12 +207,17 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
                 mCursor,
                 new String[]{Contract.Groups.FIELD_NAME},
                 new int[]{R.id.text1},
+                BaseColumns._ID,
+                Contract.Groups.Remote.REMOTE_ID,
+                Contract.Groups.ENTITY_STATUS,
                 R.id.checkbox1,
                 R.id.dropdown_btn1,
                 0);
         mGroupsAdapter.setOnItemCheckedListener(this);
+        mGroupsAdapter.setOnItemClickListener(this);
         mGroupsAdapter.setItemPopupMenu(R.menu.item_edit_del_menu, mGroupPopupListener);
         mGroupsListView.setAdapter(mGroupsAdapter);
+
         mLoadGroups = (savedInstanceState == null);
         if (savedInstanceState != null) {
             long[] checkedGroupsLocal = savedInstanceState.getLongArray(KEY_CHECKED_GROUPS_LOCAL);
@@ -232,7 +252,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
             mLoadGroups = false;
             mStatusBar.showSpinner();
             mStatusBar.showStatus("Обновление списка классов");
-            mServiceHelperController.getAllGroups(mToken, 0, ApiServiceHelper.PRIORITY_LOW);
+            mServiceHelperController.getAllGroups(mToken, 0, 0, ApiServiceHelper.PRIORITY_LOW);
         } else {
             int runningCount = mServiceHelperController.getRunningActionsCount();
             if (runningCount == 1) {
@@ -285,7 +305,7 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
         switch (item.getItemId()) {
             case R.id.action_group_add:
                 if (mGroupDialog == null) {
-                    mGroupDialog = AddEditGroupDialog.newInstance("Добавить класс", "Редактировать класс", "", -1);
+                    mGroupDialog = AddEditGroupDialog.newInstance("Добавить класс", "Редактировать класс", "", -1, -1);
                 }
                 mGroupDialog.setDialogListener(mAddEditGroupCallback);
                 mGroupDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
@@ -336,8 +356,12 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
         switch (id) {
             case LOADER_GROUPS:
                 baseUri = Contract.Groups.URI;
-                projection = new String[]{"*"};
-                orderBy = null;
+                projection = new String[]{Contract.Groups._ID + " AS _id",
+                        Contract.Groups.Remote.REMOTE_ID,
+                        Contract.Groups.FIELD_NAME,
+                        Contract.Groups.FIELD_PARENT_ID,
+                        Contract.Groups.ENTITY_STATUS};
+                orderBy = Contract.Groups.FIELD_NAME + " ASC";
                 break;
             default:
                 return null;
@@ -377,5 +401,16 @@ public class GroupsFragment extends AbstractApiFragment implements LoaderCallbac
             mActionMode.finish();
         }
 
+    }
+
+    @Override
+    public void onItemClick(View itemView, long localId, long remoteId) {
+        String groupName = ((TextView)itemView.findViewById(R.id.text1)).getText().toString();
+        Intent intent = new Intent(getActivity(), GroupActivity.class);
+        intent.putExtra(GroupActivity.EXTRA_KEY_LOCAL_GROUP_ID, localId);
+        intent.putExtra(GroupActivity.EXTRA_KEY_REMOTE_GROUP_ID, remoteId);
+        intent.putExtra(GroupActivity.EXTRA_KEY_GROUP_NAME, groupName);
+        intent.putExtra(GroupActivity.EXTRA_KEY_IS_SUBGROUP, false);
+        startActivity(intent);
     }
 }

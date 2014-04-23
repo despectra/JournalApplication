@@ -13,25 +13,28 @@ import com.despectra.android.journal.R;
 public class AddEditGroupDialog extends AddEditDialog {
 
     public static final String FRAGMENT_TAG = "addGroupDialog";
-    public static final String KEY_GROUP_ID = "groupId";
+    public static final String KEY_LOCAL_GROUP_ID = "locgroupId";
+    public static final String KEY_REMOTE_GROUP_ID = "remgroupId";
     public static final String KEY_GROUP_TEXT = "group";
 
     private EditText mGroupNameEdit;
-    private long mGroupId;
+    private long mLocalGroupId;
+    private long mRemoteGroupId;
     private String mGroupText;
 
     public AddEditGroupDialog() {
         super();
     }
 
-    public static AddEditGroupDialog newInstance(String additionTitle, String editionTitle, String groupText, long groupId) {
+    public static AddEditGroupDialog newInstance(String additionTitle, String editionTitle, String groupText, long localGroupId, long remoteGroupId) {
         AddEditGroupDialog dialog = new AddEditGroupDialog();
-        dialog.init(R.layout.dialog_add_group, additionTitle, editionTitle, groupText, groupId);
+        dialog.init(R.layout.dialog_add_group, additionTitle, editionTitle, groupText, localGroupId, remoteGroupId);
         return dialog;
     }
 
-    public void setGroupId(long groupId) {
-        mGroupId = groupId;
+    public void setGroupIds(long localId, long remoteId) {
+        mLocalGroupId = localId;
+        mRemoteGroupId = remoteId;
     }
 
     public void setGroupText(String text) {
@@ -50,14 +53,16 @@ public class AddEditGroupDialog extends AddEditDialog {
     protected AddEditDialog init(int mainViewId, String additionTitle, String editionTitle, Object... parameters) {
         Bundle args = super.getBaseArgs(this, mainViewId, additionTitle, editionTitle);
         args.putString(KEY_GROUP_TEXT, (String) parameters[0]);
-        args.putLong(KEY_GROUP_ID, (Long) parameters[1]);
+        args.putLong(KEY_LOCAL_GROUP_ID, (Long) parameters[1]);
+        args.putLong(KEY_REMOTE_GROUP_ID, (Long) parameters[2]);
         setArguments(args);
         return this;
     }
 
     @Override
     protected void setCustomArgs(Bundle arguments) {
-        mGroupId = arguments.getLong(KEY_GROUP_ID);
+        mLocalGroupId = arguments.getLong(KEY_LOCAL_GROUP_ID);
+        mRemoteGroupId = arguments.getLong(KEY_REMOTE_GROUP_ID);
         mGroupText = arguments.getString(KEY_GROUP_TEXT);
     }
 
@@ -74,7 +79,7 @@ public class AddEditGroupDialog extends AddEditDialog {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String groupName = mGroupNameEdit.getText().toString();
                         if (mListener != null) {
-                            mListener.onPositiveClicked(mMode, groupName, mGroupId);
+                            mListener.onPositiveClicked(mMode, groupName, mLocalGroupId);
                         }
                         dialogInterface.dismiss();
                     }

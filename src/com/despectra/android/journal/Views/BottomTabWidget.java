@@ -16,7 +16,8 @@ import java.util.List;
  */
 public class BottomTabWidget extends TabWidget implements View.OnClickListener {
     private OnTabSelectedListener mTabListener;
-    private View mSelectedTab;
+    private View mCurrentTab;
+    private int mCurrentTabIndex;
 
     public BottomTabWidget(Context context) {
         super(context);
@@ -57,19 +58,26 @@ public class BottomTabWidget extends TabWidget implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         int index = (Integer)view.getTag();
-        setCurrentTab(index);
-        if(mTabListener != null) {
-            mTabListener.onTabSelected(index);
+        if (mCurrentTabIndex != index) {
+            setCurrentTab(index);
+            if(mTabListener != null) {
+                mTabListener.onTabSelected(index);
+            }
         }
     }
 
     @Override
     public void setCurrentTab(int index) {
-        if(mSelectedTab != null) {
-            mSelectedTab.setActivated(false);
+        if (mCurrentTab != null) {
+            mCurrentTab.setActivated(false);
         }
-        mSelectedTab = getChildTabViewAt(index);
-        mSelectedTab.setActivated(true);
+        mCurrentTabIndex = index;
+        mCurrentTab = getChildTabViewAt(index);
+        mCurrentTab.setActivated(true);
+    }
+
+    public int getCurrentTabIndex() {
+        return mCurrentTabIndex;
     }
 
     public interface OnTabSelectedListener {

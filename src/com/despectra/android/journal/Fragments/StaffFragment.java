@@ -26,7 +26,7 @@ public class StaffFragment extends AbstractApiFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.staff_fragment_menu, menu);
+        inflater.inflate(R.menu.fragment_staff_menu, menu);
     }
 
     @Override

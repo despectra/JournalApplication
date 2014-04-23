@@ -198,8 +198,8 @@ public class MainPageFragment extends AbstractApiFragment implements LoaderCallb
         switch (id) {
             case WALL_LOADER_ID:
                 baseUri = Contract.Events.URI;
-                projection = new String[]{BaseColumns._ID, Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME};
-                orderBy = "datetime DESC";
+                projection = new String[]{Contract.Events._ID + " AS _id", Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME};
+                orderBy = Contract.Events.FIELD_DATETIME + " DESC";
                 break;
             default:
                 return null;

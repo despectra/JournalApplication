@@ -7,6 +7,9 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Server.APICodes;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.*;
 
@@ -83,15 +86,6 @@ public class ApiServiceHelper {
         }
     }
 
-/*    private int hasRunningActionsForClient(String clientName) {
-        RegisteredClientHolder holder = mRegisteredClients.get(clientName);
-        if (!holder.runningActions.isEmpty()) {
-            return holder.runningActions.apiCode;
-        } else {
-            return -1;
-        }
-    }*/
-
     private void tryRunApiAction(String senderTag, ApiAction action, int priority) {
         RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
         int pendingCount = holder.pendingActions.size();
@@ -165,10 +159,6 @@ public class ApiServiceHelper {
         tryRunApiAction(senderTag, action, priority);
     }
 
-    private void startApiQuery(String senderTag, int apiCode, int priority, String... parameters) {
-        startApiQuery(senderTag, new ApiAction(apiCode, parameters), priority);
-    }
-
     private void bindService(final String senderTag) {
         Intent intent = new Intent(mAppContext, ApiService.class);
         mServiceConnection = new ServiceConnection() {
@@ -203,8 +193,18 @@ public class ApiServiceHelper {
             return;
         }
         ApiAction action = holder.pendingActions.poll();
-        holder.pendingActions.add(action);
+        holder.runningActions.add(action);
         mService.processApiAction(senderTag, action);
+    }
+
+    public final synchronized void onServiceProgress(String clientName, Object data) {
+        int activityState = ((JournalApplication) mAppContext).getActivityState(clientName);
+        if (activityState == JournalApplication.ONRESUME) {
+            RegisteredClientHolder holder = mRegisteredClients.get(clientName);
+            if (holder.callback != null && holder.callback instanceof FeedbackApiClient) {
+                ((FeedbackApiClient) holder.callback).onProgress(data);
+            }
+        }
     }
 
     public final synchronized void onServiceResponse(ApiService.Response response) {
@@ -245,27 +245,55 @@ public class ApiServiceHelper {
 
         @Override
         public void login(String login, String passwd, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_LOGIN, priority, login, passwd);
+            JSONObject data = new JSONObject();
+            try {
+                data.put("login", login);
+                data.put("passwd", passwd);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGIN, data), priority);
+            } catch (JSONException e) {
+            }
         }
 
         @Override
         public void logout(String token, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_LOGOUT, priority, token);
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGOUT, data), priority);
+            } catch (JSONException e) {
+            }
         }
 
         @Override
         public void getApiInfo(String host, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_GET_INFO, priority, host);
+            JSONObject data = new JSONObject();
+            try {
+                data.put("host", host);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_INFO, data), priority);
+            } catch (JSONException e) {
+            }
         }
 
         @Override
         public void getMinProfile(String token, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_GET_MIN_PROFILE, priority, token);
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_MIN_PROFILE, data), priority);
+            } catch (JSONException e) {
+            }
         }
 
         @Override
         public void getEvents(String token, int offset, int count, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_GET_EVENTS, priority, token, String.valueOf(offset), String.valueOf(count));
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("count", count);
+                data.put("offset", offset);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_EVENTS, data), priority);
+            } catch (JSONException e) {
+            }
         }
 
         @Override
@@ -274,43 +302,104 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void addGroup(String token, String name, long parentId, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_ADD_GROUP, priority, token, name, String.valueOf(parentId));
-        }
-
-        @Override
-        public void getAllGroups(String token, long parentGroupId, int priority) {
-            getGroups(token, parentGroupId, 0, 0, priority);
-        }
-
-        @Override
-        public void getGroups(String token, long parentGroupId, int offset, int count, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_GET_GROUPS,
-                    priority,
-                    token,
-                    String.valueOf(parentGroupId),
-                    String.valueOf(offset),
-                    String.valueOf(count));
-        }
-
-        @Override
-        public void deleteGroup(String token, long groupId, int priority) {
-            deleteGroups(token, new long[]{groupId}, priority);
-        }
-
-        @Override
-        public void deleteGroups(String token, long[] groupIds, int priority) {
-            String[] params = new String[groupIds.length + 1];
-            params[0] = token;
-            for(int i = 0; i < groupIds.length; i++) {
-                params[i + 1] = String.valueOf(groupIds[i]);
+        public void addGroup(String token, String name, long localParentId, long remoteParentId, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("name", name);
+                data.put("LOCAL_parent_id", localParentId);
+                data.put("parent_id", remoteParentId);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_GROUP, data), priority);
+            } catch (JSONException e) {
             }
-            startApiQuery(mClientName, APICodes.ACTION_DELETE_GROUPS, priority, params);
         }
 
         @Override
-        public void updateGroup(String token, long groupId, String updName, long updParentId, int priority) {
-            startApiQuery(mClientName, APICodes.ACTION_UPDATE_GROUP, priority, token, String.valueOf(groupId), updName, String.valueOf(updParentId));
+        public void getAllGroups(String token, long localParentId, long remoteParentId, int priority) {
+            getGroups(token, localParentId, remoteParentId, 0, 0, priority);
+        }
+
+        @Override
+        public void getGroups(String token, long localParentId, long remoteParentId, int offset, int count, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("LOCAL_parent_group_id", localParentId);
+                data.put("parent_group_id", remoteParentId);
+                data.put("offset", offset);
+                data.put("count", count);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void deleteGroup(String token, long localId, long remoteId, int priority) {
+            deleteGroups(token, new long[] {localId}, new long[] {remoteId}, priority);
+        }
+
+        @Override
+        public void deleteGroups(String token, long[] localIds, long[] remoteIds, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                JSONArray localGroups = new JSONArray();
+                JSONArray remoteGroups = new JSONArray();
+                for (int i = 0; i < localIds.length; i++) {
+                    localGroups.put(localIds[i]);
+                    remoteGroups.put(remoteIds[i]);
+                }
+                data.put("token", token);
+                data.put("LOCAL_groups", localGroups);
+                data.put("groups", remoteGroups);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_GROUPS, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void updateGroup(String token, long localId, long remoteId, String updName,
+                                long updLocalParentId, long updRemoteParentId, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("LOCAL_id", localId);
+                data.put("id", remoteId);
+                JSONObject groupData = new JSONObject();
+                groupData.put("name", updName);
+                groupData.put("LOCAL_parent_id", updLocalParentId);
+                groupData.put("parent_id", updRemoteParentId);
+                data.put("data", groupData);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_GROUP, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("LOCAL_group_id", localGroupId);
+                data.put("group_id", remoteGroupId);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_STUDENTS_BY_GROUP, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("LOCAL_group_id", localGroupId);
+                data.put("group_id", remoteGroupId);
+                data.put("name", name);
+                data.put("middlename", middlename);
+                data.put("surname", surname);
+                data.put("login", login);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_STUDENT_IN_GROUP, data), priority);
+            } catch (JSONException e) {
+            }
         }
     }
 
@@ -334,9 +423,9 @@ public class ApiServiceHelper {
 
     public static class ApiAction {
         public int apiCode;
-        public Object actionData;
+        public JSONObject actionData;
         public long creationTime;
-        public ApiAction(int apiCode, Object actionData) {
+        public ApiAction(int apiCode, JSONObject actionData) {
             this.apiCode = apiCode;
             this.actionData = actionData;
             creationTime = System.currentTimeMillis();
@@ -362,15 +451,21 @@ public class ApiServiceHelper {
         public void getMinProfile(String token, int priority);
         public void getEvents(String token, int offset, int count, int priority);
         public void getAllEvents(String token, int priority);
-        public void addGroup(String token, String name, long parentId, int priority);
-        public void getAllGroups(String token, long parentGroupId, int priority);
-        public void getGroups(String token, long parentGroupId, int offset, int count, int priority);
-        public void deleteGroup(String token, long groupId, int priority);
-        public void deleteGroups(String token, long[] groupIds, int priority);
-        public void updateGroup(String token, long groupId, String updName, long updParentId, int priority);
+        public void addGroup(String token, String name, long localParentId, long remoteParentId, int priority);
+        public void getAllGroups(String token, long localParentId, long remoteParentId, int priority);
+        public void getGroups(String token, long localParentId, long remoteParentId, int offset, int count, int priority);
+        public void deleteGroup(String token, long localId, long remoteId, int priority);
+        public void deleteGroups(String token, long[] localIds, long[] remoteIds, int priority);
+        public void updateGroup(String token, long localId, long remoteId, String updName, long updLocalParentId, long updRemoteParentId, int priority);
+        public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority);
+        public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority);
     }
 
-    public interface ApiClient {
+    public interface FeedbackApiClient extends ApiClient {
+        public void onProgress(Object data);
+    }
+
+    public interface ApiClient extends Callback {
         public void setServiceHelperController(Controller controller);
         public String getClientName();
     }

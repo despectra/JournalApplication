@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+
+    <EditText
+        android:id="@+id/student_dialog_field_surname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:singleLine="true"
+        android:layout_centerHorizontal="true"
+        android:hint="Фамилия"/>
+
+    <EditText
+        android:id="@+id/student_dialog_field_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:singleLine="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/student_dialog_field_surname"
+        android:hint="Имя"/>
+
+    <EditText
+        android:id="@+id/student_dialog_field_middlename"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:singleLine="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/student_dialog_field_name"
+        android:hint="Отчество"/>
+
+    <EditText
+        android:id="@+id/student_dialog_field_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:singleLine="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/student_dialog_field_middlename"
+        android:hint="Логин в системе"/>
+
+</RelativeLayout>

@@ -32,6 +32,15 @@
         <activity android:name=".Activities.MainActivity">
         </activity>
 
+        <activity
+            android:name=".Activities.GroupActivity"
+            android:parentActivityName="com.despectra.android.journal.Activities.MainActivity">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>-->
+        </activity>
+
         <service android:name=".Services.ApiService">
         </service>
 

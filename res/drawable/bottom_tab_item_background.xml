@@ -6,4 +6,7 @@
         android:drawable="@drawable/tab_selected_holo"/>
     <item
         android:drawable="@android:color/transparent"/>
+    <item
+        android:state_pressed="true"
+        android:drawable="@color/pressed_list_item_bg"/>
 </selector>

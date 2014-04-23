@@ -21,22 +21,43 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
     private int mIdColIndex;
     private int mRemoteIdColIndex;
     private int mEntityStatusColId;
+    private String mIdColName;
+    private String mRemoteIdColName;
+    private String mEntityStatusColName;
     private Context mContext;
-    private OnItemCheckedListener mListener;
+    private OnItemClickListener mItemClickListener;
+    private OnItemCheckedListener mItemCheckedListener;
     private Map<Long, Long> mCheckedItemIds;
     private int mPopupMenuRes;
     private OnItemPopupMenuListener mPopupMenuListener;
 
-    public RemoteIdCursorAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int checkBoxId, int popupMenuBtn, int flags) {
+    public RemoteIdCursorAdapter(Context context,
+                                 int layout,
+                                 Cursor c,
+                                 String[] from,
+                                 int[] to,
+                                 String idColumn,
+                                 String remoteIdColumn,
+                                 String entityStatusColumn,
+                                 int checkBoxId,
+                                 int popupMenuBtn,
+                                 int flags) {
         super(context, layout, c, from, to, flags);
         mContext = context;
+        mIdColName = idColumn;
+        mRemoteIdColName = remoteIdColumn;
+        mEntityStatusColName = entityStatusColumn;
         mCheckBoxId = checkBoxId;
         mPopupMenuBtnId = popupMenuBtn;
         mCheckedItemIds = new HashMap<Long, Long>();
     }
 
     public void setOnItemCheckedListener(OnItemCheckedListener listener) {
-        mListener = listener;
+        mItemCheckedListener = listener;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mItemClickListener = listener;
     }
 
     public void setItemPopupMenu(int menuRes, OnItemPopupMenuListener menuListener) {
@@ -51,24 +72,19 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
     }
 
     public long[] getCheckedLocalIdsAsArray() {
-        if (mCheckedItemIds != null && mCheckedItemIds.size() > 0) {
-            long[] items = new long[mCheckedItemIds.size()];
-            int i = 0;
-            for (Long key : mCheckedItemIds.keySet()) {
-                items[i] = key;
-                i++;
-            }
-            return items;
-        }
-        return new long[]{};
+        return getCheckedIds(true);
     }
 
     public long[] getCheckedRemoteIdsAsArray() {
+        return getCheckedIds(false);
+    }
+
+    private long[] getCheckedIds(boolean byKey) {
         if (mCheckedItemIds != null && mCheckedItemIds.size() > 0) {
             long[] items = new long[mCheckedItemIds.size()];
             int i = 0;
-            for (Long value : mCheckedItemIds.values()) {
-                items[i] = value;
+            for (Long it : (byKey) ? mCheckedItemIds.keySet() : mCheckedItemIds.values()) {
+                items[i] = it;
                 i++;
             }
             return items;
@@ -139,6 +155,14 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
                 }
             });
             view.setActivated(isItemChecked);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mItemClickListener != null) {
+                        mItemClickListener.onItemClick(view, localId, remoteId);
+                    }
+                }
+            });
             view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
@@ -155,8 +179,8 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
                     } else {
                         mCheckedItemIds.remove(localId);
                     }
-                    if (mListener != null) {
-                        mListener.onItemChecked(localId, remoteId, mCheckedItemIds.size(), checked);
+                    if (mItemCheckedListener != null) {
+                        mItemCheckedListener.onItemChecked(localId, remoteId, mCheckedItemIds.size(), checked);
                     }
                 }
             });
@@ -165,6 +189,9 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
     }
 
     private void showItemPopupMenu(View anchorView, final View adapterItemView, final long localId, final long remoteId) {
+        if (mPopupMenuRes == 0) {
+            return;
+        }
         PopupMenu menu = new PopupMenu(mContext, anchorView);
         menu.inflate(mPopupMenuRes);
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -182,9 +209,9 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
     @Override
     public Cursor swapCursor(Cursor c) {
         if (c != null) {
-            mIdColIndex = c.getColumnIndexOrThrow(Contract.FIELD_ID);
-            mRemoteIdColIndex = c.getColumnIndexOrThrow(Contract.FIELD_REMOTE_ID);
-            mEntityStatusColId = c.getColumnIndexOrThrow(Contract.FIELD_ENTITY_STATUS);
+            mIdColIndex = c.getColumnIndexOrThrow(mIdColName);
+            mRemoteIdColIndex = c.getColumnIndexOrThrow(mRemoteIdColName);
+            mEntityStatusColId = c.getColumnIndexOrThrow(mEntityStatusColName);
         }
         return super.swapCursor(c);
     }
@@ -193,7 +220,12 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
         public void onItemChecked(long localId, long remoteId, int checkedCount, boolean checked);
     }
 
+    public interface OnItemClickListener {
+        public void onItemClick(View itemView, long localId, long remoteId);
+    }
+
     public interface OnItemPopupMenuListener {
         public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId);
+
     }
 }

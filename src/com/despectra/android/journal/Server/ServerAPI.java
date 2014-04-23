@@ -38,6 +38,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.TypeVariable;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -53,27 +54,6 @@ public class ServerAPI {
 
     public static final int CONN_TIMEOUT_MS = 20000;
     public static final int IO_TIMEOUT_MS = 15000;
-
-    private static final JSONPredicate VALID_HOST_PREDICATE = new JSONPredicate() {
-        @Override
-        public boolean check(JSONObject json) throws Exception {
-            return json.has("ok");
-        }
-    };
-
-    private static final JSONPredicate SIMPLE_PREDICATE = new JSONPredicate() {
-        @Override
-        public boolean check(JSONObject json) throws Exception {
-            return json.getInt("success") == 1;
-        }
-    };
-
-    public static final JSONPredicate NO_ERROR_PREDICATE = new JSONPredicate() {
-        @Override
-        public boolean check(JSONObject json) throws Exception {
-            return !(json.has("success") && json.getInt("success") == 0);
-        }
-    };
 
     private static ServerAPI mServerInstance;
     private Context mContext;
@@ -105,154 +85,58 @@ public class ServerAPI {
         mContext = context;
     }
 
-    public JSONObject getApiInfo(String host) throws Exception {
-        HttpGet request = new HttpGet(String.format("%s/api/index.php?info.getInfo", host));
-        String response = doQuery(request);
-        return processApiResponse(
-                response,
-                VALID_HOST_PREDICATE,
-                null);
+    public JSONObject getApiInfo(JSONObject data) throws Exception {
+        HttpGet request = new HttpGet(String.format("%s/api/index.php?info.getInfo", data.getString("host")));
+        return new JSONObject(doQuery(request));
     }
 
-    public JSONObject login(String login, String password) throws Exception {
-        String response = doPostApiQuery(
+    public JSONObject login(JSONObject data) throws Exception {
+        return doPostApiQuery(
                 "auth.login",
                 new NameValuePair[]{
-                        new BasicNameValuePair("login", login),
-                        new BasicNameValuePair("passwd", password)
-                });
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
-    }
-
-    public JSONObject logout(String token) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        String response = doGetApiQuery(
-                "auth.logout",
-                json.toString());
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
-    }
-
-    public JSONObject checkToken(String token) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        String response = doGetApiQuery(
-                "auth.checktoken",
-                json.toString());
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
-    }
-
-    public JSONObject getMinProfile(String token) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        String response = doGetApiQuery(
-                "profile.getminprofile",
-                json.toString());
-        return processApiResponse(
-                response,
-                NO_ERROR_PREDICATE,
-                new ApiCallback() {
-                    @Override
-                    public void apiSuccess(JSONObject json) throws JSONException, IOException {
-                        String avatarUrl = "http://" + json.getString("avatar");
-                        InputStream in = (InputStream) new URL(avatarUrl).getContent();
-                        FileOutputStream fos = mContext.openFileOutput(AVATAR_FILENAME, Context.MODE_PRIVATE);
-                        int b;
-                        while ((b = in.read()) != -1) {
-                            fos.write(b);
-                        }
-                        in.close();
-                        fos.close();
-                    }
-                }
+                        new BasicNameValuePair("login", data.getString("login")),
+                        new BasicNameValuePair("passwd", data.getString("passwd"))}
         );
     }
 
-    public JSONObject getEvents(String token, String offset, String count) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        json.put("offset", offset);
-        json.put("count", count);
-        String response = doGetApiQuery(
-                "events.getEvents",
-                json.toString());
-        return processApiResponse(
-                response,
-                NO_ERROR_PREDICATE,
-                null
-        );
+    public JSONObject logout(JSONObject data) throws Exception {
+        return doGetApiQuery("auth.logout", data.toString());
     }
 
-    public JSONObject addGroup(String token, String name, String parentId) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        json.put("name", name);
-        json.put("parent_id", parentId);
-        String response = doGetApiQuery(
-                "groups.addGroup",
-                json.toString());
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
+    public JSONObject checkToken(JSONObject data) throws Exception {
+        return doGetApiQuery("auth.checktoken", data.toString());
     }
 
-    public JSONObject getGroups(String token, String parentGroupId, String offset, String count) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        json.put("parent_group_id", parentGroupId);
-        json.put("offset", offset);
-        json.put("count", count);
-        String response = doGetApiQuery(
-                "groups.getGroups",
-                json.toString());
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
+    public JSONObject getMinProfile(JSONObject data) throws Exception {
+        return doGetApiQuery("profile.getminprofile", data.toString());
     }
 
-    public JSONObject deleteGroups(String token, String[] groupIds) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        JSONArray groupsArray = new JSONArray();
-        for (int i = 0; i < groupIds.length; i++) {
-            groupsArray.put(groupIds[i]);
-        }
-        json.put("groups", groupsArray);
-        String response = doGetApiQuery(
-                "groups.deleteGroups",
-                json.toString());
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
+    public JSONObject getEvents(JSONObject data) throws Exception {
+        return doGetApiQuery("events.getEvents", data.toString());
     }
 
-    public JSONObject updateGroup(String token, String groupId, String updName, String updParentId) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("token", token);
-        json.put("id", groupId);
-        JSONObject data = new JSONObject();
-        data.put("name", updName);
-        data.put("parent_id", updParentId);
-        json.put("data", data);
-        String response = doGetApiQuery(
-                "groups.editGroup",
-                json.toString());
-        return processApiResponse(
-                response,
-                SIMPLE_PREDICATE,
-                null);
+    public JSONObject addGroup(JSONObject data) throws Exception {
+        return doGetApiQuery("groups.addGroup", data.toString());
+    }
+
+    public JSONObject getGroups(JSONObject data) throws Exception {
+        return doGetApiQuery("groups.getGroups", data.toString());
+    }
+
+    public JSONObject deleteGroups(JSONObject data) throws Exception {
+        return doGetApiQuery("groups.deleteGroups", data.toString());
+    }
+
+    public JSONObject updateGroup(JSONObject data) throws Exception {
+        return doGetApiQuery("groups.editGroup", data.toString());
+    }
+
+    public JSONObject getStudentsByGroup(JSONObject data) throws Exception {
+        return doGetApiQuery("students.getByGroup", data.toString());
+    }
+
+    public JSONObject addStudentInGroup(JSONObject data) throws Exception {
+        return doGetApiQuery("students.addStudentInGroup", data.toString());
     }
 
     private String getHost(){
@@ -260,23 +144,35 @@ public class ServerAPI {
         return host;
     }
 
+    public void loadAvatar(JSONObject json) throws JSONException, IOException {
+        String avatarUrl = "http://" + json.getString("avatar");
+        InputStream in = (InputStream) new URL(avatarUrl).getContent();
+        FileOutputStream fos = mContext.openFileOutput(AVATAR_FILENAME, Context.MODE_PRIVATE);
+        int b;
+        while ((b = in.read()) != -1) {
+            fos.write(b);
+        }
+        in.close();
+        fos.close();
+    }
+
     private String getFullApiPath() {
         return getHost() + "/api/index.php";
     }
 
-    private String doPostApiQuery(String apiMethod, NameValuePair[] body) throws Exception {
+    private JSONObject doPostApiQuery(String apiMethod, NameValuePair[] body) throws Exception {
         List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
         requestParams.addAll(Arrays.asList(body));
         HttpPost request = new HttpPost(getFullApiPath() + "?" + apiMethod);
         request.setEntity(new UrlEncodedFormEntity(requestParams, "UTF-8"));
-        return doQuery(request);
+        return new JSONObject(doQuery(request));
     }
 
-    private String doGetApiQuery(String apiMethod, String arg) throws Exception {
+    private JSONObject doGetApiQuery(String apiMethod, String arg) throws Exception {
         arg = URLEncoder.encode(arg, "UTF-8");
         String requestBody = (arg.isEmpty()) ? apiMethod : String.format("%s=%s", apiMethod, arg);
         HttpGet request = new HttpGet(String.format("%s?%s", getFullApiPath(), requestBody));
-        return doQuery(request);
+        return new JSONObject(doQuery(request));
     }
 
     private String doQuery(HttpUriRequest request) throws Exception {
@@ -287,30 +183,5 @@ public class ServerAPI {
         } catch (Exception ex) {
             throw ex;
         }
-    }
-
-    private JSONObject processApiResponse(
-            String response,
-            JSONPredicate success,
-            ApiCallback callback) throws Exception {
-        JSONObject json;
-        try {
-            json = new JSONObject(response);
-            boolean isSuccess = success.check(json);
-            if (isSuccess && callback != null) {
-                callback.apiSuccess(json);
-            }
-            return json;
-        } catch (Exception ex) {
-            throw ex;
-        }
-    }
-
-    private interface JSONPredicate {
-        public boolean check(JSONObject json) throws Exception;
-    }
-
-    private interface ApiCallback {
-        public void apiSuccess(JSONObject data) throws Exception;
     }
 }

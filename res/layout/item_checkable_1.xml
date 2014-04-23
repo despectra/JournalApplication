@@ -6,14 +6,7 @@
     android:layout_height="60dp"
     android:background="@drawable/item_checkable_background">
 
-    <CheckBox
-        android:id="@+id/checkbox1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
-        android:focusable="false"
-        android:padding="8dp"/>
+    <include layout="@layout/item_checkable_checkbox"/>
 
     <TextView
         android:id="@+id/text1"
@@ -26,14 +19,6 @@
         android:textColor="@drawable/list_item_text_color"
         />
 
-    <ImageButton
-        android:id="@+id/dropdown_btn1"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/dropdown_ic_arrow_normal_holo_dark"
-        android:focusable="false"
-        style="?android:borderlessButtonStyle"/>
+    <include layout="@layout/item_dropdown_button"/>
 
 </RelativeLayout>

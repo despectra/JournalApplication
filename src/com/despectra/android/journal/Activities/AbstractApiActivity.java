@@ -8,7 +8,7 @@ import com.despectra.android.journal.Services.ApiServiceHelper;
 /**
  * Created by Dmitry on 28.03.14.
  */
-public abstract class AbstractApiActivity extends FragmentActivity implements ApiServiceHelper.Callback, ApiServiceHelper.ApiClient {
+public abstract class AbstractApiActivity extends FragmentActivity implements ApiServiceHelper.ApiClient {
     JournalApplication mApplicationContext;
     ApiServiceHelper.Controller mServiceHelperController;
 
