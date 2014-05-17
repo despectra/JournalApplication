@@ -1,8 +1,7 @@
 package com.despectra.android.journal.Fragments;
 
-import android.app.LoaderManager;
-import android.content.CursorLoader;
-import android.content.Loader;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -55,6 +54,7 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
                 if (token.isEmpty()) {
                     return;
                 }
+                getHostActivity().showProgressBar();
                 mServiceHelperController.addStudentIntoGroup(token, mLocalGroupId, mRemoteGroupId, name, middlename, surname, login, ApiServiceHelper.PRIORITY_HIGH);
             } else {
                 //TODO edit student
@@ -99,6 +99,7 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
                     mEntityDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
+                    getHostActivity().showProgressBar();
                     mServiceHelperController.deleteStudents(mToken, new long[]{listItemLocalId}, new long[]{listItemRemoteId}, ApiServiceHelper.PRIORITY_HIGH);
                     break;
                 default:
@@ -255,18 +256,23 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
 
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
-        //TODO notify
+        if (runningCount > 0) {
+            getHostActivity().showProgressBar();
+        } else {
+            getHostActivity().hideProgressBar();
+        }
     }
 
     @Override
     protected void updateEntitiesList() {
+        getHostActivity().showProgressBar();
         mServiceHelperController.getStudentsByGroup(mToken, mLocalGroupId, mRemoteGroupId, ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
     public void onProgress(Object data) {
         if (data.equals("cached")) {
-            getActivity().getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+            getActivity().getSupportLoaderManager().restartLoader(LOADER_MAIN, null, this);
         }
     }
 
@@ -276,14 +282,15 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
             switch (actionCode) {
                 case APICodes.ACTION_GET_STUDENTS_BY_GROUP:
                     getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                    getHostActivity().hideProgressBar();
                     break;
                 case APICodes.ACTION_ADD_STUDENT_IN_GROUP:
-                    //TODO notify
                     getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                    getHostActivity().hideProgressBar();
                     break;
                 case APICodes.ACTION_DELETE_STUDENTS:
-                    //TODO notify
                     getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                    getHostActivity().hideProgressBar();
                     break;
             }
         }

@@ -52,6 +52,15 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "students_groups/#", Contract.StudentsGroups.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_groups_remote", Contract.StudentsGroups.Remote.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_groups_remote/#", Contract.StudentsGroups.Remote.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects", Contract.Subjects.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Contract.Subjects.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects_remote", Contract.Subjects.Remote.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects_remote/#", Contract.Subjects.Remote.ID_URI_CODE);
+
+        mMatcher.addURI(Contract.AUTHORITY, "marks", Contract.Marks.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "marks/group", Contract.Marks.URI_BY_GROUP_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "lessons", Contract.Lessons.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Contract.Lessons.ID_URI_CODE);
     }
 
     private static final SparseArray<String> mReadTables;
@@ -99,6 +108,15 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.StudentsGroups.Remote.URI_CODE, Contract.StudentsGroups.Remote.TABLE);
         mReadTables.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote.TABLE);
+
+        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
+        mReadTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
+
+        mReadTables.append(Contract.Marks.URI_BY_GROUP_CODE, Contract.Marks.TABLE_BY_GROUP);
+        mReadTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
+
     }
 
     private static final SparseArray<String> mWriteTables;
@@ -129,6 +147,15 @@ public class MainProvider extends ContentProvider {
         mWriteTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE);
         mWriteTables.append(Contract.StudentsGroups.Remote.URI_CODE, Contract.StudentsGroups.Remote.TABLE);
         mWriteTables.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote.TABLE);
+
+        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
+        mReadTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
+
+        mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
+        mWriteTables.append(Contract.Marks.ID_URI_CODE, Contract.Marks.TABLE);
+        mWriteTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
     }
 
     private static final SparseArray<String> mPrimaryColumns;
@@ -149,6 +176,13 @@ public class MainProvider extends ContentProvider {
 
         mPrimaryColumns.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups._ID);
         mPrimaryColumns.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote._ID);
+
+        mPrimaryColumns.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects._ID);
+        mPrimaryColumns.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote._ID);
+
+        mPrimaryColumns.append(Contract.Marks.ID_URI_CODE, Contract.Marks._ID);
+        mPrimaryColumns.append(Contract.Lessons.ID_URI_CODE, Contract.Lessons._ID);
+
     }
 
     private DBHelper mDbHelper;

@@ -13,6 +13,8 @@ import java.util.Map;
  */
 public class JournalApplication extends Application {
 
+    public static final boolean DEBUG = true;
+
     public static final String PACKAGE = "com.despectra.android.journal";
     public static final String TAG = "JOURNAL_APPLICATION";
     public static final String PREFERENCE_KEY_HOST = "settings_host";
@@ -24,6 +26,7 @@ public class JournalApplication extends Application {
     public static final String PREFERENCE_KEY_MIDDLENAME = "middlename";
     public static final String PREFERENCE_KEY_SURNAME = "surname";
     public static final String PREFERENCE_KEY_LEVEL = "level";
+    public static final String PREFERENCES_KEY_XDEBUG = "settings_dbg_via_phpstorm";
 
     public static final int ONCREATE = 0;
     public static final int ONSTART = 1;

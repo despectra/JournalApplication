@@ -10,4 +10,15 @@
             android:summary="@string/settings_host_summary"/>
 
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Отладка">
+
+        <CheckBoxPreference
+            android:key="settings_dbg_via_phpstorm"
+            android:title="Web API отладка через XDebug и PhpStorm"
+            android:summary="При отправке запросов к серверу на нем будет запускаться отладчик XDebug"/>
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

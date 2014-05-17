@@ -1,6 +1,6 @@
 package com.despectra.android.journal.Activities;
 
-import android.app.FragmentTransaction;
+import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.view.MenuItem;
 import com.despectra.android.journal.Dialogs.SimpleInfoDialog;
@@ -44,7 +44,7 @@ public class GroupActivity extends AbstractApiActivity implements BottomTabWidge
         mGroupName = getIntent().getStringExtra(EXTRA_KEY_GROUP_NAME);
         if (mRemoteGroupId == -1 || mLocalGroupId == -1) {
             SimpleInfoDialog errorDialog = SimpleInfoDialog.newInstance("Ошибка", "Нет идентификатора класса");
-            errorDialog.show(getFragmentManager(), "errorDialog");
+            errorDialog.show(getSupportFragmentManager(), "errorDialog");
             return;
         }
         mIsSubgroup = getIntent().getBooleanExtra(EXTRA_KEY_IS_SUBGROUP, false);
@@ -58,7 +58,7 @@ public class GroupActivity extends AbstractApiActivity implements BottomTabWidge
         } else {
             mTabs.setCurrentTab(0);
             GroupInfoFragment fragment = GroupInfoFragment.newInstance(mRemoteGroupId, mTitle);
-            getFragmentManager().beginTransaction()
+            getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_layout, fragment, GroupInfoFragment.FRAGMENT_TAG)
                     .commit();
         }
@@ -99,14 +99,14 @@ public class GroupActivity extends AbstractApiActivity implements BottomTabWidge
         switch (index) {
             case TAB_GENERAL:
                 fragment = GroupInfoFragment.newInstance(mRemoteGroupId, mTitle);
-                getFragmentManager().beginTransaction()
+                getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_layout, fragment, GroupInfoFragment.FRAGMENT_TAG)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .commit();
                 break;
             case TAB_STUDENTS:
                 fragment = StudentsFragment.newInstance(mLocalGroupId, mRemoteGroupId);
-                getFragmentManager().beginTransaction()
+                getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_layout, fragment, GroupInfoFragment.FRAGMENT_TAG)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .commit();

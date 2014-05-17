@@ -2,8 +2,9 @@ package com.despectra.android.journal.Dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
+import android.content.DialogInterface;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,11 +22,13 @@ public abstract class AddEditDialog extends DialogFragment {
     public static final String KEY_EDITION_TITLE = "edittitle";
     public static final String KEY_POS_BTN_TEXT = "posBtnText";
     public static final String KEY_NEUTRAL_BTN_TEXT = "neutralBtnText";
+    private static final String KEY_DONT_CLOSE = "dontclose";
 
     protected DialogButtonsListener mListener;
     protected View mMainView;
     protected int mMode;
     protected int mMainViewId;
+    protected boolean mDontClose;
     protected String mAdditionTitle;
     protected String mEditionTitle;
     protected String mPositiveBtnText;
@@ -61,6 +64,7 @@ public abstract class AddEditDialog extends DialogFragment {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             mMode = savedInstanceState.getInt(KEY_MODE);
+            mDontClose = savedInstanceState.getBoolean(KEY_DONT_CLOSE);
         }
     }
 
@@ -72,8 +76,15 @@ public abstract class AddEditDialog extends DialogFragment {
         mMainView = LayoutInflater.from(getActivity()).inflate(mMainViewId, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setTitle(mMode == MODE_ADD ? mAdditionTitle : mEditionTitle)
-                .setView(mMainView)
-                .setMultiChoiceItems(new String[]{"Не закрывать диалог при добавлении"}, new boolean[]{false}, null);
+                .setView(mMainView);
+        if (mMode == MODE_ADD) {
+            builder.setMultiChoiceItems(new String[]{"Не закрывать диалог при добавлении"}, new boolean[]{false}, new DialogInterface.OnMultiChoiceClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+                    mDontClose = b;
+                }
+            });
+        }
         return completeDialogCreation(builder);
     }
 
@@ -83,6 +94,7 @@ public abstract class AddEditDialog extends DialogFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_MODE, mMode);
+        outState.putBoolean(KEY_DONT_CLOSE, mDontClose);
     }
 
     public void showInMode(int mode, FragmentManager fm, String tag) {

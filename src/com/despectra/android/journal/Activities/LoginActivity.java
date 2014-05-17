@@ -87,7 +87,7 @@ public class LoginActivity extends AbstractApiActivity implements TextView.OnEdi
         mLoginBtn = (Button)findViewById(R.id.login_btn);
         mResponseText = (TextView)findViewById(R.id.response_text);
 
-        mLoggingDialog = (SimpleProgressDialog) getFragmentManager().findFragmentByTag(PROGRESS_DIALOG_TAG);
+        mLoggingDialog = (SimpleProgressDialog) getSupportFragmentManager().findFragmentByTag(PROGRESS_DIALOG_TAG);
         if (mLoggingDialog == null) {
             mLoggingDialog = SimpleProgressDialog.newInstance("Вход..");
             mLoggingDialog.setCancelable(false);
@@ -156,7 +156,7 @@ public class LoginActivity extends AbstractApiActivity implements TextView.OnEdi
         }
         mResponseText.setText(null);
         mLoggingStatus = STATUS_LOGGING;
-        mLoggingDialog.show(getFragmentManager(), PROGRESS_DIALOG_TAG);
+        mLoggingDialog.show(getSupportFragmentManager(), PROGRESS_DIALOG_TAG);
         mLogin = login;
         mServiceHelperController.login(login, pass, ApiServiceHelper.PRIORITY_LOW);
     }
@@ -218,7 +218,7 @@ public class LoginActivity extends AbstractApiActivity implements TextView.OnEdi
         mLoggingDialog.dismiss();
         if (mErrorDialog == null) {
             mErrorDialog = SimpleInfoDialog.newInstance("Ошибка", errorMsg);
-            mErrorDialog.show(getFragmentManager(), ERROR_DIALOG_TAG);
+            mErrorDialog.show(getSupportFragmentManager(), ERROR_DIALOG_TAG);
         }
     }
 }

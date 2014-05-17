@@ -30,7 +30,7 @@ public class PreferencesActivity extends AbstractApiActivity implements ApiServi
         super.onCreate(savedInstanceState);
         getActionBar().setDisplayShowHomeEnabled(false);
         getActionBar().setDisplayUseLogoEnabled(false);
-        mCheckingDialog = (SimpleProgressDialog) getFragmentManager().findFragmentByTag(PROGRESS_DIALOG_TAG);
+        mCheckingDialog = (SimpleProgressDialog) getSupportFragmentManager().findFragmentByTag(PROGRESS_DIALOG_TAG);
         if (mCheckingDialog == null) {
             mCheckingDialog = SimpleProgressDialog.newInstance("Проверка сервера...");
             mCheckingDialog.setCancelable(false);
@@ -74,7 +74,7 @@ public class PreferencesActivity extends AbstractApiActivity implements ApiServi
         mIsChecking = checking;
         if (mIsChecking) {
             if (!mCheckingDialog.isAdded()) {
-                mCheckingDialog.show(getFragmentManager(), PROGRESS_DIALOG_TAG);
+                mCheckingDialog.show(getSupportFragmentManager(), PROGRESS_DIALOG_TAG);
             }
         } else if(mCheckingDialog.isAdded()) {
             mCheckingDialog.dismiss();

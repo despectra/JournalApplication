@@ -143,6 +143,13 @@ public class AddEditStudentDialog extends AddEditDialog {
                     if (mListener != null) {
                         mListener.onPositiveClicked(mMode, mLocalId, name, middlename, surname, login);
                     }
+                    if (mDontClose) {
+                        mNameEdit.setText("");
+                        mSurnameEdit.setText("");
+                        mMiddlenameEdit.setText("");
+                        mLoginEdit.setText("");
+                        return;
+                    }
                     dismiss();
                 }
             });

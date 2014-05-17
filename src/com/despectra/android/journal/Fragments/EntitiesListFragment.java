@@ -1,7 +1,7 @@
 package com.despectra.android.journal.Fragments;
 
-import android.app.LoaderManager.LoaderCallbacks;
-import android.content.Loader;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;

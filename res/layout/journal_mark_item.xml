@@ -1,0 +1,12 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceListItem"
+    android:gravity="center"
+    android:minHeight="60dp"
+    android:background="@drawable/mark_item_background_selector"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true"
+    />

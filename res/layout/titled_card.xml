@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/module_title_background"
-        android:padding="5dp"
+        android:paddingTop="5dp"
         android:layout_marginBottom="10dp">
 
         <TextView
@@ -24,17 +24,8 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"/>
 
-        <ImageView
-            android:id="@+id/card_spinner"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/small_spinner"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:visibility="gone"
-            />
-
     </RelativeLayout>
+
 
 
 

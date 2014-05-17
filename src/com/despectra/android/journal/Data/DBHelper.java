@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 19;
+    public static final int VERSION = 23;
 
     public static final String CREATE_TABLE_ENTITY_REMOTE = "" +
             "CREATE TABLE IF NOT EXISTS %1$s_remote (" +
@@ -53,6 +53,26 @@ public class DBHelper extends SQLiteOpenHelper {
             "students_groups_student_id INTEGER NOT NULL, " +
             "students_groups_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
+    public static final String CREATE_TABLE_SUBJECTS = "" +
+            "CREATE TABLE IF NOT EXISTS subjects (" +
+            "subjects_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "subjects_name TEXT NOT NULL)";
+
+    public static final String CREATE_TABLE_LESSONS = "" +
+            "CREATE TABLE IF NOT EXISTS lessons (" +
+            "lessons_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "lessons_group_id INTEGER NOT NULL," +
+            "lessons_date TEXT NOT NULL," +
+            "lessons_title TEXT NOT NULL)";
+
+    public static final String CREATE_TABLE_MARKS = "" +
+            "CREATE TABLE IF NOT EXISTS marks (" +
+            "marks_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "marks_lesson_id INTEGER NOT NULL," +
+            "marks_student_id INTEGER NOT NULL," +
+            "marks_entity_status INTEGER DEFAULT 0 NOT NULL," +
+            "marks_mark TEXT NOT NULL)";
+
     public static final String DROP_TABLE = "" +
             "DROP TABLE %s";
     private String mName;
@@ -86,6 +106,10 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "students_remote"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "users_remote"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "students_groups_remote"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "subjects"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "subjects_remote"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "lessons"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "marks"));
     }
 
     private void buildSchedma(SQLiteDatabase sqLiteDatabase) {
@@ -99,6 +123,11 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "users"));
         sqLiteDatabase.execSQL(CREATE_TABLE_STUDENTS_GROUPS);
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "students_groups"));
+        sqLiteDatabase.execSQL(CREATE_TABLE_SUBJECTS);
+        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "subjects"));
+
+        sqLiteDatabase.execSQL(CREATE_TABLE_LESSONS);
+        sqLiteDatabase.execSQL(CREATE_TABLE_MARKS);
     }
 
     public static class JoinBuilder {

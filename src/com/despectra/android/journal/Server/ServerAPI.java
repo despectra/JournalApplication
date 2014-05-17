@@ -1,6 +1,7 @@
 package com.despectra.android.journal.Server;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.http.AndroidHttpClient;
 import android.os.Build;
@@ -24,6 +25,7 @@ import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -143,11 +145,6 @@ public class ServerAPI {
         return doGetApiQuery("students.deleteStudents", data.toString());
     }
 
-    private String getHost(){
-        String host = PreferenceManager.getDefaultSharedPreferences(mContext).getString(JournalApplication.PREFERENCE_KEY_HOST, "");
-        return host;
-    }
-
     public void loadAvatar(JSONObject json) throws JSONException, IOException {
         String avatarUrl = "http://" + json.getString("avatar");
         InputStream in = (InputStream) new URL(avatarUrl).getContent();
@@ -158,6 +155,11 @@ public class ServerAPI {
         }
         in.close();
         fos.close();
+    }
+
+    private String getHost(){
+        String host = PreferenceManager.getDefaultSharedPreferences(mContext).getString(JournalApplication.PREFERENCE_KEY_HOST, "");
+        return host;
     }
 
     private String getFullApiPath() {
@@ -181,11 +183,22 @@ public class ServerAPI {
 
     private String doQuery(HttpUriRequest request) throws Exception {
         try {
+            if (JournalApplication.DEBUG) {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+                boolean useXDebug = prefs.getBoolean(JournalApplication.PREFERENCES_KEY_XDEBUG, false);
+                if (useXDebug) {
+                    request.addHeader(new BasicHeader("Accept", "*/*"));
+                    request.addHeader(new BasicHeader("Cache-Control", "no-cache"));
+                    request.addHeader(new BasicHeader("Cookie", "XDEBUG_SESSION=PHPSTORM;path=/;"));
+                }
+            }
             HttpResponse response = mClient.execute(request);
             HttpEntity entity = response.getEntity();
             return EntityUtils.toString(entity, "UTF-8");
         } catch (Exception ex) {
             throw ex;
+        } finally {
+
         }
     }
 }

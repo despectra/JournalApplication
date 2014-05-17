@@ -1,7 +1,8 @@
 package com.despectra.android.journal.Fragments;
 
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
+import com.despectra.android.journal.Activities.AbstractApiActivity;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Services.ApiServiceHelper;
 
@@ -58,8 +59,13 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
         mServiceHelperController = controller;
     }
 
+    public AbstractApiActivity getHostActivity() {
+        return (AbstractApiActivity) getActivity();
+    }
+
     @Override
     public String getClientName() {
         return getClass().getSimpleName();
     }
+
 }

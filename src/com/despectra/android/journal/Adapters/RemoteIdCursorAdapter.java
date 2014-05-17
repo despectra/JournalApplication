@@ -126,7 +126,6 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
             checkBox.setOnCheckedChangeListener(null);
             checkBox.setChecked(isItemChecked);
             final ImageButton popupBtn = (ImageButton) view.findViewById(mPopupMenuBtnId);
-
             if (status != Contract.STATUS_IDLE) {
                 view.setEnabled(false);
                 checkBox.setEnabled(false);
@@ -214,6 +213,10 @@ public class RemoteIdCursorAdapter extends SimpleCursorAdapter {
             mEntityStatusColId = c.getColumnIndexOrThrow(mEntityStatusColName);
         }
         return super.swapCursor(c);
+    }
+
+    public static class ViewHolder {
+        public boolean isAnimating;
     }
 
     public interface OnItemCheckedListener {

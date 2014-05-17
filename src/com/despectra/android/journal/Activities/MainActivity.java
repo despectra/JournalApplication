@@ -4,22 +4,16 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.App.JournalApplication;
 import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
-import com.despectra.android.journal.Fragments.GroupsFragment;
-import com.despectra.android.journal.Fragments.MainPageFragment;
-import com.despectra.android.journal.Fragments.StaffFragment;
+import com.despectra.android.journal.Fragments.*;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.Server.APICodes;
 import com.despectra.android.journal.Server.ServerAPI;
@@ -59,7 +53,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     public static final String KEY_STATUS = "status";
     private static final String TAG = "MainActivity";
 
-    private Fragment mCurrentFragment;
+    private AbstractApiFragment mCurrentFragment;
     private String mActionBarTitle;
     private String mCurrentFragmentTag;
     private String mToken;
@@ -108,7 +102,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
             mActionBarTitle = "Главная";
             mStatus = STATUS_IDLE;
             mLoadWall = true;
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag);
             ft.commit();
         }
@@ -116,37 +110,6 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
         restoreActionBar();
         restoreSpinnerDialog();
     }
-
-    /*private void testSchedFromJson() {
-        try {
-            Scanner scanner = new Scanner(getApplicationContext().getResources().openRawResource(R.raw.dayschedule));
-            StringBuilder stringBuilder = new StringBuilder();
-            while (scanner.hasNext()) {
-                stringBuilder.append(scanner.nextLine());
-            }
-            JSONObject json = new JSONObject(stringBuilder.toString());
-            DaySchedule sched = DaySchedule.fromJson(json);
-            Log.v(TAG, sched.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void testWeekSchedFromJson() {
-        try {
-            Scanner scanner = new Scanner(getApplicationContext().getResources().openRawResource(R.raw.weekschedule));
-            StringBuilder stringBuilder = new StringBuilder();
-            while (scanner.hasNext()) {
-                stringBuilder.append(scanner.nextLine());
-            }
-            JSONObject json = new JSONObject(stringBuilder.toString());
-            WeekSchedule sched = WeekSchedule.fromJson(json);
-            Log.v(TAG, sched.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }*/
-
 
     @Override
     public void onPostCreate(Bundle savedInstanceState) {
@@ -181,9 +144,9 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     }
 
     private void restoreSpinnerDialog() {
-        mProgressDialog = (SimpleProgressDialog) getFragmentManager().findFragmentByTag(PROGRESS_DIALOG_TAG);
+        mProgressDialog = (SimpleProgressDialog) getSupportFragmentManager().findFragmentByTag(PROGRESS_DIALOG_TAG);
         if (mProgressDialog == null) {
-            mProgressDialog = SimpleProgressDialog.newInstance("Выход из системы");
+            mProgressDialog = SimpleProgressDialog.newInstance("Выход из системы..");
             mProgressDialog.setCancelable(false);
         }
         updateProgressDialog();
@@ -193,7 +156,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
         switch (mStatus) {
             case STATUS_LOGGING_OUT:
                 if (!mProgressDialog.isAdded()) {
-                    mProgressDialog.show(getFragmentManager(), PROGRESS_DIALOG_TAG);
+                    mProgressDialog.show(getSupportFragmentManager(), PROGRESS_DIALOG_TAG);
                 }
                 mProgressDialog.setMessage("Выход из системы..");
                 break;
@@ -213,9 +176,9 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
         mSelectedDrawerItem = savedSelectedItem;
     }
 
-    private Fragment restoreFragment(String savedFragmentTag) {
-        FragmentManager fm = getFragmentManager();
-        Fragment f = fm.findFragmentByTag(savedFragmentTag);
+    private AbstractApiFragment restoreFragment(String savedFragmentTag) {
+        FragmentManager fm = getSupportFragmentManager();
+        AbstractApiFragment f = (AbstractApiFragment) fm.findFragmentByTag(savedFragmentTag);
         if (f == null) {
             if (savedFragmentTag.equals(FRAGMENT_EVENTS)) {
                 f = new MainPageFragment();
@@ -284,11 +247,14 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
                 mCurrentFragmentTag = GroupsFragment.FRAGMENT_TAG;
                 mActionBarTitle = "Классы";
                 break;
-            /*case ACTION_JOURNAL:
+            case ACTION_JOURNAL:
                 mCurrentFragment = new JournalFragment();
                 mCurrentFragmentTag = FRAGMENT_JOURNAL;
                 mActionBarTitle = "Журналы";
                 break;
+                /*mCurrentFragment = new JournalFragment();
+                mCurrentFragmentTag = FRAGMENT_JOURNAL;
+                break;*//*
             case ACTION_SCHEDULE:
                 mCurrentFragment = new ScheduleFragment();
                 mCurrentFragmentTag = FRAGMENT_SCHEDULE;
@@ -358,7 +324,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     }
 
     private void replaceCurrentFragment() {
-        getFragmentManager()
+        getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)

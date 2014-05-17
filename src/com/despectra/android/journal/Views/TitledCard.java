@@ -22,8 +22,6 @@ import com.despectra.android.journal.R;
 public class TitledCard extends LinearLayout {
 
     private TextView mTitleTextView;
-    private ImageView mSpinnerView;
-    private AnimatorSet mSpinnerAnimator;
     private LinearLayout mSelfLayout;
 
     public TitledCard(Context context) {
@@ -40,10 +38,6 @@ public class TitledCard extends LinearLayout {
         LayoutInflater.from(context).inflate(R.layout.titled_card, this, true);
         mSelfLayout = (LinearLayout) findViewById(R.id.card_layout);
         mTitleTextView = (TextView) findViewById(R.id.card_title);
-        mSpinnerView = (ImageView) findViewById(R.id.card_spinner);
-        mSpinnerAnimator = (AnimatorSet) AnimatorInflater.loadAnimator(context, R.animator.small_spinner_rotate);
-        mSpinnerAnimator.setTarget(mSpinnerView);
-        mSpinnerAnimator.setInterpolator(new LinearInterpolator());
         setTitle(title);
     }
 
@@ -56,14 +50,14 @@ public class TitledCard extends LinearLayout {
     }
 
     public void showSpinner() {
-        mSpinnerView.setVisibility(View.VISIBLE);
-        mSpinnerAnimator.start();
+        //mSpinnerAnimator.start();
     }
 
     public void hideSpinner() {
-        mSpinnerAnimator.end();
-        mSpinnerView.setVisibility(View.GONE);
+        //mSpinnerAnimator.end();
     }
+
+
 
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {

@@ -1,5 +1,6 @@
 package com.despectra.android.journal.Data;
 
+import android.content.Entity;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -157,6 +158,63 @@ public class Contract {
             public static final int URI_CODE = 202;
             public static final int ID_URI_CODE = 203;
         }
+    }
+
+    public static final class Subjects implements BaseColumns {
+        public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Subjects");
+        public static final String TABLE = "subjects";
+        public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
+        public static final String FIELD_NAME = "subjects_name";
+        public static final Uri URI = Uri.parse(STRING_URI + "/subjects");
+        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
+        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
+        public static final int URI_CODE = 250;
+        public static final int ID_URI_CODE = 251;
+
+        public static final class Remote implements RemoteColumns {
+            public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("Subjects");
+            public static final String TABLE = "subjects_remote";
+            public static final String _ID = TABLE + RemoteColumns._ID;
+            public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
+            public static final Uri URI = Uri.parse(STRING_URI + "/subjects_remote");
+            public static final int URI_CODE = 252;
+            public static final int ID_URI_CODE = 253;
+        }
+    }
+
+    public static final class Marks implements BaseColumns {
+        public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Marks");
+        public static final String TABLE = "marks";
+        public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
+        public static final String FIELD_STUDENT_ID = "marks_student_id";
+        public static final String FIELD_LESSON_ID = "marks_lesson_id";
+        public static final String FIELD_MARK = "marks_mark";
+        public static final String TABLE_BY_GROUP = new DBHelper.JoinBuilder(TABLE).join(Students.TABLE).onEq(FIELD_STUDENT_ID, Students._ID)
+                .join(StudentsGroups.TABLE).onEq(Students._ID, StudentsGroups.FIELD_STUDENT_ID).create();
+        public static final Uri URI = Uri.parse(STRING_URI + "/marks");
+        public static final Uri URI_BY_GROUP = Uri.parse(STRING_URI + "/marks/group");
+        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
+        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
+        public static final int URI_CODE = 300;
+        public static final int ID_URI_CODE = 301;
+        public static final int URI_BY_GROUP_CODE = 302;
+    }
+
+    public static final class Lessons implements BaseColumns {
+        public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Lessons");
+        public static final String TABLE = "lessons";
+        public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
+        public static final String FIELD_DATE = "lessons_date";
+        public static final String FIELD_TITLE = "lessons_title";
+        public static final String FIELD_GROUP_ID = "lessons_group_id";
+        public static final Uri URI = Uri.parse(STRING_URI + "/lessons");
+        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
+        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
+        public static final int URI_CODE = 350;
+        public static final int ID_URI_CODE = 351;
     }
 
     public interface EntityColumns extends BaseColumns {

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/transparent">
+
+    <GridView
+        android:id="@+id/journal_header_view"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:numColumns="6"
+        android:columnWidth="50dp"
+        android:scrollbars="none"
+        android:verticalSpacing="0dp"
+        android:horizontalSpacing="0dp"
+        android:gravity="center"
+        android:background="@drawable/border_left_top"/>
+
+    <ListView
+        android:id="@+id/journal_marks_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:gravity="center"
+        android:layout_weight="1"
+        android:background="@drawable/border_right_top"
+        />
+
+</LinearLayout>

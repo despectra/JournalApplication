@@ -21,5 +21,11 @@
     <color name="item_inserting">@color/lesson_current_background</color>
     <color name="item_deleting">#6fdf0a00</color>
 
+    <color name="mark_1">#ccff696d</color>
+    <color name="mark_2">#ccff7652</color>
+    <color name="mark_3">#ccffe662</color>
+    <color name="mark_4">#ccb8ff64</color>
+    <color name="mark_5">#cc63ff84</color>
+
     <color name="pressed_list_item_bg">#9933b5e5</color>
 </resources>

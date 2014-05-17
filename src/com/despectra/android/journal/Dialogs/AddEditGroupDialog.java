@@ -93,7 +93,11 @@ public class AddEditGroupDialog extends AddEditDialog {
                         if (mListener != null) {
                             mListener.onPositiveClicked(mMode, groupName, mLocalGroupId, mRemoteGroupId);
                         }
-                        dismiss();
+                        if (mDontClose) {
+                            mGroupNameEdit.setText("");
+                        } else {
+                            dismiss();
+                        }
                     }
                 }
             });

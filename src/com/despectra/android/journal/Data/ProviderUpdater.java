@@ -22,13 +22,18 @@ public class ProviderUpdater {
     public static final int MODE_REPLACE = 1;
 
     private Context mContext;
-    private ContentResolver mResolver;
-    private String mProviderUri;
 
+    private ContentResolver mResolver;
+
+    private String mProviderUri;
     public ProviderUpdater(Context context, String providerUri) {
         mContext = context;
         mResolver = mContext.getContentResolver();
         mProviderUri = providerUri;
+    }
+
+    public ContentResolver getResolver() {
+        return mResolver;
     }
 
     public Map<String, String> updateEntityWithJSONArray(int updatingMode,

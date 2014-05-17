@@ -25,21 +25,21 @@ public class ApiServiceHelper {
     private ServiceConnection mServiceConnection;
     private ApiService.ApiServiceBinder mServiceBinder;
     private boolean mBound;
-    private Map<String, RegisteredClientHolder> mRegisteredClients;
+    private Map<String, RegisteredClient> mRegisteredClients;
 
-    private static ApiServiceHelper mInstance;
+    private static ApiServiceHelper sInstance;
 
     private ApiServiceHelper() {
         mBound = false;
-        mRegisteredClients = new HashMap<String, RegisteredClientHolder>(32);
+        mRegisteredClients = new HashMap<String, RegisteredClient>(32);
     }
 
     public synchronized static ApiServiceHelper newInstance(Context context) {
-        if (mInstance == null) {
-            mInstance = new ApiServiceHelper();
+        if (sInstance == null) {
+            sInstance = new ApiServiceHelper();
         }
-        mInstance.setApplicationContext(context);
-        return mInstance;
+        sInstance.setApplicationContext(context);
+        return sInstance;
     }
 
     public void setApplicationContext(Context context) {
@@ -48,12 +48,12 @@ public class ApiServiceHelper {
 
     public void registerClient(ApiClient client, Callback callback) {
         String name = client.getClientName();
-        RegisteredClientHolder holder;
+        RegisteredClient holder;
         if (mRegisteredClients.containsKey(name)) {
             holder = mRegisteredClients.get(name);
             holder.setCallback(callback);
         } else {
-            holder = new RegisteredClientHolder(callback);
+            holder = new RegisteredClient(callback);
             mRegisteredClients.put(name, holder);
         }
         client.setServiceHelperController(new BaseClientController(name));
@@ -62,7 +62,7 @@ public class ApiServiceHelper {
 
     public void unregisterClient(ApiClient client) {
         String activityName = client.getClientName();
-        RegisteredClientHolder holder = mRegisteredClients.get(activityName);
+        RegisteredClient holder = mRegisteredClients.get(activityName);
         if (holder != null) {
             holder.setCallback(null);
         }
@@ -71,7 +71,7 @@ public class ApiServiceHelper {
     private void notifyCompletedActions(String clientName) {
         int activityState = ((JournalApplication) mAppContext).getActivityState(clientName);
         if (activityState == JournalApplication.ONRESUME) {
-            RegisteredClientHolder holder = mRegisteredClients.get(clientName);
+            RegisteredClient holder = mRegisteredClients.get(clientName);
             Queue<ApiAction> completedActions = holder.completedActions;
             if (completedActions != null && completedActions.size() > 0) {
                 Callback callback = holder.callback;
@@ -87,7 +87,7 @@ public class ApiServiceHelper {
     }
 
     private void tryRunApiAction(String senderTag, ApiAction action, int priority) {
-        RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
+        RegisteredClient holder = mRegisteredClients.get(senderTag);
         int pendingCount = holder.pendingActions.size();
         int runningCount = holder.runningActions.size();
 
@@ -123,7 +123,7 @@ public class ApiServiceHelper {
                 } else {
                     if (mBound) {
                         holder.runningActions.add(action);
-                        mService.processApiAction(senderTag, action);
+                        mService.processApiAction(action);
                     } else {
                         holder.pendingActions.offer(action);
                     }
@@ -132,10 +132,10 @@ public class ApiServiceHelper {
         }
     }
 
-    private void runHighPriorityAction(String senderTag, ApiAction action, RegisteredClientHolder holder) {
+    private void runHighPriorityAction(String senderTag, ApiAction action, RegisteredClient holder) {
         holder.runningActions.add(action);
         if (mBound) {
-            mService.processApiAction(senderTag, action);
+            mService.processApiAction(action);
         }
     }
 
@@ -185,22 +185,22 @@ public class ApiServiceHelper {
     }
 
     private void launchApiQueryingProcess(String senderTag) {
-        RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
+        RegisteredClient holder = mRegisteredClients.get(senderTag);
         if (!holder.runningActions.isEmpty()) {
             for (ApiAction action : holder.runningActions) {
-                mService.processApiAction(senderTag, action);
+                mService.processApiAction(action);
             }
             return;
         }
         ApiAction action = holder.pendingActions.poll();
         holder.runningActions.add(action);
-        mService.processApiAction(senderTag, action);
+        mService.processApiAction(action);
     }
 
     public final synchronized void onServiceProgress(String clientName, Object data) {
         int activityState = ((JournalApplication) mAppContext).getActivityState(clientName);
         if (activityState == JournalApplication.ONRESUME) {
-            RegisteredClientHolder holder = mRegisteredClients.get(clientName);
+            RegisteredClient holder = mRegisteredClients.get(clientName);
             if (holder.callback != null && holder.callback instanceof FeedbackApiClient) {
                 ((FeedbackApiClient) holder.callback).onProgress(data);
             }
@@ -208,11 +208,11 @@ public class ApiServiceHelper {
     }
 
     public final synchronized void onServiceResponse(ApiService.Response response) {
-        String senderTag = response.senderTag;
+        String senderTag = response.responseAction.clientTag;
         ApiAction initialAction = response.initialAction;
         ApiAction responseAction = response.responseAction;
 
-        RegisteredClientHolder holder = mRegisteredClients.get(senderTag);
+        RegisteredClient holder = mRegisteredClients.get(senderTag);
         holder.runningActions.remove(initialAction);
         holder.completedActions.offer(responseAction);
         notifyCompletedActions(senderTag);
@@ -231,7 +231,7 @@ public class ApiServiceHelper {
 
         @Override
         public int getRunningActionsCount() {
-            RegisteredClientHolder holder = mRegisteredClients.get(mClientName);
+            RegisteredClient holder = mRegisteredClients.get(mClientName);
             return holder.runningActions.size();
         }
 
@@ -249,7 +249,7 @@ public class ApiServiceHelper {
             try {
                 data.put("login", login);
                 data.put("passwd", passwd);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGIN, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGIN, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -259,7 +259,7 @@ public class ApiServiceHelper {
             JSONObject data = new JSONObject();
             try {
                 data.put("token", token);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGOUT, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGOUT, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -269,7 +269,7 @@ public class ApiServiceHelper {
             JSONObject data = new JSONObject();
             try {
                 data.put("host", host);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_INFO, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_INFO, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -279,7 +279,7 @@ public class ApiServiceHelper {
             JSONObject data = new JSONObject();
             try {
                 data.put("token", token);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_MIN_PROFILE, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_MIN_PROFILE, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -291,7 +291,7 @@ public class ApiServiceHelper {
                 data.put("token", token);
                 data.put("count", count);
                 data.put("offset", offset);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_EVENTS, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_EVENTS, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -309,7 +309,7 @@ public class ApiServiceHelper {
                 data.put("name", name);
                 data.put("LOCAL_parent_id", localParentId);
                 data.put("parent_id", remoteParentId);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_GROUP, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_GROUP, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -328,7 +328,7 @@ public class ApiServiceHelper {
                 data.put("parent_group_id", remoteParentId);
                 data.put("offset", offset);
                 data.put("count", count);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -346,7 +346,7 @@ public class ApiServiceHelper {
                 data.put("token", token);
                 data.put("LOCAL_groups", localGroups);
                 data.put("groups", remoteGroups);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_GROUPS, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_GROUPS, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -364,7 +364,7 @@ public class ApiServiceHelper {
                 groupData.put("LOCAL_parent_id", updLocalParentId);
                 groupData.put("parent_id", updRemoteParentId);
                 data.put("data", groupData);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_GROUP, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_GROUP, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -376,7 +376,7 @@ public class ApiServiceHelper {
                 data.put("token", token);
                 data.put("LOCAL_group_id", localGroupId);
                 data.put("group_id", remoteGroupId);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_STUDENTS_BY_GROUP, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_STUDENTS_BY_GROUP, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -392,7 +392,7 @@ public class ApiServiceHelper {
                 data.put("middlename", middlename);
                 data.put("surname", surname);
                 data.put("login", login);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_STUDENT_IN_GROUP, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_STUDENT_IN_GROUP, mClientName, data), priority);
             } catch (JSONException e) {
             }
         }
@@ -410,21 +410,56 @@ public class ApiServiceHelper {
                 }
                 data.put("LOCAL_students", localStudents);
                 data.put("students", remoteStudents);
-                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_STUDENTS, data), priority);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_STUDENTS, mClientName, data), priority);
             } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void getSubjects(String token, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_SUBJECTS, mClientName, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void addMockMarks(long groupId) {
+            if (mBound) {
+                try {
+                    mService.processApiAction(new ApiAction(100500, mClientName, new JSONObject(String.format("{\"group\":\"%d\"}", groupId))));
+                } catch (JSONException e) {
+
+                }
+            }
+        }
+
+        @Override
+        public void updateMockMark(long markId, int mark) {
+            if (mBound) {
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("markId", markId);
+                    json.put("mark", mark);
+                    mService.processApiAction(new ApiAction(100599, mClientName, json));
+                } catch (JSONException e) {
+
+                }
             }
         }
 
 
     }
 
-    private class RegisteredClientHolder {
+    private class RegisteredClient {
         public Deque<ApiAction> pendingActions;
         public List<ApiAction> runningActions;
         public Deque<ApiAction> completedActions;
         public Callback callback;
 
-        public RegisteredClientHolder(Callback callback) {
+        public RegisteredClient(Callback callback) {
             this.callback = callback;
             pendingActions = new LinkedList<ApiAction>();
             runningActions = new ArrayList<ApiAction>();
@@ -440,9 +475,11 @@ public class ApiServiceHelper {
         public int apiCode;
         public JSONObject actionData;
         public long creationTime;
-        public ApiAction(int apiCode, JSONObject actionData) {
+        public String clientTag;
+        public ApiAction(int apiCode, String senderTag, JSONObject actionData) {
             this.apiCode = apiCode;
             this.actionData = actionData;
+            this.clientTag = senderTag;
             creationTime = System.currentTimeMillis();
         }
 
@@ -452,7 +489,7 @@ public class ApiServiceHelper {
                 return false;
             }
             ApiAction action = (ApiAction) o;
-            return apiCode == action.apiCode && actionData.equals(action.actionData);
+            return apiCode == action.apiCode && clientTag.equals(action.clientTag) && actionData.equals(action.actionData);
         }
     }
 
@@ -474,6 +511,11 @@ public class ApiServiceHelper {
         public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority);
         public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority);
         public void deleteStudents(String token, long[] localIds, long[] remoteIds, int priority);
+        public void getSubjects(String token, int priority);
+
+        // TEMPORARY
+        public void addMockMarks(long groupId);
+        public void updateMockMark(long markId, int mark);
     }
 
     public interface FeedbackApiClient extends ApiClient {

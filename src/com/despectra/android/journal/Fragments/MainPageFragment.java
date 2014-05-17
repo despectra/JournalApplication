@@ -6,9 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -133,9 +133,9 @@ public class MainPageFragment extends AbstractApiFragment implements LoaderCallb
     private void updateWallState() {
         if (mWallCard != null) {
             if (mWallLoading) {
-                mWallCard.showSpinner();
+                getHostActivity().showProgressBar();
             } else {
-                mWallCard.hideSpinner();
+                getHostActivity().hideProgressBar();
             }
         }
     }
