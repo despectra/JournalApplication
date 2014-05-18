@@ -5,7 +5,7 @@ import android.database.Cursor;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
-import com.despectra.android.journal.Model.DaySchedule;
+import com.despectra.android.journal.logic.model.DaySchedule;
 
 /**
  * Created by Андрей on 06.04.14.

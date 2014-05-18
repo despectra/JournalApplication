@@ -7,7 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.view.View;
 import android.widget.TextView;
-import com.despectra.android.journal.Data.Contract;
+import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.view.HorizontalViewsRowAdapter;
 

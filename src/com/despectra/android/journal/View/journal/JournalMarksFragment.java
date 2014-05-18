@@ -14,13 +14,11 @@ import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.Toast;
-import com.despectra.android.journal.Adapters.HorizontalViewsRowAdapter;
-import com.despectra.android.journal.Adapters.MarksRowAdapter;
-import com.despectra.android.journal.Data.Contract;
-import com.despectra.android.journal.Dialogs.AddEditDialog;
-import com.despectra.android.journal.Dialogs.AddEditMark;
+import com.despectra.android.journal.view.HorizontalViewsRowAdapter;
+import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.view.AddEditDialog;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.view.fragments.AbstractApiFragment;
+import com.despectra.android.journal.view.AbstractApiFragment;
 
 import java.util.Random;
 

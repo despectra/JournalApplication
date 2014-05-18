@@ -13,14 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import com.despectra.android.journal.Adapters.CurrentScheduleAdapter;
-import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Data.Contract;
+import com.despectra.android.journal.view.schedule.CurrentScheduleAdapter;
+import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Server.APICodes;
-import com.despectra.android.journal.Services.ApiServiceHelper;
-import com.despectra.android.journal.Views.TitledCard;
-import com.despectra.android.journal.view.AbstractApiFragment;
+import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.view.customviews.TitledCard;
 
 /**
  * Created by Dmirty on 17.02.14.

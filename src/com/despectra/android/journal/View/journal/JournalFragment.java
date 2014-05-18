@@ -10,14 +10,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.view.*;
 import android.widget.*;
-import com.despectra.android.journal.Adapters.JournalPagerAdapter;
-import com.despectra.android.journal.Data.Contract;
+import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.view.AbsListViewsDrawSynchronizer;
 import com.despectra.android.journal.Utils;
-import com.despectra.android.journal.Views.BottomTabWidget;
-import com.despectra.android.journal.Views.PercentLinearLayout;
-import com.despectra.android.journal.view.fragments.AbstractApiFragment;
+import com.despectra.android.journal.view.customviews.BottomTabWidget;
+import com.despectra.android.journal.view.customviews.PercentLinearLayout;
+import com.despectra.android.journal.view.AbstractApiFragment;
 
 import java.util.Arrays;
 import java.util.List;

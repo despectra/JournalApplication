@@ -2,9 +2,8 @@ package com.despectra.android.journal.view;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import com.despectra.android.journal.view.activities.AbstractApiActivity;
 import com.despectra.android.journal.JournalApplication;
-import com.despectra.android.journal.Services.ApiServiceHelper;
+import com.despectra.android.journal.logic.ApiServiceHelper;
 
 /**
  * Created by Dmitry on 07.04.14.

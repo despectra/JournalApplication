@@ -4,7 +4,7 @@
     <PreferenceCategory
         android:title="@string/settings_category_network" >
 
-        <com.despectra.android.journal.Dialogs.HostPreferenceDialog
+        <com.despectra.android.journal.view.preferences.HostPreferenceDialog
             android:key="settings_host"
             android:title="@string/settings_host"
             android:summary="@string/settings_host_summary"/>

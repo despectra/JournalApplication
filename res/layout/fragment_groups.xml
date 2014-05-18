@@ -8,13 +8,13 @@
 
     <include layout="@layout/entities_list"/>
 
-    <com.despectra.android.journal.Views.StatusBar
+    <com.despectra.android.journal.view.customviews.StatusBar
         android:id="@+id/groups_status_bar"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_gravity="bottom">
 
-    </com.despectra.android.journal.Views.StatusBar>
+    </com.despectra.android.journal.view.customviews.StatusBar>
 
     <TextView
         android:id="@+id/listview_empty_message"

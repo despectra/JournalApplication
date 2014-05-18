@@ -9,16 +9,12 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
-import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Dialogs.SimpleInfoDialog;
-import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
+import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Server.APICodes;
-import com.despectra.android.journal.Services.ApiServiceHelper;
+import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.Utils;
-import com.despectra.android.journal.view.activities.AbstractApiActivity;
-import com.despectra.android.journal.view.activities.MainActivity;
-import com.despectra.android.journal.view.activities.PreferencesActivity;
+import com.despectra.android.journal.view.preferences.PreferencesActivity;
 import org.json.JSONObject;
 
 /**

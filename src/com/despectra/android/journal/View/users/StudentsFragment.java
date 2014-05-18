@@ -10,16 +10,15 @@ import android.provider.BaseColumns;
 import android.view.*;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.despectra.android.journal.Adapters.RemoteIdCursorAdapter;
+import com.despectra.android.journal.view.RemoteIdCursorAdapter;
 import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Data.Contract;
-import com.despectra.android.journal.Dialogs.AddEditDialog;
-import com.despectra.android.journal.Dialogs.AddEditGroupDialog;
-import com.despectra.android.journal.Dialogs.AddEditStudentDialog;
-import com.despectra.android.journal.Dialogs.SimpleConfirmationDialog;
+import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.view.AddEditDialog;
+import com.despectra.android.journal.view.groups.AddEditGroupDialog;
+import com.despectra.android.journal.view.SimpleConfirmationDialog;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Server.APICodes;
-import com.despectra.android.journal.Services.ApiServiceHelper;
+import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.view.EntitiesListFragment;
 
 /**

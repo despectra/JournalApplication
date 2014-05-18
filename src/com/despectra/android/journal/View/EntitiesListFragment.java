@@ -7,11 +7,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.*;
 import android.widget.ListView;
-import com.despectra.android.journal.Adapters.RemoteIdCursorAdapter;
-import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Dialogs.AddEditDialog;
-import com.despectra.android.journal.Dialogs.AddEditGroupDialog;
-import com.despectra.android.journal.Dialogs.SimpleConfirmationDialog;
+import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.view.groups.AddEditGroupDialog;
 
 /**
  * Created by Dmitry on 08.04.14.

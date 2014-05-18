@@ -10,12 +10,12 @@ import android.os.*;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Pair;
-import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Data.Contract;
-import com.despectra.android.journal.Data.ProviderUpdater;
-import com.despectra.android.journal.Server.APICodes;
-import com.despectra.android.journal.Server.ServerAPI;
-import com.despectra.android.journal.Services.ApiServiceHelper;
+import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.logic.local.ProviderUpdater;
+import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.logic.net.ServerAPI;
+import com.despectra.android.journal.logic.ApiServiceHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -604,12 +604,12 @@ public class ApiService extends Service {
     }
 
     public static class Response {
-        ApiServiceHelper.ApiAction initialAction;
-        ApiServiceHelper.ApiAction responseAction;
+        public ApiServiceHelper.ApiAction initialAction;
+        public ApiServiceHelper.ApiAction responseAction;
     }
 
-    class ApiServiceBinder extends Binder {
-        ApiService getService() {
+    public class ApiServiceBinder extends Binder {
+        public ApiService getService() {
             return ApiService.this;
         }
     }

@@ -4,11 +4,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.*;
 import android.widget.Toast;
-import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Dialogs.SimpleProgressDialog;
+import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.view.SimpleProgressDialog;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Server.APICodes;
-import com.despectra.android.journal.Services.ApiServiceHelper;
+import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.view.AbstractApiActivity;
 import org.json.JSONObject;
 

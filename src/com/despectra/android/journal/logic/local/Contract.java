@@ -1,13 +1,9 @@
 package com.despectra.android.journal.logic.local;
 
-import android.content.Entity;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import com.despectra.android.journal.Data.DBHelper;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Dmitry on 10.04.2014.

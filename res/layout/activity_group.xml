@@ -10,11 +10,11 @@
         android:layout_height="match_parent"
         android:layout_weight="1"/>
 
-    <com.despectra.android.journal.Views.BottomTabWidget
+    <com.despectra.android.journal.view.customviews.BottomTabWidget
         android:id="@+id/bottom_tabs"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_gravity="bottom">
 
-    </com.despectra.android.journal.Views.BottomTabWidget>
+    </com.despectra.android.journal.view.customviews.BottomTabWidget>
 </LinearLayout>

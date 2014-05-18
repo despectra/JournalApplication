@@ -3,13 +3,12 @@ package com.despectra.android.journal.view.groups;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.view.MenuItem;
-import com.despectra.android.journal.Dialogs.SimpleInfoDialog;
+import com.despectra.android.journal.view.SimpleInfoDialog;
 import com.despectra.android.journal.view.AbstractApiActivity;
 import com.despectra.android.journal.view.AbstractApiFragment;
-import com.despectra.android.journal.view.groups.GroupInfoFragment;
-import com.despectra.android.journal.view.students.StudentsFragment;
+import com.despectra.android.journal.view.users.StudentsFragment;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Views.BottomTabWidget;
+import com.despectra.android.journal.view.customviews.BottomTabWidget;
 
 import java.util.Arrays;
 

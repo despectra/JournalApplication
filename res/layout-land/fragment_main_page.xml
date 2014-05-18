@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:padding="10dp">
 
-    <com.despectra.android.journal.Views.TitledCard
+    <com.despectra.android.journal.view.customviews.TitledCard
         android:id="@+id/wall_card"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -32,9 +32,9 @@
             android:textColor="@color/gray_85"
             android:text="Событий нет"/>
 
-    </com.despectra.android.journal.Views.TitledCard>
+    </com.despectra.android.journal.view.customviews.TitledCard>
 
-    <com.despectra.android.journal.Views.TitledCard
+    <com.despectra.android.journal.view.customviews.TitledCard
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="10"
@@ -48,5 +48,5 @@
             android:scrollbars="none"
             android:dividerHeight="10dp"
             android:divider="@android:color/transparent"/>
-    </com.despectra.android.journal.Views.TitledCard>
+    </com.despectra.android.journal.view.customviews.TitledCard>
 </LinearLayout>

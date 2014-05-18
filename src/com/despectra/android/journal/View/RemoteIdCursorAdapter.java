@@ -6,7 +6,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import com.despectra.android.journal.Data.Contract;
+import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 
 import java.util.*;

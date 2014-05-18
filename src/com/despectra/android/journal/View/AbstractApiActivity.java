@@ -8,15 +8,15 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Services.ApiServiceHelper;
+import com.despectra.android.journal.logic.ApiServiceHelper;
 
 /**
  * Created by Dmitry on 28.03.14.
  */
 public abstract class AbstractApiActivity extends FragmentActivity implements ApiServiceHelper.ApiClient {
-    JournalApplication mApplicationContext;
-    ApiServiceHelper.Controller mServiceHelperController;
-    ProgressBar mProgressBar;
+    protected JournalApplication mApplicationContext;
+    protected ApiServiceHelper.Controller mServiceHelperController;
+    protected ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

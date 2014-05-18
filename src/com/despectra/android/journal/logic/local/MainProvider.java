@@ -4,24 +4,11 @@ import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.provider.BaseColumns;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseArray;
-import android.util.SparseIntArray;
 import com.despectra.android.journal.App.JournalApplication;
-import com.despectra.android.journal.Data.Contract;
-import com.despectra.android.journal.Data.DBHelper;
-import org.apache.http.conn.ConnectionReleaseTrigger;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Dmitry on 01.04.14.

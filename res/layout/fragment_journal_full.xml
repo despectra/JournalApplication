@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:orientation="vertical">
 
-    <com.despectra.android.journal.Views.PercentLinearLayout
+    <com.despectra.android.journal.view.customviews.PercentLinearLayout
         android:id="@+id/journal_content_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -41,12 +41,12 @@
             journalviews:layout_width_percent="70"
             />
 
-    </com.despectra.android.journal.Views.PercentLinearLayout>
+    </com.despectra.android.journal.view.customviews.PercentLinearLayout>
 
-    <com.despectra.android.journal.Views.BottomTabWidget
+    <com.despectra.android.journal.view.customviews.BottomTabWidget
         android:id="@+id/journal_tabs"
         android:layout_width="match_parent"
         android:layout_height="45dp">
-    </com.despectra.android.journal.Views.BottomTabWidget>
+    </com.despectra.android.journal.view.customviews.BottomTabWidget>
 
 </LinearLayout>
