@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.http.AndroidHttpClient;
 import android.preference.PreferenceManager;
+import com.despectra.android.journal.ApplicationServer;
 import com.despectra.android.journal.JournalApplication;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,32 +27,33 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class ServerAPI {
+public class WebApiServer implements ApplicationServer {
     public static final String AVATAR_FILENAME = "user_avatar";
 
     public static final int CONN_TIMEOUT_MS = 20000;
     public static final int IO_TIMEOUT_MS = 15000;
 
-    private static ServerAPI mServerInstance;
+    private static WebApiServer mServerInstance;
     private Context mContext;
     private HttpClient mClient;
     private String mHost;
     private String mFullApiPath;
 
-    private ServerAPI(Context context, String host) {
+    private WebApiServer(Context context, String host) {
         setHost(host);
         setContext(context);
         mClient = AndroidHttpClient.newInstance(System.getProperty("http.agent"));
     }
 
-    public synchronized static ServerAPI instantiate(Context context, String host) {
+    public synchronized static WebApiServer instantiate(Context context, String host) {
         if (mServerInstance == null) {
-            mServerInstance = new ServerAPI(context, host);
+            mServerInstance = new WebApiServer(context, host);
         } else {
             mServerInstance.setHost(host);
         }
@@ -67,63 +69,6 @@ public class ServerAPI {
         mContext = context;
     }
 
-    public JSONObject getApiInfo(JSONObject data) throws Exception {
-        HttpGet request = new HttpGet(String.format("%s/api/index.php?info.getInfo", data.getString("host")));
-        return new JSONObject(doQuery(request));
-    }
-
-    public JSONObject login(JSONObject data) throws Exception {
-        return doPostApiQuery(
-                "auth.login",
-                new NameValuePair[]{
-                        new BasicNameValuePair("login", data.getString("login")),
-                        new BasicNameValuePair("passwd", data.getString("passwd"))}
-        );
-    }
-
-    public JSONObject logout(JSONObject data) throws Exception {
-        return doGetApiQuery("auth.logout", data.toString());
-    }
-
-    public JSONObject checkToken(JSONObject data) throws Exception {
-        return doGetApiQuery("auth.checktoken", data.toString());
-    }
-
-    public JSONObject getMinProfile(JSONObject data) throws Exception {
-        return doGetApiQuery("profile.getminprofile", data.toString());
-    }
-
-    public JSONObject getEvents(JSONObject data) throws Exception {
-        return doGetApiQuery("events.getEvents", data.toString());
-    }
-
-    public JSONObject addGroup(JSONObject data) throws Exception {
-        return doGetApiQuery("groups.addGroup", data.toString());
-    }
-
-    public JSONObject getGroups(JSONObject data) throws Exception {
-        return doGetApiQuery("groups.getGroups", data.toString());
-    }
-
-    public JSONObject deleteGroups(JSONObject data) throws Exception {
-        return doGetApiQuery("groups.deleteGroups", data.toString());
-    }
-
-    public JSONObject updateGroup(JSONObject data) throws Exception {
-        return doGetApiQuery("groups.editGroup", data.toString());
-    }
-
-    public JSONObject getStudentsByGroup(JSONObject data) throws Exception {
-        return doGetApiQuery("students.getByGroup", data.toString());
-    }
-
-    public JSONObject addStudentInGroup(JSONObject data) throws Exception {
-        return doGetApiQuery("students.addStudentInGroup", data.toString());
-    }
-
-    public JSONObject deleteStudents(JSONObject data) throws Exception {
-        return doGetApiQuery("students.deleteStudents", data.toString());
-    }
 
     public void loadAvatar(JSONObject json) throws JSONException, IOException {
         String avatarUrl = "http://" + json.getString("avatar");
@@ -177,8 +122,34 @@ public class ServerAPI {
             return EntityUtils.toString(entity, "UTF-8");
         } catch (Exception ex) {
             throw ex;
-        } finally {
-
         }
+    }
+
+    @Override
+    public JSONObject getServerInfo(String host) throws Exception {
+        HttpGet request = new HttpGet(String.format("%s/api/index.php?info.getInfo", host));
+        return new JSONObject(doQuery(request));
+    }
+
+    @Override
+    public JSONObject executeGetApiQuery(String method, JSONObject data) throws Exception {
+        String args = URLEncoder.encode(data.toString(), "UTF-8");
+        String requestBody = (args.isEmpty()) ? method : String.format("%s=%s", method, args);
+        HttpGet request = new HttpGet(String.format("%s?%s", getFullApiPath(), requestBody));
+        String response = doQuery(request);
+        return new JSONObject(response);
+    }
+
+    @Override
+    public JSONObject executePostApiQuery(String method, JSONObject data) throws Exception {
+        List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
+        Iterator it = data.keys();
+        while (it.hasNext()) {
+            String key = (String) it.next();
+            requestParams.add(new BasicNameValuePair(key, data.getString(key)));
+        }
+        HttpPost request = new HttpPost(getFullApiPath() + "?" + method);
+        request.setEntity(new UrlEncodedFormEntity(requestParams, "UTF-8"));
+        return new JSONObject(doQuery(request));
     }
 }

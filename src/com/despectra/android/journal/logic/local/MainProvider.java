@@ -98,8 +98,8 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.StudentsGroups.Remote.URI_CODE, Contract.StudentsGroups.Remote.TABLE);
         mReadTables.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote.TABLE);
 
-        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
-        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE_JOIN_REMOTE);
+        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
         mReadTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
 
@@ -137,10 +137,10 @@ public class MainProvider extends ContentProvider {
         mWriteTables.append(Contract.StudentsGroups.Remote.URI_CODE, Contract.StudentsGroups.Remote.TABLE);
         mWriteTables.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote.TABLE);
 
-        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
-        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
-        mReadTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
-        mReadTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
+        mWriteTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
+        mWriteTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
+        mWriteTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
+        mWriteTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
 
         mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
         mWriteTables.append(Contract.Marks.ID_URI_CODE, Contract.Marks.TABLE);

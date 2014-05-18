@@ -417,12 +417,64 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void getSubjects(String token, int priority) {
+        public void getSubjects(String token, int offset, int count, int priority) {
             JSONObject data = new JSONObject();
             try {
                 data.put("token", token);
+                data.put("offset", offset);
+                data.put("count", count);
                 startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_SUBJECTS, mClientName, data), priority);
             } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void getAllSubjects(String token, int priority) {
+            getSubjects(token, 0, 0, priority);
+        }
+
+        @Override
+        public void addSubject(String token, String name, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("name", name);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_SUBJECT, mClientName, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void updateSubject(String token, long localId, long remoteId, String updName, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                data.put("LOCAL_id", localId);
+                data.put("id", remoteId);
+                JSONObject upd = new JSONObject();
+                upd.put("name", updName);
+                data.put("data", upd);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_SUBJECT, mClientName, data), priority);
+            } catch (JSONException e) {
+            }
+        }
+
+        @Override
+        public void deleteSubjects(String token, long[] localIds, long[] remoteIds, int priority) {
+            JSONObject data = new JSONObject();
+            try {
+                data.put("token", token);
+                JSONArray localSubjects = new JSONArray();
+                JSONArray remoteSubjects = new JSONArray();
+                for (int i = 0; i < localIds.length; i++) {
+                    localSubjects.put(localIds[i]);
+                    remoteSubjects.put(remoteIds[i]);
+                }
+                data.put("LOCAL_subjects", localSubjects);
+                data.put("subjects", remoteSubjects);
+                startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_SUBJECTS, mClientName, data), priority);
+            } catch (JSONException e) {
+
             }
         }
 
@@ -512,7 +564,11 @@ public class ApiServiceHelper {
         public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority);
         public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority);
         public void deleteStudents(String token, long[] localIds, long[] remoteIds, int priority);
-        public void getSubjects(String token, int priority);
+        public void getSubjects(String token, int offset, int count, int priority);
+        public void getAllSubjects(String token, int priority);
+        public void addSubject(String token, String name, int priority);
+        public void updateSubject(String token, long localId, long remoteId, String updName, int priority);
+        public void deleteSubjects(String token, long localIds[], long remoteIds[], int priority);
 
         // TEMPORARY
         public void addMockMarks(long groupId);

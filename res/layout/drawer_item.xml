@@ -5,8 +5,8 @@
     android:id="@+id/text1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:textAppearance="?android:textAppearanceLarge"
-    android:minHeight="60dp"
+    android:textAppearance="?android:textAppearanceMedium"
+    android:minHeight="50dp"
     android:gravity="center_vertical"
     android:paddingLeft="10dp">
 

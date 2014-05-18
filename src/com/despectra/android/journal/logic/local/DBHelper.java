@@ -56,7 +56,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CREATE_TABLE_SUBJECTS = "" +
             "CREATE TABLE IF NOT EXISTS subjects (" +
             "subjects_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-            "subjects_name TEXT NOT NULL)";
+            "subjects_name TEXT NOT NULL," +
+            "subjects_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
@@ -84,14 +85,14 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        buildSchedma(sqLiteDatabase);
+        buildSchema(sqLiteDatabase);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         if (newVersion - oldVersion == 1) {
             dropSchema(sqLiteDatabase);
-            buildSchedma(sqLiteDatabase);
+            buildSchema(sqLiteDatabase);
         }
     }
 
@@ -112,7 +113,7 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "marks"));
     }
 
-    private void buildSchedma(SQLiteDatabase sqLiteDatabase) {
+    private void buildSchema(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(CREATE_TABLE_EVENTS);
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "events"));
         sqLiteDatabase.execSQL(CREATE_TABLE_GROUPS);

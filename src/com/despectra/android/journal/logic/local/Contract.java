@@ -161,6 +161,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Subjects");
         public static final String TABLE = "subjects";
         public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_NAME = "subjects_name";
         public static final Uri URI = Uri.parse(STRING_URI + "/subjects");
