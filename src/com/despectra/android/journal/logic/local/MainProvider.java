@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.SparseArray;
-import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.JournalApplication;
 
 /**
  * Created by Dmitry on 01.04.14.

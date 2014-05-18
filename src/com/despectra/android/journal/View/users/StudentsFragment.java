@@ -11,7 +11,7 @@ import android.view.*;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.despectra.android.journal.view.RemoteIdCursorAdapter;
-import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.view.AddEditDialog;
 import com.despectra.android.journal.view.groups.AddEditGroupDialog;

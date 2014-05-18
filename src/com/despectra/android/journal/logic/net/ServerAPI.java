@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.http.AndroidHttpClient;
 import android.preference.PreferenceManager;
-import com.despectra.android.journal.App.JournalApplication;
+import com.despectra.android.journal.JournalApplication;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
