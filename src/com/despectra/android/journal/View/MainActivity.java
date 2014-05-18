@@ -13,12 +13,14 @@ import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.logic.DataProcessor;
 import com.despectra.android.journal.logic.net.APICodes;
-import com.despectra.android.journal.logic.net.ServerAPI;
+import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.view.groups.GroupsFragment;
 import com.despectra.android.journal.view.journal.JournalFragment;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
+import com.despectra.android.journal.view.subjects.SubjectsFragment;
 import com.despectra.android.journal.view.users.StaffFragment;
 import org.json.JSONObject;
 
@@ -35,10 +37,11 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     public static final int ACTION_EVENTS = 1;
     public static final int ACTION_STAFF = 2;
     public static final int ACTION_GROUPS = 3;
-    public static final int ACTION_JOURNAL = 4;
-    public static final int ACTION_SCHEDULE = 5;
-    public static final int ACTION_SETTINGS = 6;
-    public static final int ACTION_ABOUT = 7;
+    public static final int ACTION_SUBJECTS = 4;
+    public static final int ACTION_JOURNAL = 5;
+    public static final int ACTION_SCHEDULE = 6;
+    public static final int ACTION_SETTINGS = 7;
+    public static final int ACTION_ABOUT = 8;
 
     public static final int STATUS_IDLE = 0;
     public static final int STATUS_LOGGING_OUT = 1;
@@ -254,6 +257,11 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
                 mCurrentFragmentTag = FRAGMENT_JOURNAL;
                 mActionBarTitle = "Журналы";
                 break;
+            case ACTION_SUBJECTS:
+                mCurrentFragment = new SubjectsFragment();
+                mCurrentFragmentTag = SubjectsFragment.FRAGMENT_TAG;
+                mActionBarTitle = "Предметы";
+                break;
                 /*mCurrentFragment = new JournalFragment();
                 mCurrentFragmentTag = FRAGMENT_JOURNAL;
                 break;*//*
@@ -301,7 +309,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
         mDrawer.setAdapter(new ArrayAdapter<String>(
                 this,
                 R.layout.drawer_item,
-                new String[]{"Главная", "Персонал", "Классы", "Журнал", "Расписание", "Настройки", "О программе"}
+                new String[]{"Главная", "Персонал", "Классы", "Предметы", "Журнал", "Расписание", "Настройки", "О программе"}
         ));
         mDrawer.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
         mDrawer.setOnItemClickListener(this);
@@ -317,7 +325,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
 
     private void loadUserData() {
         try {
-            mUserAvatarView.setImageBitmap(BitmapFactory.decodeStream(openFileInput(ServerAPI.AVATAR_FILENAME)));
+            mUserAvatarView.setImageBitmap(BitmapFactory.decodeStream(openFileInput(WebApiServer.AVATAR_FILENAME)));
         } catch (FileNotFoundException ex) {
             mUserAvatarView.setImageDrawable(getResources().getDrawable(R.drawable.test_ava));
         }
