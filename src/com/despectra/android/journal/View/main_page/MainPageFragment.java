@@ -1,250 +1,106 @@
 package com.despectra.android.journal.view.main_page;
 
+import android.app.Activity;
 import android.content.res.Configuration;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.hardware.display.DisplayManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.util.DisplayMetrics;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
-import android.widget.Toast;
+import android.widget.*;
 import com.despectra.android.journal.utils.Utils;
-import com.despectra.android.journal.view.AbstractApiFragment;
-import com.despectra.android.journal.view.schedule.CurrentScheduleAdapter;
-import com.despectra.android.journal.JournalApplication;
-import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.net.APICodes;
-import com.despectra.android.journal.logic.ApiServiceHelper;
-import com.despectra.android.journal.view.customviews.TitledCard;
 
 /**
  * Created by Dmirty on 17.02.14.
  */
-public class MainPageFragment extends AbstractApiFragment implements LoaderCallbacks<Cursor> {
+public class MainPageFragment extends Fragment {
 
-    public static final int WALL_LOADER_ID = 0;
-    public static final int SCHED_LOADER_ID = 1;
+    private View mView;
 
-    public static final String KEY_DO_WALL_LOAD = "wallLoad";
-    public static final String KEY_WALL_LOAD_STATE = "wallLoading";
-
-    private TitledCard mWallCard;
-    private ListView mScheduleListView;
-    private ListView mWallListView;
-    private SimpleCursorAdapter mWallAdapter;
-    private CurrentScheduleAdapter mScheduleAdapter;
-    private Cursor mCursor;
-
-    private boolean mWallLoading;
-    private boolean mLoadWall;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            mLoadWall = savedInstanceState.getBoolean(KEY_DO_WALL_LOAD);
-        } else {
-            mLoadWall = true;
-        }
-    }
+    private FrameLayout mSmallLayout;
+    private FrameLayout mLargeFirstLayout;
+    private FrameLayout mLargeSecondLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_main_page, container, false);
-
-        mScheduleListView = (ListView)v.findViewById(R.id.schedule_list);
-        mWallListView = (ListView) v.findViewById(R.id.wall_list);
-        mWallListView.setEmptyView(v.findViewById(R.id.listview_empty_message));
-        mWallCard = (TitledCard) v.findViewById(R.id.wall_card);
-        mWallLoading = (savedInstanceState != null) ? savedInstanceState.getBoolean(KEY_WALL_LOAD_STATE) : false;
-
-        CurrentScheduleAdapter.Model[] schedule = generateMockSchedule();
-        mScheduleAdapter = new CurrentScheduleAdapter(getActivity(), schedule);
-        mScheduleListView.setAdapter(mScheduleAdapter);
-        return v;
+        return inflater.inflate(R.layout.fragment_main_page, container, false);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mWallAdapter = new SimpleCursorAdapter(
-                getActivity(),
-                R.layout.wall_item,
-                mCursor,
-                new String[]{ Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME},
-                new int[]{R.id.wall_item_content, R.id.wall_item_time},
-                0);
-        mWallListView.setAdapter(mWallAdapter);
+        if (Utils.getScreenCategory(getActivity()) < Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            //for handsets
+            mSmallLayout = (FrameLayout) getView().findViewById(R.id.fragment_main_page_single);
+            getChildFragmentManager().beginTransaction()
+                    .add(R.id.fragment_main_page_single, new WallFragment())
+                    .commit();
 
-        if(Utils.getScreenCategory(getActivity()) < Configuration.SCREENLAYOUT_SIZE_LARGE) {
-
+            ActionBar bar = ((ActionBarActivity)getActivity()).getSupportActionBar();
+            bar.removeAllTabs();
+            bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+            ActionBar.Tab fstTab = bar.newTab()
+                    .setText("Стена")
+                    .setTabListener(
+                            new TabListener<WallFragment>(getActivity(), "wallFragment", WallFragment.class));
+            ActionBar.Tab sndTab = bar.newTab()
+                    .setText("Расписание")
+                    .setTabListener(
+                            new TabListener<CurrentDayScheduleFragment>(getActivity(), "scheduleFragment", CurrentDayScheduleFragment.class));
+            bar.addTab(fstTab);
+            bar.addTab(sndTab);
         } else {
-
+            //for tablets
+            mLargeFirstLayout = (FrameLayout) getView().findViewById(R.id.fragment_main_page_fst);
+            mLargeSecondLayout = (FrameLayout) getView().findViewById(R.id.fragment_main_page_snd);
+            WallFragment fstFragment = new WallFragment();
+            CurrentDayScheduleFragment sndFragment = new CurrentDayScheduleFragment();
+            getChildFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_main_page_fst, fstFragment)
+                    .replace(R.id.fragment_main_page_snd, sndFragment)
+                    .commit();
         }
-        getLoaderManager().restartLoader(WALL_LOADER_ID, null, this);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
-        if (mLoadWall) {
-            updateWall();
-            mWallLoading = true;
-            mLoadWall = false;
+
+
+    public static class TabListener<T extends Fragment> implements ActionBar.TabListener {
+
+        private Fragment mFragment;
+        private final Activity mActivity;
+        private final String mTag;
+        private final Class<T> mClass;
+
+        public TabListener(Activity activity, String tag, Class<T> clz) {
+            mActivity = activity;
+            mTag = tag;
+            mClass = clz;
         }
-        updateWallState();
-    }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_DO_WALL_LOAD, mLoadWall);
-        outState.putBoolean(KEY_WALL_LOAD_STATE, mWallLoading);
-    }
-
-
-    private void updateWall() {
-        String token = PreferenceManager
-                .getDefaultSharedPreferences(getActivity())
-                .getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
-        if (token.isEmpty()) {
-            return;
-        }
-        mServiceHelperController.getAllEvents(token, ApiServiceHelper.PRIORITY_LOW);
-        setWallStateLoading();
-    }
-
-    public void setWallStateLoading() {
-        mWallLoading = true;
-        updateWallState();
-    }
-
-    public void setWallStateIdle() {
-        mWallLoading = false;
-        updateWallState();
-    }
-
-    private void updateWallState() {
-        if (mWallCard != null) {
-            if (mWallLoading) {
-                getHostActivity().showProgressBar();
+        @Override
+        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+            if (mFragment == null) {
+                mFragment = Fragment.instantiate(mActivity, mClass.getName());
+                fragmentTransaction.add(R.id.fragment_main_page_single, mFragment, mTag);
             } else {
-                getHostActivity().hideProgressBar();
+                fragmentTransaction.attach(mFragment);
             }
         }
-    }
 
-    private CurrentScheduleAdapter.Model[] generateMockSchedule() {
-        CurrentScheduleAdapter.Model[] schedule = new CurrentScheduleAdapter.Model[5];
-        schedule[0] = new CurrentScheduleAdapter.Model(
-                CurrentScheduleAdapter.STATUS_PAST,
-                "Класс 9'A'",
-                "Алгебра",
-                "8:30",
-                "9:15",
-                Color.rgb(140, 30, 1),
-                Color.rgb(200, 155, 0)
-                );
-        schedule[1] = new CurrentScheduleAdapter.Model(
-                CurrentScheduleAdapter.STATUS_CURRENT,
-                "Класс 9'A'",
-                "Алгебра",
-                "8:30",
-                "9:15",
-                Color.rgb(140, 30, 1),
-                Color.rgb(200, 155, 0)
-        );
-        schedule[2] = new CurrentScheduleAdapter.Model(
-                CurrentScheduleAdapter.STATUS_FUTURE,
-                "Класс 9'A'",
-                "Алгебра",
-                "8:30",
-                "9:15",
-                Color.rgb(140, 30, 1),
-                Color.rgb(200, 155, 0)
-        );
-        schedule[3] = new CurrentScheduleAdapter.Model(
-                CurrentScheduleAdapter.STATUS_FUTURE,
-                "Класс 9'A'",
-                "Алгебра",
-                "8:30",
-                "9:15",
-                Color.rgb(140, 30, 1),
-                Color.rgb(200, 155, 0)
-        );
-        schedule[4] = new CurrentScheduleAdapter.Model(
-                CurrentScheduleAdapter.STATUS_FUTURE,
-                "Класс 9'A'",
-                "Алгебра",
-                "8:30",
-                "9:15",
-                Color.rgb(140, 30, 1),
-                Color.rgb(200, 155, 0)
-        );
-        return schedule;
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        Uri baseUri;
-        String[] projection;
-        String orderBy;
-        switch (id) {
-            case WALL_LOADER_ID:
-                baseUri = Contract.Events.URI;
-                projection = new String[]{Contract.Events._ID + " AS _id", Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME};
-                orderBy = Contract.Events.FIELD_DATETIME + " DESC";
-                break;
-            default:
-                return null;
-        }
-        return new CursorLoader(
-                getActivity(),
-                baseUri,
-                projection,
-                null,
-                null,
-                orderBy
-        );
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        mWallAdapter.swapCursor(cursor);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-        mWallAdapter.swapCursor(null);
-    }
-
-    @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (actionCode != -1) {
-            switch (actionCode) {
-                case APICodes.ACTION_GET_EVENTS:
-                    setWallStateIdle();
-                    break;
+        @Override
+        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+            if (mFragment != null) {
+                fragmentTransaction.detach(mFragment);
             }
-        } else {
-            setWallStateIdle();
+        }
+
+        @Override
+        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+
         }
     }
 }

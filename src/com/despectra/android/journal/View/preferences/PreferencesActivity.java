@@ -5,11 +5,11 @@ import android.os.Bundle;
 import android.preference.*;
 import android.widget.Toast;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.view.AbstractApiActionBarActivity;
 import com.despectra.android.journal.view.SimpleProgressDialog;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.ApiServiceHelper;
-import com.despectra.android.journal.view.AbstractApiActivity;
 import org.json.JSONObject;
 
 import java.util.regex.Pattern;
@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class PreferencesActivity extends AbstractApiActivity implements ApiServiceHelper.Callback {
+public class PreferencesActivity extends AbstractApiActionBarActivity implements ApiServiceHelper.Callback {
     public static final String KEY_CHEKING_STATE = "checking";
 
     public static final String PROGRESS_DIALOG_TAG = "checkingDialog";

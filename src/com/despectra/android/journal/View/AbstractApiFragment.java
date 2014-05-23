@@ -58,8 +58,8 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
         mServiceHelperController = controller;
     }
 
-    public AbstractApiActivity getHostActivity() {
-        return (AbstractApiActivity) getActivity();
+    public AbstractApiActionBarActivity getHostActivity() {
+        return (AbstractApiActionBarActivity) getActivity();
     }
 
     @Override

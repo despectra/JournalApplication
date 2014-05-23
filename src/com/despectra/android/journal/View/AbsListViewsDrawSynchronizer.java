@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
 import android.widget.ListView;
-import com.despectra.android.journal.Utils;
+import com.despectra.android.journal.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;

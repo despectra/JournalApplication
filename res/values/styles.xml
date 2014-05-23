@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+    <style name="AppBaseTheme" parent="@style/Theme.AppCompat.Light">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -20,19 +20,19 @@
         <item name="android:textViewStyle">@style/CustomTextView</item>
     </style>
 
-    <style name="CustomActionBar" parent="android:Widget.Holo.Light.ActionBar.Solid.Inverse">
+    <style name="CustomActionBar" parent="Widget.AppCompat.Light.ActionBar.Solid.Inverse">
         <item name="android:background">@drawable/action_bar_bg</item>
-        <item name="android:titleTextStyle">@style/CustomActionBarTitle</item>
-        <item name="android:subtitleTextStyle">@style/CustomActionBarSubtitle</item>
+        <!--<item name="android:titleTextStyle">@style/CustomActionBarTitle</item>
+        <item name="android:subtitleTextStyle">@style/CustomActionBarSubtitle</item>-->
     </style>
 
-    <style name="CustomActionBarTitle" parent="android:TextAppearance.Holo.Widget.ActionBar.Title.Inverse">
+    <!--<style name="CustomActionBarTitle" parent="Widget.AppCompat.Light.ActionBar.TabText.Inverse">
         <item name="android:textSize">20sp</item>
     </style>
 
     <style name="CustomActionBarSubtitle" parent="android:TextAppearance.Holo.Widget.ActionBar.Subtitle.Inverse">
         <item name="android:textSize">18sp</item>
-    </style>
+    </style>-->
 
     <style name="CustomTextView" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif-light</item>

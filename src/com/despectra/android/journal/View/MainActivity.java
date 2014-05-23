@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -13,15 +14,16 @@ import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.DataProcessor;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.view.groups.GroupsFragment;
 import com.despectra.android.journal.view.journal.JournalFragment;
+import com.despectra.android.journal.view.main_page.MainPageFragment;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
 import com.despectra.android.journal.view.subjects.SubjectsFragment;
 import com.despectra.android.journal.view.users.StaffFragment;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
@@ -30,7 +32,7 @@ import java.lang.reflect.Field;
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class MainActivity extends AbstractApiActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends AbstractApiActionBarActivity implements AdapterView.OnItemClickListener {
 
     public static final String[] USER_DATA_PREFS_KEYS = new String[]{"token", "uid", "name", "surname", "middlename", "level", "avatar"};
 
@@ -58,7 +60,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     public static final String KEY_STATUS = "status";
     private static final String TAG = "MainActivity";
 
-    private AbstractApiFragment mCurrentFragment;
+    private Fragment mCurrentFragment;
     private String mActionBarTitle;
     private String mCurrentFragmentTag;
     private String mToken;
@@ -126,6 +128,7 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     protected void onResume() {
         super.onResume();
         mApplicationContext.getApiServiceHelper().registerClient(this, this);
+
     }
 
     @Override
@@ -181,9 +184,9 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
         mSelectedDrawerItem = savedSelectedItem;
     }
 
-    private AbstractApiFragment restoreFragment(String savedFragmentTag) {
+    private Fragment restoreFragment(String savedFragmentTag) {
         FragmentManager fm = getSupportFragmentManager();
-        AbstractApiFragment f = (AbstractApiFragment) fm.findFragmentByTag(savedFragmentTag);
+        Fragment f = (Fragment) fm.findFragmentByTag(savedFragmentTag);
         if (f == null) {
             if (savedFragmentTag.equals(FRAGMENT_EVENTS)) {
                 f = new MainPageFragment();
@@ -366,20 +369,17 @@ public class MainActivity extends AbstractApiActivity implements AdapterView.OnI
     @Override
     public void onResponse(int actionCode, int remainingActions, Object response) {
         if (actionCode != -1) {
-            switch (actionCode) {
-                case APICodes.ACTION_LOGOUT:
-                    try {
-                        JSONObject jsonData = (JSONObject) response;
-                        int success = jsonData.getInt("success");
-                        if (success == 1) {
-                            completeLogout();
-                        } else {
-                            respondError("Ошибка при выходе. Попробуйте еще раз");
-                        }
-                    } catch (Exception ex) {
-                        respondError("Ошибка " + ex.getMessage());
-                    }
-                    break;
+            try {
+                JSONObject jsonData = (JSONObject) response;
+                int success = jsonData.getInt("success");
+                if ((actionCode == APICodes.ACTION_LOGOUT && success == 1) ||
+                        (actionCode == APICodes.ACTION_CHECK_TOKEN && success == 0)) {
+                    completeLogout();
+                } else if(actionCode == APICodes.ACTION_LOGOUT) {
+                    respondError("Ошибка при выходе. Попробуйте еще раз");
+                }
+            } catch (JSONException e) {
+                respondError("Ошибка: " + e.getMessage());
             }
         }
     }

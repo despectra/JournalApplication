@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Pair;
-import com.despectra.android.journal.ApplicationServer;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.ProviderUpdater;
 import com.despectra.android.journal.logic.net.WebApiServer;

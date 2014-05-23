@@ -13,7 +13,7 @@ import android.widget.*;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.view.AbsListViewsDrawSynchronizer;
-import com.despectra.android.journal.Utils;
+import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.customviews.BottomTabWidget;
 import com.despectra.android.journal.view.customviews.PercentLinearLayout;
 import com.despectra.android.journal.view.AbstractApiFragment;

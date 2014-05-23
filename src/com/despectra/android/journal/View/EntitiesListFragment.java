@@ -1,5 +1,6 @@
 package com.despectra.android.journal.view;
 
+import android.app.ActionBar;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.database.Cursor;
@@ -74,6 +75,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        getHostActivity().getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         mToken = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
         if (mToken.isEmpty()) {
             throw new IllegalStateException("Current session token not found");

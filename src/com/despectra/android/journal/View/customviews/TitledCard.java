@@ -32,7 +32,7 @@ public class TitledCard extends LinearLayout {
         super(context, attrs);
 
         TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.TitledCard);
-        String title = arr.getString(R.styleable.TitledCard_title);
+        String title = arr.getString(R.styleable.TitledCard_card_title);
         arr.recycle();
 
         LayoutInflater.from(context).inflate(R.layout.titled_card, this, true);

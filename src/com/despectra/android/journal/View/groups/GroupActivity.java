@@ -3,8 +3,8 @@ package com.despectra.android.journal.view.groups;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.view.MenuItem;
+import com.despectra.android.journal.view.AbstractApiActionBarActivity;
 import com.despectra.android.journal.view.SimpleInfoDialog;
-import com.despectra.android.journal.view.AbstractApiActivity;
 import com.despectra.android.journal.view.AbstractApiFragment;
 import com.despectra.android.journal.view.users.StudentsFragment;
 import com.despectra.android.journal.R;
@@ -15,7 +15,7 @@ import java.util.Arrays;
 /**
  * Created by Dmitry on 12.04.14.
  */
-public class GroupActivity extends AbstractApiActivity implements BottomTabWidget.OnTabSelectedListener {
+public class GroupActivity extends AbstractApiActionBarActivity implements BottomTabWidget.OnTabSelectedListener {
     public static final String EXTRA_KEY_LOCAL_GROUP_ID = "locgroupId";
     public static final String EXTRA_KEY_REMOTE_GROUP_ID = "remgroupId";
     public static final String EXTRA_KEY_GROUP_NAME = "groupName";

@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<com.despectra.android.journal.view.customviews.TitledCard
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:journalviews="http://schemas.android.com/apk/res/com.despectra.android.journal"
+    android:id="@+id/wall_card"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="@dimen/wall_fragment_bottom_margin"
+    journalviews:card_title="Стена" >
 
-</LinearLayout>
+    <ListView
+        android:id="@+id/wall_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        />
+
+    <TextView
+        android:id="@+id/listview_empty_message"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textColor="@color/gray_85"
+        android:text="Событий нет"/>
+
+</com.despectra.android.journal.view.customviews.TitledCard>

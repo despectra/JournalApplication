@@ -1,6 +1,7 @@
 package com.despectra.android.journal.utils;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -35,5 +36,10 @@ public class Utils {
         Point size = new Point();
         display.getSize(size);
         return size;
+    }
+
+    public static int getScreenCategory(Context context) {
+        return context.getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK;
     }
 }

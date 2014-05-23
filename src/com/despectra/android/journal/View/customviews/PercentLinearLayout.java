@@ -10,7 +10,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.Utils;
+import com.despectra.android.journal.utils.Utils;
 
 /**
  * Created by Dmirty on 06.03.14.
