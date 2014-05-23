@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:journalviews="http://schemas.android.com/apk/res/com.despectra.android.journal"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TabHost
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tabHost">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TabWidget
+                android:id="@android:id/tabs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            </TabWidget>
+
+            <FrameLayout
+                android:id="@android:id/tabcontent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/tab1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <com.despectra.android.journal.view.customviews.TitledCard
+                        android:id="@+id/wall_card"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        android:layout_marginBottom="40dp"
+                        journalviews:title="Стена" >
+
+                        <ListView
+                            android:id="@+id/wall_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:animateLayoutChanges="true"
+                            />
+
+                        <TextView
+                            android:id="@+id/listview_empty_message"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:visibility="gone"
+                            android:textAppearance="?android:textAppearanceLarge"
+                            android:textColor="@color/gray_85"
+                            android:text="Событий нет"/>
+
+                    </com.despectra.android.journal.view.customviews.TitledCard>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <com.despectra.android.journal.view.customviews.TitledCard
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        journalviews:title="Расписание на сегодня"
+                        android:layout_weight="4">
+
+                        <ListView
+                            android:id="@+id/schedule_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:scrollbars="none"
+                            android:dividerHeight="10dp"
+                            android:divider="@android:color/transparent"/>
+
+                    </com.despectra.android.journal.view.customviews.TitledCard>
+
+                </LinearLayout>
+
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
+</LinearLayout>

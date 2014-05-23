@@ -1,4 +1,4 @@
-package com.despectra.android.journal;
+package com.despectra.android.journal.utils;
 
 import android.content.Context;
 import android.graphics.Point;
