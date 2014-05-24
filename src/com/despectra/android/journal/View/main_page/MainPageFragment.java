@@ -85,7 +85,7 @@ public class MainPageFragment extends Fragment {
         public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
             if (mFragment == null) {
                 mFragment = Fragment.instantiate(mActivity, mClass.getName());
-                fragmentTransaction.add(R.id.fragment_main_page_single, mFragment, mTag);
+                fragmentTransaction.replace(R.id.fragment_main_page_single, mFragment, mTag);
             } else {
                 fragmentTransaction.attach(mFragment);
             }

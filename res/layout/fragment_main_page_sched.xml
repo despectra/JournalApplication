@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<com.despectra.android.journal.view.customviews.TitledCard
+<ListView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:journalviews="http://schemas.android.com/apk/res/com.despectra.android.journal"
+    android:id="@+id/schedule_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    journalviews:card_title="Расписание на сегодня">
-
-    <ListView
-        android:id="@+id/schedule_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:scrollbars="none"
-        android:dividerHeight="10dp"
-        android:divider="@android:color/transparent"/>
-
-</com.despectra.android.journal.view.customviews.TitledCard>
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+    android:scrollbars="none"
+    android:dividerHeight="10dp"
+    android:divider="@android:color/transparent"/>

@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.despectra.android.journal.view.customviews.TitledCard
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:journalviews="http://schemas.android.com/apk/res/com.despectra.android.journal"
-    android:id="@+id/wall_card"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginBottom="@dimen/wall_fragment_bottom_margin"
-    journalviews:card_title="Стена" >
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
 
     <ListView
         android:id="@+id/wall_list"
@@ -26,4 +23,4 @@
         android:textColor="@color/gray_85"
         android:text="Событий нет"/>
 
-</com.despectra.android.journal.view.customviews.TitledCard>
+</LinearLayout>

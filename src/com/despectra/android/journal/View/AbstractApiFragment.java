@@ -49,8 +49,8 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONDESTROY);
+        super.onDestroy();
     }
 
     @Override
