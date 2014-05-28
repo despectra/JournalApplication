@@ -3,8 +3,8 @@ package com.despectra.android.journal.view.main_page;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.*;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -21,7 +21,7 @@ public class MainPageFragment extends Fragment {
 
     private View mView;
 
-    private FrameLayout mSmallLayout;
+    private ViewPager mPager;
     private FrameLayout mLargeFirstLayout;
     private FrameLayout mLargeSecondLayout;
 
@@ -35,22 +35,41 @@ public class MainPageFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         if (Utils.getScreenCategory(getActivity()) < Configuration.SCREENLAYOUT_SIZE_LARGE) {
             //for handsets
-            mSmallLayout = (FrameLayout) getView().findViewById(R.id.fragment_main_page_single);
-            getChildFragmentManager().beginTransaction()
-                    .add(R.id.fragment_main_page_single, new WallFragment())
-                    .commit();
-
-            ActionBar bar = ((ActionBarActivity)getActivity()).getSupportActionBar();
+            final ActionBar bar = ((ActionBarActivity)getActivity()).getSupportActionBar();
             bar.removeAllTabs();
             bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+            ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+                @Override
+                public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+                    mPager.setCurrentItem(tab.getPosition());
+                }
+
+                @Override
+                public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+                }
+
+                @Override
+                public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+                }
+            };
+
             ActionBar.Tab fstTab = bar.newTab()
                     .setText("Стена")
-                    .setTabListener(
-                            new TabListener<WallFragment>(getActivity(), "wallFragment", WallFragment.class));
+                    .setTabListener(tabListener);
             ActionBar.Tab sndTab = bar.newTab()
                     .setText("Расписание")
-                    .setTabListener(
-                            new TabListener<CurrentDayScheduleFragment>(getActivity(), "scheduleFragment", CurrentDayScheduleFragment.class));
+                    .setTabListener(tabListener);
+
+            mPager = (ViewPager) getView().findViewById(R.id.fragment_main_page_single);
+            mPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+                @Override
+                public void onPageSelected(int position) {
+                    bar.setSelectedNavigationItem(position);
+                }
+            });
+            PagerAdapter pagerAdapter = new PagerAdapter(getChildFragmentManager());
+            mPager.setAdapter(pagerAdapter);
+
             bar.addTab(fstTab);
             bar.addTab(sndTab);
         } else {
@@ -66,41 +85,35 @@ public class MainPageFragment extends Fragment {
         }
     }
 
+    public static class PagerAdapter extends FragmentStatePagerAdapter {
 
-
-    public static class TabListener<T extends Fragment> implements ActionBar.TabListener {
-
-        private Fragment mFragment;
-        private final Activity mActivity;
-        private final String mTag;
-        private final Class<T> mClass;
-
-        public TabListener(Activity activity, String tag, Class<T> clz) {
-            mActivity = activity;
-            mTag = tag;
-            mClass = clz;
+        public PagerAdapter(FragmentManager fm) {
+            super(fm);
         }
 
         @Override
-        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-            if (mFragment == null) {
-                mFragment = Fragment.instantiate(mActivity, mClass.getName());
-                fragmentTransaction.replace(R.id.fragment_main_page_single, mFragment, mTag);
-            } else {
-                fragmentTransaction.attach(mFragment);
+        public Fragment getItem(int i) {
+            switch (i) {
+                case 0:
+                    return initFirstFragmet();
+                case 1:
+                    return initSecondFragment();
+                default:
+                    return new Fragment();
             }
         }
 
         @Override
-        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-            if (mFragment != null) {
-                fragmentTransaction.detach(mFragment);
-            }
+        public int getCount() {
+            return 2;
         }
 
-        @Override
-        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+        private Fragment initFirstFragmet() {
+            return new WallFragment();
+        }
 
+        private Fragment initSecondFragment() {
+            return new CurrentDayScheduleFragment();
         }
     }
 }

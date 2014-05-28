@@ -289,7 +289,7 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
     private void initDrawer() {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         //MEGA HACK, GOOGLE SUCK A DICK!!!
-        try {
+        /*try {
             Field mDragger = mDrawerLayout.getClass().getDeclaredField("mLeftDragger");
             mDragger.setAccessible(true);
             ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(mDrawerLayout);
@@ -301,7 +301,7 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-        }
+        }*/
         //
         mDrawer = (ListView)findViewById(R.id.nav_drawer);
         mDrawerUserItemLayout = (RelativeLayout) LayoutInflater.from(this).inflate(R.layout.user_drawer_item, null);
