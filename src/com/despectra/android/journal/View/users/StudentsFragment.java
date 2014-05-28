@@ -20,6 +20,7 @@ import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.view.EntitiesListFragment;
+import org.w3c.dom.Text;
 
 /**
  * Created by Dmitry on 13.04.14.
@@ -32,9 +33,16 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
 
     public static final String KEY_LOCAL_GROUP_ID = "localgroupId";
     public static final String KEY_REMOTE_GROUP_ID="remotegroupId";
+    public static final String KEY_GROUP_NAME = "groupName";
 
     private long mLocalGroupId;
     private long mRemoteGroupId;
+    private String mGroupName;
+    private int mGroupSize;
+
+    private View mGroupHeaderView;
+    private TextView mGroupNameView;
+    private TextView mGroupSizeView;
 
     private AddEditDialog.DialogButtonsListener mStudentsDialogListener = new AddEditDialog.DialogButtonsAdapter() {
         @Override
@@ -73,7 +81,6 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
             }
         }
     };
-
     private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
         @Override
         public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
@@ -106,11 +113,12 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
         }
     };
 
-    public static StudentsFragment newInstance(long localGroupId, long remoteGroupId) {
+    public static StudentsFragment newInstance(String groupName, long localGroupId, long remoteGroupId) {
         StudentsFragment fragment = new StudentsFragment();
         Bundle args = new Bundle();
         args.putLong(KEY_LOCAL_GROUP_ID, localGroupId);
         args.putLong(KEY_REMOTE_GROUP_ID, remoteGroupId);
+        args.putString(KEY_GROUP_NAME, groupName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -121,6 +129,17 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
         Bundle args = getArguments();
         mLocalGroupId = args.getLong(KEY_LOCAL_GROUP_ID);
         mRemoteGroupId = args.getLong(KEY_REMOTE_GROUP_ID);
+        mGroupName = args.getString(KEY_GROUP_NAME);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        mGroupHeaderView = LayoutInflater.from(getActivity()).inflate(R.layout.group_list_header, null);
+        mGroupNameView = (TextView) mGroupHeaderView.findViewById(R.id.group_name);
+        mGroupSizeView = (TextView) mGroupHeaderView.findViewById(R.id.group_size);
+        mGroupNameView.setText(mGroupName);
+        mEntitiesListView.addHeaderView(mGroupHeaderView);
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -171,6 +190,13 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
                 selectionArgs,
                 orderBy
         );
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        super.onLoadFinished(cursorLoader, cursor);
+        mGroupSize = cursor.getCount();
+        mGroupSizeView.setText(String.format("Учеников: %d", mGroupSize));
     }
 
     @Override

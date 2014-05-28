@@ -24,7 +24,6 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
     public static final String KEY_SELECTED_TAB = "selTab";
 
     public static final int TAB_GENERAL = 0;
-    public static final int TAB_STUDENTS = 1;
 
     private BottomTabWidget mTabs;
 
@@ -49,17 +48,17 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
         }
         mIsSubgroup = getIntent().getBooleanExtra(EXTRA_KEY_IS_SUBGROUP, false);
         mTitle = (mIsSubgroup ? "Группа " : "Класс ") + mGroupName;
-        setTitle(mTitle);
+        setTitle("Просмотр класса");
         mTabs = (BottomTabWidget) findViewById(R.id.bottom_tabs);
-        mTabs.setTabsList(Arrays.asList("Общее", "Ученики"));
+        mTabs.setTabsList(Arrays.asList("Ученики"));
         mTabs.setOnTabSelectedListener(this);
         if (savedInstanceState != null) {
             mTabs.setCurrentTab(savedInstanceState.getInt(KEY_SELECTED_TAB));
         } else {
             mTabs.setCurrentTab(0);
-            GroupInfoFragment fragment = GroupInfoFragment.newInstance(mRemoteGroupId, mTitle);
+            StudentsFragment fragment = StudentsFragment.newInstance(mTitle, mLocalGroupId, mRemoteGroupId);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_layout, fragment, GroupInfoFragment.FRAGMENT_TAG)
+                    .replace(R.id.content_layout, fragment, StudentsFragment.FRAGMENT_TAG)
                     .commit();
         }
     }
@@ -98,16 +97,9 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
         AbstractApiFragment fragment;
         switch (index) {
             case TAB_GENERAL:
-                fragment = GroupInfoFragment.newInstance(mRemoteGroupId, mTitle);
+                fragment = StudentsFragment.newInstance(mTitle, mLocalGroupId, mRemoteGroupId);
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_layout, fragment, GroupInfoFragment.FRAGMENT_TAG)
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                        .commit();
-                break;
-            case TAB_STUDENTS:
-                fragment = StudentsFragment.newInstance(mLocalGroupId, mRemoteGroupId);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.content_layout, fragment, GroupInfoFragment.FRAGMENT_TAG)
+                        .replace(R.id.content_layout, fragment, StudentsFragment.FRAGMENT_TAG)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                         .commit();
                 break;

@@ -76,6 +76,7 @@ public abstract class AddEditDialog extends DialogFragment {
         mMainView = LayoutInflater.from(getActivity()).inflate(mMainViewId, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                 .setTitle(mMode == MODE_ADD ? mAdditionTitle : mEditionTitle)
+
                 .setView(mMainView);
         if (mMode == MODE_ADD) {
             builder.setMultiChoiceItems(new String[]{"Не закрывать диалог при добавлении"}, new boolean[]{false}, new DialogInterface.OnMultiChoiceClickListener() {

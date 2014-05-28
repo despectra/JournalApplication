@@ -83,6 +83,7 @@ public class AddEditGroupDialog extends AddEditDialog {
         AlertDialog dialog = (AlertDialog) getDialog();
         if (dialog != null) {
             Button button = dialog.getButton(Dialog.BUTTON_POSITIVE);
+
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

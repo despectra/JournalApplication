@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:journalapp="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_add_student"
         android:title="Добавить ученика"
-        android:icon="@android:drawable/ic_menu_add"
-        android:showAsAction="always"/>
+        android:icon="@drawable/ic_action_add_person"
+        journalapp:showAsAction="always"/>
 </menu>

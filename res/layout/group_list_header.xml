@@ -1,18 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="140dp"
+    android:background="@drawable/group_header_bg">
 
     <TextView
         android:id="@+id/group_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:fontFamily="sans-serif"
+        android:textSize="32sp"
+        android:textColor="@color/gray250"
         android:text="Large Text"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:paddingLeft="40dp"
-        android:paddingTop="20dp"/>
+        android:padding="20dp"/>
+
+    <TextView
+        android:id="@+id/group_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:textSize="32sp"
+        android:textColor="@color/gray250"
+        android:text="Учеников: -/-"
+        android:layout_below="@+id/group_name"
+        android:layout_alignParentLeft="true"
+        android:paddingBottom="20dp"
+        android:paddingLeft="20dp"/>
+
 </RelativeLayout>
