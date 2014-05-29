@@ -336,7 +336,7 @@ public class ApiServiceHelper {
                 .addKeyValue("data", new JSONBuilder()
                         .addKeyValue("name", updName)
                         .addKeyValue("LOCAL_parent_id", updLocalParentId)
-                        .addKeyValue("parent_id", updRemoteParentId))
+                        .addKeyValue("parent_id", updRemoteParentId).create())
                 .create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_GROUP, mClientName, data), priority);
         }

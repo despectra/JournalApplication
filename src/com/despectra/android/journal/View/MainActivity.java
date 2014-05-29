@@ -255,11 +255,11 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
                 mCurrentFragmentTag = GroupsFragment.FRAGMENT_TAG;
                 mActionBarTitle = "Классы";
                 break;
-            case ACTION_JOURNAL:
+            /*case ACTION_JOURNAL:
                 mCurrentFragment = new JournalFragment();
                 mCurrentFragmentTag = FRAGMENT_JOURNAL;
                 mActionBarTitle = "Журналы";
-                break;
+                break;*/
             case ACTION_SUBJECTS:
                 mCurrentFragment = new SubjectsFragment();
                 mCurrentFragmentTag = SubjectsFragment.FRAGMENT_TAG;

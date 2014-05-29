@@ -12,8 +12,8 @@ import com.despectra.android.journal.view.AddEditDialog;
 /**
  * Created by Dmitry on 24.04.2014.
  */
-public class AddEditMark extends AddEditDialog {
-
+public class AddEditMark/* extends AddEditDialog*/ {
+/*
     public static final String FRAGMENT_TAG = "AddEditMark";
 
     private long mMarkId;
@@ -34,7 +34,7 @@ public class AddEditMark extends AddEditDialog {
 
     @Override
     protected AddEditDialog init(int mainViewId, String additionTitle, String editionTitle, Object... parameters) {
-        Bundle args = getBaseArgs(this, mainViewId, additionTitle, editionTitle);
+        Bundle args = prepareBaseArguments(this, mainViewId, additionTitle, editionTitle);
         args.putLong("markId", (Long)parameters[0]);
         args.putInt("mark", (Integer) parameters[1]);
         setArguments(args);
@@ -42,7 +42,7 @@ public class AddEditMark extends AddEditDialog {
     }
 
     @Override
-    protected void setCustomArgs(Bundle arguments) {
+    protected void applyCustomArguments(Bundle arguments) {
         mMarkId = arguments.getLong("markId");
         mMark = arguments.getInt("mark");
     }
@@ -64,7 +64,7 @@ public class AddEditMark extends AddEditDialog {
     }
 
     @Override
-    protected Dialog completeDialogCreation(AlertDialog.Builder builder) {
+    protected void completeDialogCreation(AlertDialog.Builder builder) {
         mMarksBtns = new Button[6];
         mMarksBtns[0] = (Button) mMainView.findViewById(R.id.mark_epson);
         mMarksBtns[1] = (Button) mMainView.findViewById(R.id.mark_1);
@@ -123,5 +123,5 @@ public class AddEditMark extends AddEditDialog {
                 }
             });
         }
-    }
+    }*/
 }

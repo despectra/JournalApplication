@@ -24,13 +24,13 @@ import java.util.List;
 /**
  * Created by Dmitry on 13.03.14.
  */
-public class JournalFragment extends AbstractApiFragment implements
+public class JournalFragment/* extends AbstractApiFragment implements
         JournalMarksFragment.JournalFragmentCallback,
         AbsListViewsDrawSynchronizer.Callback,
         BottomTabWidget.OnTabSelectedListener,
         AdapterView.OnItemClickListener,
-        LoaderManager.LoaderCallbacks<Cursor> {
-
+        LoaderManager.LoaderCallbacks<Cursor> */{
+/*
     private static final String TAG = "JOURNAL_FRAGMENT";
 
     public static final int GROUP = 0;
@@ -293,5 +293,5 @@ public class JournalFragment extends AbstractApiFragment implements
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
 
-    }
+    }*/
 }

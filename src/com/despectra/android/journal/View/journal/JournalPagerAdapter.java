@@ -9,9 +9,9 @@ import com.despectra.android.journal.view.journal.JournalMarksFragment;
 /**
  * Created by Dmirty on 17.02.14.
  */
-public class JournalPagerAdapter extends FragmentStatePagerAdapter {
+public class JournalPagerAdapter /*extends FragmentStatePagerAdapter */{
 
-    private static final String TAG = "JOURNAL_PAGER_ADAPTER";
+    /*private static final String TAG = "JOURNAL_PAGER_ADAPTER";
 
     public JournalPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -29,5 +29,5 @@ public class JournalPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public int getCount() {
         return 1;
-    }
+    }*/
 }

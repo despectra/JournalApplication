@@ -25,8 +25,8 @@ import java.util.Random;
 /**
  * Created by Dmirty on 17.02.14.
  */
-public class JournalMarksFragment extends AbstractApiFragment implements LoaderManager.LoaderCallbacks<Cursor>,HorizontalViewsRowAdapter.OnItemClickListener {
-    public static final String ARG_POSITION = "pos";
+public class JournalMarksFragment/* extends AbstractApiFragment implements LoaderManager.LoaderCallbacks<Cursor>,HorizontalViewsRowAdapter.OnItemClickListener*/ {
+    /*public static final String ARG_POSITION = "pos";
     public static final String ARG_OFFSET = "offset";
     public static final String ARG_INDEX = "index";
     private static final String TAG = "JOURNAL_MARKS_FRAG";
@@ -220,5 +220,5 @@ public class JournalMarksFragment extends AbstractApiFragment implements LoaderM
 
     public interface JournalFragmentCallback {
         public void onFragmentCreated(int index);
-    }
+    }*/
 }

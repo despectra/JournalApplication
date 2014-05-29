@@ -31,6 +31,7 @@ public class GroupsFragment extends EntitiesListFragment {
     public static final String CONFIRM_DIALOG_TAG = "ConfirmDeleteGroups";
 
     private StatusBar mStatusBar;
+    private AddEditSimpleItemDialog mAddEditDialog;
 
     private SimpleConfirmationDialog.OnConfirmListener mConfirmDeletingListener = new SimpleConfirmationDialog.OnConfirmListener() {
         @Override
@@ -53,40 +54,36 @@ public class GroupsFragment extends EntitiesListFragment {
         }
     };
 
-    private AddEditDialog.DialogButtonsAdapter mAddEditGroupCallback = new AddEditDialog.DialogButtonsAdapter() {
+    private AddEditSimpleItemDialog.DialogListener mGroupDialogListener = new AddEditSimpleItemDialog.DialogListener() {
         @Override
-        public void onPositiveClicked(int mode, Object... args) {
-            String name = (String) args[0];
-            long localGroupId = (Long) args[1];
-            long remoteGroupId = (Long) args[2];
-            switch (mode) {
-                case AddEditDialog.MODE_ADD:
-                    if (!mToken.isEmpty()) {
-                        int runningCount = mServiceHelperController.getRunningActionsCount();
-                        if (runningCount > 0) {
-                            mStatusBar.setStatusText(String.format("Добавление класса %s. Выполняется: %d", name, runningCount));
-                        } else {
-                            mStatusBar.showStatus("Добавление класса " + name);
-                            mStatusBar.showSpinner();
-                        }
-                        mServiceHelperController.addGroup(mToken, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
-                    }
-                    break;
-                case AddEditDialog.MODE_EDIT:
-                    if (!mToken.isEmpty()) {
-                        int runningCount = mServiceHelperController.getRunningActionsCount();
-                        if (runningCount > 0) {
-                            mStatusBar.setStatusText(String.format("Обновление класса %s. Выполняется: %d", name, runningCount));
-                        } else {
-                            mStatusBar.showStatus("Обновление класса " + name);
-                            mStatusBar.showSpinner();
-                        }
-                        mServiceHelperController.updateGroup(mToken, localGroupId, remoteGroupId, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
-                    }
-                    break;
+        public void onAddItem(String name) {
+            if (!mToken.isEmpty()) {
+                int runningCount = mServiceHelperController.getRunningActionsCount();
+                if (runningCount > 0) {
+                    mStatusBar.setStatusText(String.format("Добавление класса %s. Выполняется: %d", name, runningCount));
+                } else {
+                    mStatusBar.showStatus("Добавление класса " + name);
+                    mStatusBar.showSpinner();
+                }
+                mServiceHelperController.addGroup(mToken, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
+            }
+        }
+
+        @Override
+        public void onEditItem(String name, long localId, long remoteId) {
+            if (!mToken.isEmpty()) {
+                int runningCount = mServiceHelperController.getRunningActionsCount();
+                if (runningCount > 0) {
+                    mStatusBar.setStatusText(String.format("Обновление класса %s. Выполняется: %d", name, runningCount));
+                } else {
+                    mStatusBar.showStatus("Обновление класса " + name);
+                    mStatusBar.showSpinner();
+                }
+                mServiceHelperController.updateGroup(mToken, localId, remoteId, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
             }
         }
     };
+
     private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
         @Override
         public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
@@ -94,18 +91,14 @@ public class GroupsFragment extends EntitiesListFragment {
             String status;
             switch (item.getItemId()) {
                 case R.id.action_edit:
-                    mEntityDialog = (AddEditGroupDialog) getFragmentManager().findFragmentByTag(AddEditGroupDialog.FRAGMENT_TAG);
+                    mAddEditDialog = (AddEditSimpleItemDialog) getFragmentManager().findFragmentByTag(AddEditSimpleItemDialog.FRAGMENT_TAG);
                     String groupName = ((TextView) adapterItemView.findViewById(R.id.text1)).getText().toString();
-                    if (mEntityDialog == null) {
-                        mEntityDialog = AddEditGroupDialog.newInstance("Добавление класса",
-                                "Редактирование класса",
-                                groupName,
-                                listItemLocalId, listItemRemoteId);
+                    if (mAddEditDialog == null) {
+                        mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить класс", "Редактировать класс",
+                                groupName, listItemLocalId, listItemRemoteId);
                     }
-                    mEntityDialog.setDialogListener(mAddEditGroupCallback);
-                    ((AddEditGroupDialog) mEntityDialog).setGroupIds(listItemLocalId, listItemRemoteId);
-                    ((AddEditGroupDialog) mEntityDialog).setGroupText(groupName);
-                    mEntityDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
+                    mAddEditDialog.setDialogListener(mGroupDialogListener);
+                    mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
                     if (runningCount > 0) {
@@ -217,16 +210,6 @@ public class GroupsFragment extends EntitiesListFragment {
     }
 
     @Override
-    protected AddEditDialog.DialogButtonsListener getAddEditDialogListener() {
-        return mAddEditGroupCallback;
-    }
-
-    @Override
-    protected String getAddEditDialogTag() {
-        return AddEditGroupDialog.FRAGMENT_TAG;
-    }
-
-    @Override
     protected SimpleConfirmationDialog.OnConfirmListener getConfirmDelListener() {
         return mConfirmDeletingListener;
     }
@@ -246,11 +229,11 @@ public class GroupsFragment extends EntitiesListFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_group_add:
-                if (mEntityDialog == null) {
-                    mEntityDialog = AddEditGroupDialog.newInstance("Добавить класс", "Редактировать класс", "", -1, -1);
+                if (mAddEditDialog == null) {
+                    mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить класс", "Редактировать класс", "", -1, -1);
                 }
-                mEntityDialog.setDialogListener(mAddEditGroupCallback);
-                mEntityDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
+                mAddEditDialog.setDialogListener(mGroupDialogListener);
+                mAddEditDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
                 break;
         }
         return true;
@@ -261,6 +244,14 @@ public class GroupsFragment extends EntitiesListFragment {
         View view = super.onCreateView(inflater, container, savedInstanceState);
         mStatusBar = (StatusBar) view.findViewById(R.id.groups_status_bar);
         return view;
+    }
+
+    @Override
+    protected void restoreCustom() {
+        mAddEditDialog = (AddEditSimpleItemDialog) getFragmentManager().findFragmentByTag(mAddEditDialog.FRAGMENT_TAG);
+        if (mAddEditDialog != null) {
+            mAddEditDialog.setDialogListener(mGroupDialogListener);
+        }
     }
 
     @Override

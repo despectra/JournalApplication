@@ -5,22 +5,18 @@ import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.view.*;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.despectra.android.journal.view.RemoteIdCursorAdapter;
-import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.view.AddEditDialog;
-import com.despectra.android.journal.view.groups.AddEditGroupDialog;
+import com.despectra.android.journal.view.groups.AddEditSimpleItemDialog;
 import com.despectra.android.journal.view.SimpleConfirmationDialog;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.view.EntitiesListFragment;
-import org.w3c.dom.Text;
 
 /**
  * Created by Dmitry on 13.04.14.
@@ -40,32 +36,24 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
     private String mGroupName;
     private int mGroupSize;
 
+    private AddEditStudentDialog mAddEditDialog;
     private View mGroupHeaderView;
     private TextView mGroupNameView;
     private TextView mGroupSizeView;
 
-    private AddEditDialog.DialogButtonsListener mStudentsDialogListener = new AddEditDialog.DialogButtonsAdapter() {
+    private AddEditStudentDialog.StudentDialogListener mStudentDialogListener = new AddEditStudentDialog.StudentDialogListener() {
         @Override
-        public void onPositiveClicked(int mode, Object... args) {
-            String name = (String) args[1];
-            String middlename = (String) args[2];
-            String surname = (String) args[3];
-            String login = (String) args[4];
-            if (name.isEmpty() || middlename.isEmpty() || surname.isEmpty() || login.isEmpty()) {
-                Toast.makeText(getActivity(), "Некоторые поля пустые", Toast.LENGTH_LONG).show();
+        public void onAddStudent(String firstName, String middleName, String secondName, String login) {
+            if (mToken.isEmpty()) {
                 return;
             }
-            if (mode == AddEditDialog.MODE_ADD) {
-                String token = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
-                if (token.isEmpty()) {
-                    return;
-                }
-                getHostActivity().showProgressBar();
-                mServiceHelperController.addStudentIntoGroup(token, mLocalGroupId, mRemoteGroupId, name, middlename, surname, login, ApiServiceHelper.PRIORITY_HIGH);
-            } else {
-                //TODO edit student
-                long localId = (Long) args[0];
-            }
+            getHostActivity().showProgressBar();
+            mServiceHelperController.addStudentIntoGroup(mToken, mLocalGroupId, mRemoteGroupId, firstName, middleName, secondName, login, ApiServiceHelper.PRIORITY_HIGH);
+        }
+
+        @Override
+        public void onEditStudent(long localId, long remoteId, String oldFirstName, String newFirstName, String oldMiddleName, String newMiddleName, String oldSecondName, String newSecondName) {
+            //TODO implement updating student info
         }
     };
 
@@ -84,24 +72,19 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
     private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
         @Override
         public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
-            int runningCount = mServiceHelperController.getRunningActionsCount();
-            String status;
             switch (item.getItemId()) {
                 case R.id.action_edit:
-                    mEntityDialog = (AddEditGroupDialog) getFragmentManager().findFragmentByTag(AddEditGroupDialog.FRAGMENT_TAG);
+                    mAddEditDialog = (AddEditStudentDialog) getFragmentManager().findFragmentByTag(AddEditSimpleItemDialog.FRAGMENT_TAG);
                     String name = ((TextView) adapterItemView.findViewById(R.id.name_view)).getText().toString();
                     String surname = ((TextView) adapterItemView.findViewById(R.id.surname_view)).getText().toString();
                     String middlename = ((TextView) adapterItemView.findViewById(R.id.middlename_view)).getText().toString();
                     String login = ((TextView) adapterItemView.findViewById(R.id.login_view)).getText().toString();
-                    if (mEntityDialog == null) {
-                        mEntityDialog = AddEditStudentDialog.newInstance("Добавление ученика", "Редактирование ученика",
-                                listItemLocalId, listItemRemoteId,
+                    if (mAddEditDialog == null) {
+                        mAddEditDialog = AddEditStudentDialog.newInstance(listItemLocalId, listItemRemoteId,
                                 name, middlename, surname, login);
                     }
-                    mEntityDialog.setDialogListener(mStudentsDialogListener);
-                    ((AddEditStudentDialog) mEntityDialog).setStudentIds(listItemLocalId, listItemRemoteId);
-                    ((AddEditStudentDialog) mEntityDialog).setData(name, middlename, surname, login);
-                    mEntityDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditGroupDialog.FRAGMENT_TAG);
+                    mAddEditDialog.setStudentDialogListener(mStudentDialogListener);
+                    mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditStudentDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
                     getHostActivity().showProgressBar();
@@ -143,6 +126,14 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
     }
 
     @Override
+    protected void restoreCustom() {
+        mAddEditDialog = (AddEditStudentDialog) getFragmentManager().findFragmentByTag(AddEditStudentDialog.FRAGMENT_TAG);
+        if (mAddEditDialog != null) {
+            mAddEditDialog.setStudentDialogListener(mStudentDialogListener);
+        }
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_students_menu, menu);
     }
@@ -151,11 +142,11 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add_student:
-                if (mEntityDialog == null) {
-                    mEntityDialog = AddEditStudentDialog.newInstance("Добавление ученика в класс", "Редактирование ученика", -1, -1, "", "", "", "");
+                if (mAddEditDialog == null) {
+                    mAddEditDialog = AddEditStudentDialog.newInstance(-1, -1, "", "", "", "");
                 }
-                mEntityDialog.setDialogListener(mStudentsDialogListener);
-                mEntityDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditStudentDialog.TAG);
+                mAddEditDialog.setStudentDialogListener(mStudentDialogListener);
+                mAddEditDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditStudentDialog.TAG);
                 break;
         }
         return true;
@@ -256,16 +247,6 @@ public class StudentsFragment extends EntitiesListFragment implements ApiService
                 R.id.checkbox1,
                 R.id.dropdown_btn1,
                 0);
-    }
-
-    @Override
-    protected AddEditDialog.DialogButtonsListener getAddEditDialogListener() {
-        return mStudentsDialogListener;
-    }
-
-    @Override
-    protected String getAddEditDialogTag() {
-        return AddEditStudentDialog.TAG;
     }
 
     @Override

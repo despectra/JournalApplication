@@ -9,7 +9,6 @@ import android.preference.PreferenceManager;
 import android.view.*;
 import android.widget.ListView;
 import com.despectra.android.journal.JournalApplication;
-import com.despectra.android.journal.view.groups.AddEditGroupDialog;
 
 /**
  * Created by Dmitry on 08.04.14.
@@ -29,7 +28,6 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     protected ListView mEntitiesListView;
     protected RemoteIdCursorAdapter mEntitiesAdapter;
     protected ActionMode mActionMode;
-    protected AddEditDialog mEntityDialog;
     protected Cursor mCursor;
 
     protected String mToken;
@@ -101,10 +99,8 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
             if (confirmDeletingDialog != null) {
                 confirmDeletingDialog.setOnConfirmListener(getConfirmDelListener());
             }
-            mEntityDialog = (AddEditGroupDialog) getFragmentManager().findFragmentByTag(getAddEditDialogTag());
-            if (mEntityDialog != null) {
-                mEntityDialog.setDialogListener(getAddEditDialogListener());
-            }
+
+            restoreCustom();
 
         } else {
             mIsInActionMode = false;
@@ -112,6 +108,8 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
         }
         getLoaderManager().initLoader(LOADER_MAIN, null, this);
     }
+
+    protected abstract void restoreCustom();
 
     @Override
     public void onResume() {
@@ -188,10 +186,6 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     protected abstract int getListViewId();
 
     protected abstract RemoteIdCursorAdapter getRemoteIdAdapter();
-
-    protected abstract AddEditDialog.DialogButtonsListener getAddEditDialogListener();
-
-    protected abstract String getAddEditDialogTag();
 
     protected abstract SimpleConfirmationDialog.OnConfirmListener getConfirmDelListener();
 
