@@ -20,19 +20,19 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
     private EditText mLoginEdit;
     private EditText mSurnameEdit;
     private EditText mMiddlenameEdit;
-    private StudentDialogListener mListener;
+    private DialogListener mListener;
 
-    public static AddEditSimpleUserDialog newInstance(long localId, long remoteId, String firstName,
-                                                   String middleName, String secondName, String login) {
+    public static AddEditSimpleUserDialog newInstance(long localId, long remoteId, String addTitle, String editTitle,
+                                                      String firstName, String middleName, String secondName, String login) {
         AddEditSimpleUserDialog dialog = new AddEditSimpleUserDialog();
         dialog.prepareAllArguments(R.layout.dialog_add_student,
-                "Добавление ученика",
-                "Редактирование ученика",
+                addTitle,
+                editTitle,
                 "Отмена",
                 "Добавить и закрыть",
                 "Сохранить",
                 "Добавить и продолжить",
-                new StudentDialogData(localId, remoteId, firstName, middleName, secondName, login));
+                new SimpleUserDialogData(localId, remoteId, firstName, middleName, secondName, login));
         return dialog;
     }
 
@@ -43,7 +43,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
         mMiddlenameEdit = (EditText) mMainView.findViewById(R.id.student_dialog_field_middlename);
         mLoginEdit = (EditText) mMainView.findViewById(R.id.student_dialog_field_login);
 
-        StudentDialogData data = (StudentDialogData)mDialogData;
+        SimpleUserDialogData data = (SimpleUserDialogData)mDialogData;
         mNameEdit.setText(data.firstName);
         mMiddlenameEdit.setText(data.middleName);
         mSurnameEdit.setText(data.secondName);
@@ -75,11 +75,11 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
     protected void onNeutralClicked(int mode) {
         if (mListener != null) {
             if (inAddMode()) {
-                mListener.onAddStudent(mNameEdit.getText().toString(), mMiddlenameEdit.getText().toString(),
+                mListener.onAddUser(mNameEdit.getText().toString(), mMiddlenameEdit.getText().toString(),
                         mSurnameEdit.getText().toString(), mLoginEdit.getText().toString());
             } else {
-                StudentDialogData data = (StudentDialogData) mDialogData;
-                mListener.onEditStudent(data.localId, data.remoteId,
+                SimpleUserDialogData data = (SimpleUserDialogData) mDialogData;
+                mListener.onEditUser(data.localId, data.remoteId,
                         data.firstName, mNameEdit.getText().toString(),
                         data.middleName, mMiddlenameEdit.getText().toString(),
                         data.secondName, mSurnameEdit.getText().toString());
@@ -92,11 +92,11 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
         onNeutralClicked(mode);
     }
 
-    public void setStudentDialogListener(StudentDialogListener listener) {
+    public void setDialogListener(DialogListener listener) {
         mListener = listener;
     }
 
-    public static final class StudentDialogData extends DialogData {
+    public static final class SimpleUserDialogData extends DialogData {
 
         public long localId;
         public long remoteId;
@@ -105,7 +105,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
         public String secondName;
         public String login;
 
-        public StudentDialogData(long localId, long remoteId, String firstName, String middleName, String secondName, String login) {
+        public SimpleUserDialogData(long localId, long remoteId, String firstName, String middleName, String secondName, String login) {
             this.localId = localId;
             this.remoteId = remoteId;
             this.firstName = firstName;
@@ -114,7 +114,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
             this.login = login;
         }
 
-        public StudentDialogData(Parcel parcel) {
+        public SimpleUserDialogData(Parcel parcel) {
             localId = parcel.readLong();
             remoteId = parcel.readLong();
             firstName = parcel.readString();
@@ -138,23 +138,23 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
             parcel.writeString(login);
         }
 
-        public final Creator<StudentDialogData> CREATOR
-                = new Creator<StudentDialogData>() {
+        public final Creator<SimpleUserDialogData> CREATOR
+                = new Creator<SimpleUserDialogData>() {
             @Override
-            public StudentDialogData createFromParcel(Parcel parcel) {
-                return new StudentDialogData(parcel);
+            public SimpleUserDialogData createFromParcel(Parcel parcel) {
+                return new SimpleUserDialogData(parcel);
             }
 
             @Override
-            public StudentDialogData[] newArray(int size) {
-                return new StudentDialogData[size];
+            public SimpleUserDialogData[] newArray(int size) {
+                return new SimpleUserDialogData[size];
             }
         };
     }
 
-    public interface StudentDialogListener {
-        public void onAddStudent(String firstName, String middleName, String secondName, String login);
-        public void onEditStudent(long localId, long remoteId,
+    public interface DialogListener {
+        public void onAddUser(String firstName, String middleName, String secondName, String login);
+        public void onEditUser(long localId, long remoteId,
                                   String oldFirstName, String newFirstName,
                                   String oldMiddleName, String newMiddleName,
                                   String oldSecondName, String newSecondName);

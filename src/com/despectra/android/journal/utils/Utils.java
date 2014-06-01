@@ -9,6 +9,8 @@ import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AbsListView;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -41,5 +43,13 @@ public class Utils {
     public static int getScreenCategory(Context context) {
         return context.getResources().getConfiguration().screenLayout &
                 Configuration.SCREENLAYOUT_SIZE_MASK;
+    }
+
+    public static boolean isApiJsonSuccess(JSONObject jsonResponse) {
+        try {
+            return jsonResponse.has("success") && jsonResponse.getInt("success") == 1;
+        } catch (JSONException e) {
+            return false;
+        }
     }
 }

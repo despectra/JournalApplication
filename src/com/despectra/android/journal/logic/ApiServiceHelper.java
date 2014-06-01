@@ -415,6 +415,35 @@ public class ApiServiceHelper {
         }
 
         @Override
+        public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addKeyValue("firstName", firstName)
+                    .addKeyValue("middleName", middleName)
+                    .addKeyValue("secondName", secondName)
+                    .addKeyValue("login", login).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_TEACHER, mClientName, data), priority);
+        }
+
+        @Override
+        public void getTeachers(String token, int offset, int count, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addKeyValue("offset", offset)
+                    .addKeyValue("count", count).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_TEACHERS, mClientName, data), priority);
+        }
+
+        @Override
+        public void deleteTeachers(String token, long[] localIds, long[] remoteIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addArray("LOCAL_teachers", localIds)
+                    .addArray("teachers", remoteIds).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_TEACHERS, mClientName, data), priority);
+        }
+
+        @Override
         public void addMockMarks(long groupId) {
             if (mBound) {
                 try {
@@ -506,6 +535,10 @@ public class ApiServiceHelper {
         public void addSubject(String token, String name, int priority);
         public void updateSubject(String token, long localId, long remoteId, String updName, int priority);
         public void deleteSubjects(String token, long localIds[], long remoteIds[], int priority);
+        public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority);
+        public void getTeachers(String token, int offset, int count, int priority);
+        public void deleteTeachers(String token, long[] localIds, long remoteIds[], int priority);
+
 
         // TEMPORARY
         public void addMockMarks(long groupId);

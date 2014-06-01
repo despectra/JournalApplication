@@ -187,6 +187,24 @@ public class ApiService extends Service {
                 return mDataProcessor.forSubjects().delete(action);
             }
         });
+        mActionsImpls.put(APICodes.ACTION_ADD_TEACHER, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mDataProcessor.forTeachers().add(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_GET_TEACHERS, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mDataProcessor.forTeachers().get(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_DELETE_TEACHERS, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mDataProcessor.forTeachers().delete(action);
+            }
+        });
     }
 
     @Override

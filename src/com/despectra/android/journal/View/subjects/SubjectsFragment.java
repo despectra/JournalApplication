@@ -12,7 +12,7 @@ import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.view.*;
-import com.despectra.android.journal.view.groups.AddEditSimpleItemDialog;
+import com.despectra.android.journal.view.AddEditSimpleItemDialog;
 
 /**
  * Created by Dmitry on 18.05.14.

@@ -2,6 +2,7 @@ package com.despectra.android.journal.logic.local;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
+import com.despectra.android.journal.utils.SQLJoinBuilder;
 
 import java.lang.reflect.Field;
 
@@ -29,7 +30,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Events");
         public static final String TABLE = "events";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_TEXT = "events_text";
         public static final String FIELD_DATETIME = "events_datetime";
@@ -54,7 +55,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Groups");
         public static final String TABLE = "groups";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_NAME = "groups_name";
         public static final String FIELD_PARENT_ID = "groups_parent_id";
@@ -79,7 +80,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Students");
         public static final String TABLE = "students";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_USER_ID = "students_user_id";
         public static final Uri URI = Uri.parse(STRING_URI + "/students");
@@ -106,7 +107,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Users");
         public static final String TABLE = "users";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_LOGIN = "users_login";
         public static final String FIELD_NAME = "users_name";
@@ -136,7 +137,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("StudentsGroups");
         public static final String TABLE = "students_groups";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_STUDENT_ID = "students_groups_student_id";
         public static final String FIELD_GROUP_ID = "students_groups_group_id";
@@ -161,7 +162,7 @@ public class Contract {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Subjects");
         public static final String TABLE = "subjects";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String TABLE_JOIN_REMOTE = new DBHelper.JoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
         public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
         public static final String FIELD_NAME = "subjects_name";
         public static final Uri URI = Uri.parse(STRING_URI + "/subjects");
@@ -181,6 +182,33 @@ public class Contract {
         }
     }
 
+    public static final class Teachers implements BaseColumns {
+        public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Teachers");
+        public static final String TABLE = "teachers";
+        public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String FIELD_USER_ID = "teachers_user_id";
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_USERS =
+                new SQLJoinBuilder(TABLE_JOIN_REMOTE).join(Users.TABLE).onEq(FIELD_USER_ID, Users._ID)
+                                                     .join(Users.Remote.TABLE).onEq(Users._ID, Users.Remote._ID).create();
+        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
+        public static final Uri URI = Uri.parse(STRING_URI + "/teachers");
+        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
+        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
+        public static final int URI_CODE = 260;
+        public static final int ID_URI_CODE = 261;
+
+        public static final class Remote implements RemoteColumns {
+            public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("Teachers");
+            public static final String TABLE = "teachers_remote";
+            public static final String _ID = TABLE + RemoteColumns._ID;
+            public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
+            public static final Uri URI = Uri.parse(STRING_URI + "/teachers_remote");
+            public static final int URI_CODE = 262;
+            public static final int ID_URI_CODE = 263;
+        }
+    }
+
     public static final class Marks implements BaseColumns {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Marks");
         public static final String TABLE = "marks";
@@ -189,7 +217,7 @@ public class Contract {
         public static final String FIELD_STUDENT_ID = "marks_student_id";
         public static final String FIELD_LESSON_ID = "marks_lesson_id";
         public static final String FIELD_MARK = "marks_mark";
-        public static final String TABLE_BY_GROUP = new DBHelper.JoinBuilder(TABLE).join(Students.TABLE).onEq(FIELD_STUDENT_ID, Students._ID)
+        public static final String TABLE_BY_GROUP = new SQLJoinBuilder(TABLE).join(Students.TABLE).onEq(FIELD_STUDENT_ID, Students._ID)
                 .join(StudentsGroups.TABLE).onEq(Students._ID, StudentsGroups.FIELD_STUDENT_ID).create();
         public static final Uri URI = Uri.parse(STRING_URI + "/marks");
         public static final Uri URI_BY_GROUP = Uri.parse(STRING_URI + "/marks/group");

@@ -6,11 +6,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.util.JsonReader;
 import android.util.Pair;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.ProviderUpdater;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.services.ApiService;
+import com.despectra.android.journal.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,9 +52,11 @@ public class DataProcessor {
         return new Subjects();
     }
 
-    private boolean isJsonSuccess(JSONObject jsonResponse) throws JSONException {
-        return jsonResponse.has("success") && jsonResponse.getInt("success") == 1;
+    public Teachers forTeachers() {
+        return new Teachers();
     }
+
+
 
     public class Events {
         public JSONObject get(ApiServiceHelper.ApiAction action) throws Exception {
@@ -120,7 +124,7 @@ public class DataProcessor {
             mUpdater.markRowAsUpdating(Contract.Groups.HOLDER, localGroupId);
 
             JSONObject response = mServer.executeGetApiQuery("groups.updateGroup", request);
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 ContentValues updated = new ContentValues();
                 updated.put(Contract.Groups.FIELD_NAME, groupData.getString("name"));
                 updated.put(Contract.Groups.FIELD_PARENT_ID, localParentId);
@@ -133,7 +137,7 @@ public class DataProcessor {
             JSONObject request = action.actionData;
             preDeleteGroups(request);
             JSONObject response = mServer.executeGetApiQuery("groups.deleteGroups", request);
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 mUpdater.deleteMarkedEntities(Contract.Groups.HOLDER, Contract.Groups.Remote.HOLDER);
             }
             return response;
@@ -189,7 +193,7 @@ public class DataProcessor {
             String localGroupId = request.getString("LOCAL_group_id");
             request.remove("LOCAL_group_id");
             JSONObject response = mServer.executeGetApiQuery("students.getByGroup", request);
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 updateLocalStudents(response, localGroupId);
             }
             return response;
@@ -208,7 +212,7 @@ public class DataProcessor {
             mResponseHandler.sendMessage(Message.obtain(mResponseHandler, ApiService.MSG_PROGRESS, progress));
 
             JSONObject response = mServer.executeGetApiQuery("students.addStudentInGroup", request);
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 persistStudent(localUserId, localStudentId, localSGLinkId, response);
             }
             return response;
@@ -221,16 +225,16 @@ public class DataProcessor {
 
             JSONObject response = mServer.executeGetApiQuery("students.deleteStudents", request);
 
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 persistStudentsDeletion();
             }
             return response;
         }
 
         private void persistStudentsDeletion() {
-            mUpdater.deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
-            mUpdater.deleteMarkedEntities(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER);
             mUpdater.deleteMarkedEntities(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER);
+            mUpdater.deleteMarkedEntities(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER);
+            mUpdater.deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
         }
 
         private void preDeleteStudents(JSONObject request) throws JSONException {
@@ -305,12 +309,13 @@ public class DataProcessor {
                     new String[]{localGroupId},
                     null
             );
+
             JSONArray remoteStudents = response.getJSONArray("students");
             for (int i = 0; i < remoteStudents.length(); i++) {
                 JSONObject student = remoteStudents.getJSONObject(i);
                 student.put("level", 2);
             }
-            Map<String, String> insertedUsers = mUpdater.updateEntityWithJSONArray(
+            Map<Long, Long> insertedUsers = mUpdater.updateEntityWithJSONArray(
                     ProviderUpdater.MODE_REPLACE,
                     localStudents,
                     Contract.Users.HOLDER,
@@ -323,9 +328,9 @@ public class DataProcessor {
             );
             for (int i = 0; i < remoteStudents.length(); i++) {
                 JSONObject student = remoteStudents.getJSONObject(i);
-                student.put("user_id", insertedUsers.get(student.getString("user_id")));
+                student.put("user_id", insertedUsers.get(student.getLong("user_id")));
             }
-            Map<String, String> insertedStudents = mUpdater.updateEntityWithJSONArray(
+            Map<Long, Long> insertedStudents = mUpdater.updateEntityWithJSONArray(
                     ProviderUpdater.MODE_REPLACE,
                     localStudents,
                     Contract.Students.HOLDER,
@@ -337,7 +342,7 @@ public class DataProcessor {
             );
             for (int i = 0; i < remoteStudents.length(); i++) {
                 JSONObject student = remoteStudents.getJSONObject(i);
-                student.put("student_id", insertedStudents.get(student.getString("student_id")));
+                student.put("student_id", insertedStudents.get(student.getLong("student_id")));
                 student.put("group_id", localGroupId);
             }
             mUpdater.updateEntityWithJSONArray(
@@ -385,7 +390,7 @@ public class DataProcessor {
             mUpdater.markRowAsUpdating(Contract.Subjects.HOLDER, localSubjId);
 
             JSONObject response = mServer.executeGetApiQuery("subjects.updateSubject", request);
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 ContentValues updated = new ContentValues();
                 updated.put(Contract.Subjects.FIELD_NAME, subjectData.getString("name"));
                 mUpdater.persistUpdatingRow(Contract.Subjects.HOLDER, localSubjId, updated);
@@ -397,7 +402,7 @@ public class DataProcessor {
             JSONObject request = action.actionData;
             preDeleteSubject(request);
             JSONObject response = mServer.executeGetApiQuery("subjects.deleteSubjects", request);
-            if (isJsonSuccess(response)) {
+            if (Utils.isApiJsonSuccess(response)) {
                 mUpdater.deleteMarkedEntities(Contract.Subjects.HOLDER, Contract.Subjects.Remote.HOLDER);
             }
             return response;
@@ -436,6 +441,134 @@ public class DataProcessor {
                     "id",
                     new String[]{"name"},
                     new String[]{Contract.Subjects.FIELD_NAME}
+            );
+        }
+    }
+
+    public class Teachers {
+        public JSONObject get(ApiServiceHelper.ApiAction action) throws Exception {
+            JSONObject request = action.actionData;
+            JSONObject response = mServer.executeGetApiQuery("teachers.getTeachers", request);
+            if (Utils.isApiJsonSuccess(response)) {
+                updateLocalTeachers(response);
+            }
+            return response;
+        }
+
+        public JSONObject add(ApiServiceHelper.ApiAction action) throws Exception {
+            JSONObject request = action.actionData;
+
+            long localUserId = preAddUser(request);
+            long localTeacherId = preAddTeacher(localUserId);
+            //notify helper about caching completed
+            Pair<String, String> progress = new Pair<String, String>(action.clientTag, "cached");
+            mResponseHandler.sendMessage(Message.obtain(mResponseHandler, ApiService.MSG_PROGRESS, progress));
+
+            JSONObject response = mServer.executeGetApiQuery("teachers.addTeacher", request);
+            if (Utils.isApiJsonSuccess(response)) {
+                persistTeacher(localUserId, localTeacherId, response);
+            }
+            return response;
+        }
+
+        public JSONObject delete(ApiServiceHelper.ApiAction action) throws Exception {
+            JSONObject request = action.actionData;
+            preDeleteTeachers(request);
+            mResponseHandler.sendMessage(Message.obtain(mResponseHandler, ApiService.MSG_PROGRESS, new Pair<String, String>(action.clientTag, "cached")));
+
+            JSONObject response = mServer.executeGetApiQuery("teachers.deleteTeachers", request);
+
+            if (Utils.isApiJsonSuccess(response)) {
+                persistTeachersDeletion();
+            }
+            return response;
+        }
+
+        private long preAddUser(JSONObject request) throws JSONException {
+            ContentValues tempUser = new ContentValues();
+            tempUser.put(Contract.Users.FIELD_LOGIN, request.getString("login"));
+            tempUser.put(Contract.Users.FIELD_NAME, request.getString("firstName"));
+            tempUser.put(Contract.Users.FIELD_MIDDLENAME, request.getString("middleName"));
+            tempUser.put(Contract.Users.FIELD_SURNAME, request.getString("secondName"));
+            tempUser.put(Contract.Users.FIELD_LEVEL, 4);
+            return mUpdater.insertTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER, tempUser);
+        }
+
+        private long preAddTeacher(long localUserId) {
+            ContentValues tempStudent = new ContentValues();
+            tempStudent.put(Contract.Teachers.FIELD_USER_ID, localUserId);
+            return mUpdater.insertTempRow(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER, tempStudent);
+        }
+
+        private void persistTeacher(long localUserId, long localTeacherId, JSONObject response) throws JSONException {
+            long remoteUserId = response.getLong("user_id");
+            long remoteStudentId = response.getLong("teacher_id");
+            mUpdater.persistTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER,
+                    localUserId, remoteUserId);
+            mUpdater.persistTempRow(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER,
+                    localTeacherId, remoteStudentId);
+        }
+
+        private void preDeleteTeachers(JSONObject request) throws JSONException {
+            JSONArray localTeachers = request.getJSONArray("LOCAL_teachers");
+            request.remove("LOCAL_teachers");
+            for (int i = 0; i < localTeachers.length(); i++) {
+                String localTeacherId = localTeachers.getString(i);
+                Cursor localUser = mContext.getContentResolver().query(Contract.Teachers.URI,
+                        new String[]{Contract.Users._ID},
+                        Contract.Teachers._ID + " = ?",
+                        new String[]{ localTeacherId },
+                        null);
+                localUser.moveToFirst();
+                String localUserId = localUser.getString(0);
+                mUpdater.markRowAsDeleting(Contract.Users.HOLDER, localUserId);
+                mUpdater.markRowAsDeleting(Contract.Teachers.HOLDER, localTeacherId);
+            }
+        }
+
+        private void persistTeachersDeletion() {
+            mUpdater.deleteMarkedEntities(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER);
+            mUpdater.deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
+        }
+
+        private void updateLocalTeachers(JSONObject response) throws JSONException {
+            Cursor localTeachers = mUpdater.getResolver().query(
+                    Uri.parse(Contract.STRING_URI + "/teachers"),
+                    new String[]{Contract.Teachers.Remote.REMOTE_ID, Contract.Teachers.Remote._ID,
+                            Contract.Users.Remote.REMOTE_ID, Contract.Users.Remote._ID},
+                    null,
+                    null,
+                    null
+            );
+            JSONArray remoteTeachers = response.getJSONArray("teachers");
+            for (int i = 0; i < remoteTeachers.length(); i++) {
+                JSONObject teacher = remoteTeachers.getJSONObject(i);
+                teacher.put("level", 4);
+            }
+            Map<Long, Long> affectedUsers = mUpdater.updateEntityWithJSONArray(
+                    ProviderUpdater.MODE_REPLACE,
+                    localTeachers,
+                    Contract.Users.HOLDER,
+                    Contract.Users.Remote.HOLDER,
+                    remoteTeachers,
+                    "user_id",
+                    new String[]{"name", "middlename", "surname", "login", "level"},
+                    new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_SURNAME,
+                            Contract.Users.FIELD_LOGIN, Contract.Users.FIELD_LEVEL}
+            );
+            for (int i = 0; i < remoteTeachers.length(); i++) {
+                JSONObject teacher = remoteTeachers.getJSONObject(i);
+                teacher.put("user_id", affectedUsers.get(teacher.getLong("user_id")));
+            }
+            mUpdater.updateEntityWithJSONArray(
+                    ProviderUpdater.MODE_REPLACE,
+                    localTeachers,
+                    Contract.Teachers.HOLDER,
+                    Contract.Teachers.Remote.HOLDER,
+                    remoteTeachers,
+                    "teacher_id",
+                    new String[]{"user_id"},
+                    new String[]{Contract.Teachers.FIELD_USER_ID}
             );
         }
     }

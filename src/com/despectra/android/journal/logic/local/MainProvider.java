@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.SparseArray;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.utils.SQLJoinBuilder;
 
 /**
  * Created by Dmitry on 01.04.14.
@@ -45,6 +46,8 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Contract.Subjects.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects_remote", Contract.Subjects.Remote.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects_remote/#", Contract.Subjects.Remote.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers", Contract.Teachers.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_remote", Contract.Teachers.Remote.URI_CODE);
 
         mMatcher.addURI(Contract.AUTHORITY, "marks", Contract.Marks.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "marks/group", Contract.Marks.URI_BY_GROUP_CODE);
@@ -71,7 +74,7 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.Students.Remote.URI_CODE, Contract.Students.Remote.TABLE);
         mReadTables.append(Contract.Students.Remote.ID_URI_CODE, Contract.Students.Remote.TABLE);
         mReadTables.append(Contract.Students.Remote.URI_BY_GROUP_CODE,
-                new DBHelper.JoinBuilder(Contract.Users.Remote.TABLE)
+                new SQLJoinBuilder(Contract.Users.Remote.TABLE)
                 .join(Contract.Users.TABLE).onEq(Contract.Users.Remote._ID, Contract.Users._ID)
                 .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .join(Contract.Students.Remote.TABLE).onEq(Contract.Students.Remote._ID, Contract.Students._ID)
@@ -79,7 +82,7 @@ public class MainProvider extends ContentProvider {
                 .join(Contract.StudentsGroups.Remote.TABLE).onEq(Contract.StudentsGroups._ID, Contract.StudentsGroups.Remote._ID)
                 .create());
         mReadTables.append(Contract.Students.URI_BY_GROUP_CODE,
-                new DBHelper.JoinBuilder(Contract.Users.TABLE)
+                new SQLJoinBuilder(Contract.Users.TABLE)
                 .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .join(Contract.StudentsGroups.TABLE).onEq(Contract.Students._ID, Contract.StudentsGroups.FIELD_STUDENT_ID)
                 .create());
@@ -87,7 +90,7 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.Users.URI_STUDENTS_CODE,
-                new DBHelper.JoinBuilder(Contract.Users.TABLE)
+                new SQLJoinBuilder(Contract.Users.TABLE)
                 .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .create());
         mReadTables.append(Contract.Users.Remote.URI_CODE, Contract.Users.Remote.TABLE);
@@ -102,6 +105,9 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE_JOIN_REMOTE);
         mReadTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
         mReadTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
+
+        mReadTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE_JOIN_USERS);
+        mReadTables.append(Contract.Teachers.Remote.URI_CODE, Contract.Teachers.Remote.TABLE);
 
         mReadTables.append(Contract.Marks.URI_BY_GROUP_CODE, Contract.Marks.TABLE_BY_GROUP);
         mReadTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
@@ -142,6 +148,9 @@ public class MainProvider extends ContentProvider {
         mWriteTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
         mWriteTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
 
+        mWriteTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE);
+        mWriteTables.append(Contract.Teachers.Remote.URI_CODE, Contract.Teachers.Remote.TABLE);
+
         mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
         mWriteTables.append(Contract.Marks.ID_URI_CODE, Contract.Marks.TABLE);
         mWriteTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
@@ -168,6 +177,9 @@ public class MainProvider extends ContentProvider {
 
         mPrimaryColumns.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects._ID);
         mPrimaryColumns.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote._ID);
+
+        mPrimaryColumns.append(Contract.Teachers.ID_URI_CODE, Contract.Teachers._ID);
+        mPrimaryColumns.append(Contract.Teachers.Remote.ID_URI_CODE, Contract.Teachers.Remote._ID);
 
         mPrimaryColumns.append(Contract.Marks.ID_URI_CODE, Contract.Marks._ID);
         mPrimaryColumns.append(Contract.Lessons.ID_URI_CODE, Contract.Lessons._ID);

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 23;
+    public static final int VERSION = 24;
 
     public static final String CREATE_TABLE_ENTITY_REMOTE = "" +
             "CREATE TABLE IF NOT EXISTS %1$s_remote (" +
@@ -58,6 +58,12 @@ public class DBHelper extends SQLiteOpenHelper {
             "subjects_id INTEGER PRIMARY KEY AUTOINCREMENT," +
             "subjects_name TEXT NOT NULL," +
             "subjects_entity_status INTEGER DEFAULT 0 NOT NULL)";
+
+    public static final String CREATE_TABLE_TEACHERS = "" +
+            "CREATE TABLE IF NOT EXISTS teachers (" +
+            "teachers_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "teachers_user_id INTEGER NOT NULL," +
+            "teachers_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
@@ -111,6 +117,7 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "subjects_remote"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "lessons"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "marks"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers"));
     }
 
     private void buildSchema(SQLiteDatabase sqLiteDatabase) {
@@ -126,36 +133,16 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "students_groups"));
         sqLiteDatabase.execSQL(CREATE_TABLE_SUBJECTS);
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "subjects"));
+        sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS);
+        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "teachers"));
+
 
         sqLiteDatabase.execSQL(CREATE_TABLE_LESSONS);
         sqLiteDatabase.execSQL(CREATE_TABLE_MARKS);
     }
 
     public static class JoinBuilder {
-        private String mJoinString;
-        public JoinBuilder(String initTable) {
-            mJoinString = new String();
-            mJoinString += initTable;
-        }
 
-        public JoinBuilder join(String table) {
-            mJoinString += " JOIN " + table;
-            return this;
-        }
-
-        public JoinBuilder on(String predicate) {
-            mJoinString += " ON " + predicate;
-            return this;
-        }
-
-        public JoinBuilder onEq(String column1, String column2) {
-            mJoinString += " ON " + column1 + " = " + column2;
-            return this;
-        }
-
-        public String create() {
-            return mJoinString;
-        }
     }
 
 }

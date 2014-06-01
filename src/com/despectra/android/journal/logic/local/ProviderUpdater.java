@@ -37,7 +37,7 @@ public class ProviderUpdater {
         return mResolver;
     }
 
-    public Map<String, String> updateEntityWithJSONArray(int updatingMode,
+    public Map<Long, Long> updateEntityWithJSONArray(int updatingMode,
                                             Cursor existingIds,
                                             Contract.EntityColumnsHolder localTable,
                                             Contract.RemoteColumnsHolder remoteTable,
@@ -47,7 +47,7 @@ public class ProviderUpdater {
                                             String[] entityTableCols) throws JSONException {
         Map<Long, Long> existingRows = new HashMap<Long, Long>();
         Map<Long, JSONObject> receivedRows = new HashMap<Long, JSONObject>();
-        Map<String, String> insertedRows = new HashMap<String, String>();
+        Map<Long, Long> affectedRows = new HashMap<Long, Long>();
 
         int remoteIdColIndex = existingIds.getColumnIndex(remoteTable.REMOTE_ID);
         int localIdColIndex = existingIds.getColumnIndex(remoteTable._ID);
@@ -70,6 +70,7 @@ public class ProviderUpdater {
             long remoteId = row.getValue();
             if (receivedRows.containsKey(remoteId)) {
                 updateSingleEntity(localTable, localId, receivedRows.get(remoteId), jsonCols, entityTableCols);
+                affectedRows.put(remoteId, localId);
                 existingRowsIt.remove();
                 receivedRows.remove(remoteId);
             }
@@ -79,8 +80,8 @@ public class ProviderUpdater {
         Iterator jsonRowsIt = receivedRows.entrySet().iterator();
         while(jsonRowsIt.hasNext()) {
             Map.Entry<Long, JSONObject> row = (Map.Entry<Long, JSONObject>)jsonRowsIt.next();
-            Map.Entry<String, String> insertedIds = insertNewEntity(localTable, remoteTable, row.getValue(), jsonIdCol, jsonCols, entityTableCols);
-            insertedRows.put(insertedIds.getKey(), insertedIds.getValue());
+            Map.Entry<Long, Long> insertedIds = insertNewEntity(localTable, remoteTable, row.getValue(), jsonIdCol, jsonCols, entityTableCols);
+            affectedRows.put(insertedIds.getKey(), insertedIds.getValue());
             jsonRowsIt.remove();
         }
 
@@ -92,19 +93,19 @@ public class ProviderUpdater {
                 mResolver.delete(Uri.parse(mProviderUri + "/" + remoteTable.TABLE), String.format("%s = %d", remoteTable._ID, localId), null);
             }
         }
-        return insertedRows;
+        return affectedRows;
     }
 
-    private Map.Entry<String, String> insertNewEntity(Contract.EntityColumnsHolder localTable, Contract.RemoteColumnsHolder remoteTable, JSONObject jsonRow, String jsonIdCol, String[] from, String[] to) throws JSONException {
+    private Map.Entry<Long, Long> insertNewEntity(Contract.EntityColumnsHolder localTable, Contract.RemoteColumnsHolder remoteTable, JSONObject jsonRow, String jsonIdCol, String[] from, String[] to) throws JSONException {
         ContentValues data = getContentValuesFromJson(jsonRow, from, to);
         Uri result = mResolver.insert(Uri.parse(mProviderUri + "/" + localTable.TABLE), data);
-        String localId = result.getLastPathSegment();
-        String remoteId = jsonRow.getString(jsonIdCol);
+        long localId = Long.valueOf(result.getLastPathSegment());
+        long remoteId = jsonRow.getLong(jsonIdCol);
         ContentValues remoteIdData = new ContentValues();
         remoteIdData.put(remoteTable._ID, localId);
         remoteIdData.put(remoteTable.REMOTE_ID, remoteId);
         mResolver.insert(Uri.parse(mProviderUri + "/" + remoteTable.TABLE), remoteIdData);
-        return new AbstractMap.SimpleEntry<String, String>(remoteId, localId);
+        return new AbstractMap.SimpleEntry<Long, Long>(remoteId, localId);
     }
 
     private void updateSingleEntity(Contract.EntityColumnsHolder localTable, long localId, JSONObject jsonData, String[] from, String[] to) throws JSONException {
