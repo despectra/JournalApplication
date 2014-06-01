@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.model.EntityIds;
 
 /**
  * Created by Dmitry on 08.04.14.
@@ -18,7 +19,7 @@ public class AddEditSimpleItemDialog extends AddEditDialog {
     private DialogListener mListener;
     private EditText mItemNameEdit;
 
-    public static AddEditSimpleItemDialog newInstance(String dialogAddTitle, String dialogEditTitle, String itemText, long localGroupId, long remoteGroupId) {
+    public static AddEditSimpleItemDialog newInstance(String dialogAddTitle, String dialogEditTitle, String itemText, EntityIds itemIds) {
         AddEditSimpleItemDialog dialog = new AddEditSimpleItemDialog();
         dialog.prepareAllArguments(R.layout.dialog_add_group,
                 dialogAddTitle,
@@ -27,7 +28,7 @@ public class AddEditSimpleItemDialog extends AddEditDialog {
                 "Добавить и закрыть",
                 "Сохранить",
                 "Добавить и продолжить",
-                new SimpleItemDialogData(localGroupId, remoteGroupId, itemText));
+                new SimpleItemDialogData(itemIds, itemText));
         return dialog;
     }
 
@@ -63,7 +64,7 @@ public class AddEditSimpleItemDialog extends AddEditDialog {
             if (inAddMode()) {
                 mListener.onAddItem(mItemNameEdit.getText().toString());
             } else {
-                mListener.onEditItem(mItemNameEdit.getText().toString(), data.localId, data.remoteId);
+                mListener.onEditItem(mItemNameEdit.getText().toString(), data.itemIds);
             }
         }
     }
@@ -75,19 +76,16 @@ public class AddEditSimpleItemDialog extends AddEditDialog {
 
     public static class SimpleItemDialogData extends DialogData {
 
-        public long localId;
-        public long remoteId;
+        public EntityIds itemIds;
         public String itemName;
 
-        public SimpleItemDialogData(long localId, long remoteId, String itemName) {
-            this.localId = localId;
-            this.remoteId = remoteId;
+        public SimpleItemDialogData(EntityIds ids, String itemName) {
+            this.itemIds = ids;
             this.itemName = itemName;
         }
 
         public SimpleItemDialogData(Parcel in) {
-            this.localId = in.readLong();
-            this.remoteId = in.readLong();
+            this.itemIds = EntityIds.fromBundle(in.readBundle());
             this.itemName = in.readString();
         }
 
@@ -98,8 +96,7 @@ public class AddEditSimpleItemDialog extends AddEditDialog {
 
         @Override
         public void writeToParcel(Parcel parcel, int i) {
-            parcel.writeLong(localId);
-            parcel.writeLong(remoteId);
+            parcel.writeBundle(itemIds.toBundle());
             parcel.writeString(itemName);
         }
 
@@ -117,6 +114,6 @@ public class AddEditSimpleItemDialog extends AddEditDialog {
 
     public interface DialogListener {
         public void onAddItem(String name);
-        public void onEditItem(String name, long localId, long remoteId);
+        public void onEditItem(String name, EntityIds ids);
     }
 }

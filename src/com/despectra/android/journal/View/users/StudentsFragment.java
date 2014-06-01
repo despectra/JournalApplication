@@ -1,23 +1,17 @@
 package com.despectra.android.journal.view.users;
 
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.BaseColumns;
-import android.view.*;
-import android.widget.TextView;
-import com.despectra.android.journal.logic.services.ApiService;
+import com.despectra.android.journal.model.EntityIds;
+import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
 import com.despectra.android.journal.view.RemoteIdCursorAdapter;
 import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.view.AddEditDialog;
-import com.despectra.android.journal.view.AddEditSimpleItemDialog;
-import com.despectra.android.journal.view.SimpleConfirmationDialog;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.ApiServiceHelper;
-import com.despectra.android.journal.view.EntitiesListFragment;
 
 /**
  * Created by Dmitry on 13.04.14.
@@ -28,19 +22,16 @@ public class StudentsFragment extends AbstractUsersFragment {
     public static final String FRAGMENT_TAG = "studentsFrag";
     public static final String CONFIRM_DIALOG_TAG = "ConfirmDeleteStudents";
 
-    public static final String KEY_LOCAL_GROUP_ID = "localgroupId";
-    public static final String KEY_REMOTE_GROUP_ID="remotegroupId";
+    public static final String KEY_GROUP_IDS = "groupIds";
     public static final String KEY_GROUP_NAME = "groupName";
 
-    private long mLocalGroupId;
-    private long mRemoteGroupId;
+    private EntityIds mGroupIds;
     private String mGroupName;
 
-    public static StudentsFragment newInstance(String groupName, long localGroupId, long remoteGroupId) {
+    public static StudentsFragment newInstance(String groupName, EntityIds groupIds) {
         StudentsFragment fragment = new StudentsFragment();
         Bundle args = new Bundle();
-        args.putLong(KEY_LOCAL_GROUP_ID, localGroupId);
-        args.putLong(KEY_REMOTE_GROUP_ID, remoteGroupId);
+        args.putBundle(KEY_GROUP_IDS, groupIds.toBundle());
         args.putString(KEY_GROUP_NAME, groupName);
         fragment.setArguments(args);
         return fragment;
@@ -50,8 +41,7 @@ public class StudentsFragment extends AbstractUsersFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        mLocalGroupId = args.getLong(KEY_LOCAL_GROUP_ID);
-        mRemoteGroupId = args.getLong(KEY_REMOTE_GROUP_ID);
+        mGroupIds = EntityIds.fromBundle(args.getBundle(KEY_GROUP_IDS));
         mGroupName = args.getString(KEY_GROUP_NAME);
     }
 
@@ -62,13 +52,17 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected void performUserAddition(String firstName, String middleName, String secondName, String login) {
-        mServiceHelperController.addStudentIntoGroup(mToken, mLocalGroupId, mRemoteGroupId,
+        mServiceHelperController.addStudentIntoGroup(mToken, mGroupIds,
                 firstName, middleName, secondName, login, ApiServiceHelper.PRIORITY_HIGH);
     }
 
     @Override
-    protected void performUsersDeletion(long[] localIds, long remoteIds[]) {
-        mServiceHelperController.deleteStudents(mToken, localIds, remoteIds, ApiServiceHelper.PRIORITY_HIGH);
+    protected void performUsersDeletion(JoinedEntityIds[] ids) {
+        EntityIds[] studentsIds = new EntityIds[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            studentsIds[i] = ids[i].getIdsByTable(Contract.Students.TABLE);
+        }
+        mServiceHelperController.deleteStudents(mToken, studentsIds, ApiServiceHelper.PRIORITY_HIGH);
     }
 
     @Override
@@ -98,7 +92,7 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected Uri getLoaderUri() {
-        return Uri.parse(String.format("%s/groups_remote/%d/students_remote", Contract.STRING_URI, mLocalGroupId));
+        return Uri.parse(String.format("%s/groups_remote/%d/students_remote", Contract.STRING_URI, mGroupIds.getLocalId()));
     }
 
     @Override
@@ -108,12 +102,13 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected String[] getLoaderSelectionArgs() {
-        return new String[]{String.valueOf(mLocalGroupId)};
+        return new String[]{String.valueOf(mGroupIds.getLocalId())};
     }
 
     @Override
     protected String[] getLoaderProjection() {
         return new String[]{Contract.Students._ID + " AS _id", Contract.Students.Remote.REMOTE_ID,
+                Contract.Users._ID, Contract.Users.Remote.REMOTE_ID,
                 Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
                 Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN,
                 Contract.Users.ENTITY_STATUS};
@@ -130,7 +125,7 @@ public class StudentsFragment extends AbstractUsersFragment {
     }
 
     @Override
-    protected void performOnUserClick(long localId, long remoteId) {
+    protected void performOnUserClick(JoinedEntityIds userIds) {
         //TODO
     }
 
@@ -146,7 +141,7 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected void performUpdatingUsersList() {
-        mServiceHelperController.getStudentsByGroup(mToken, mLocalGroupId, mRemoteGroupId, ApiServiceHelper.PRIORITY_HIGH);
+        mServiceHelperController.getStudentsByGroup(mToken, mGroupIds, ApiServiceHelper.PRIORITY_HIGH);
     }
 
     @Override
@@ -155,14 +150,28 @@ public class StudentsFragment extends AbstractUsersFragment {
     }
 
     @Override
-    protected RemoteIdCursorAdapter getRemoteIdAdapter() {
-        return new RemoteIdCursorAdapter(getActivity(),
+    protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
+        EntityIdsColumns[] columns = new EntityIdsColumns[] {
+            new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.Remote.REMOTE_ID),
+            new EntityIdsColumns(Contract.Students.TABLE, "_id", Contract.Students.Remote.REMOTE_ID)
+        };
+        /*return new RemoteIdCursorAdapter(getActivity(),
                 R.layout.item_student_1,
                 mCursor,
                 new String[]{Contract.Users.FIELD_SURNAME, Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN},
                 new int[]{R.id.surname_view, R.id.name_view, R.id.middlename_view, R.id.login_view},
                 BaseColumns._ID,
                 Contract.Students.Remote.REMOTE_ID,
+                Contract.Users.ENTITY_STATUS,
+                R.id.checkbox1,
+                R.id.dropdown_btn1,
+                0);*/
+        return new MultipleRemoteIdsCursorAdapter(getActivity(),
+                R.layout.item_student_1,
+                mCursor,
+                new String[]{Contract.Users.FIELD_SURNAME, Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN},
+                new int[]{R.id.surname_view, R.id.name_view, R.id.middlename_view, R.id.login_view},
+                columns,
                 Contract.Users.ENTITY_STATUS,
                 R.id.checkbox1,
                 R.id.dropdown_btn1,

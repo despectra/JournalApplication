@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.view.*;
 import android.widget.*;
+import com.despectra.android.journal.model.EntityIds;
+import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.*;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
@@ -21,7 +24,6 @@ import org.json.JSONObject;
 /**
  * Created by Dmitry on 08.04.14.
  */
-
 
 public class GroupsFragment extends EntitiesListFragment {
     public static final String FRAGMENT_TAG = "GroupsFragment";
@@ -40,11 +42,12 @@ public class GroupsFragment extends EntitiesListFragment {
                 mStatusBar.showStatus("Удаление классов");
                 mStatusBar.showSpinner();
             }
-
-            mServiceHelperController.deleteGroups(mToken,
-                    mEntitiesAdapter.getCheckedLocalIdsAsArray(),
-                    mEntitiesAdapter.getCheckedRemoteIdsAsArray(),
-                    ApiServiceHelper.PRIORITY_LOW);
+            JoinedEntityIds[] groupsAllIds = mEntitiesAdapter.getCheckedIds();
+            EntityIds[] groupsIds = new EntityIds[groupsAllIds.length];
+            for (int i = 0; i < groupsAllIds.length; i++) {
+                groupsIds[i] = groupsAllIds[i].getIdsByTable(Contract.Groups.TABLE);
+            }
+            mServiceHelperController.deleteGroups(mToken, groupsIds, ApiServiceHelper.PRIORITY_LOW);
             if (mIsInActionMode) {
                 mActionMode.finish();
             }
@@ -62,12 +65,12 @@ public class GroupsFragment extends EntitiesListFragment {
                     mStatusBar.showStatus("Добавление класса " + name);
                     mStatusBar.showSpinner();
                 }
-                mServiceHelperController.addGroup(mToken, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
+                mServiceHelperController.addGroup(mToken, name, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_HIGH);
             }
         }
 
         @Override
-        public void onEditItem(String name, long localId, long remoteId) {
+        public void onEditItem(String name, EntityIds itemIds) {
             if (!mToken.isEmpty()) {
                 int runningCount = mServiceHelperController.getRunningActionsCount();
                 if (runningCount > 0) {
@@ -76,14 +79,14 @@ public class GroupsFragment extends EntitiesListFragment {
                     mStatusBar.showStatus("Обновление класса " + name);
                     mStatusBar.showSpinner();
                 }
-                mServiceHelperController.updateGroup(mToken, localId, remoteId, name, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
+                mServiceHelperController.updateGroup(mToken, itemIds, name, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_HIGH);
             }
         }
     };
 
-    private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
+    private MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener() {
         @Override
-        public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
+        public void onMenuItemSelected(MenuItem item, View adapterItemView, JoinedEntityIds ids) {
             int runningCount = mServiceHelperController.getRunningActionsCount();
             String status;
             switch (item.getItemId()) {
@@ -92,7 +95,7 @@ public class GroupsFragment extends EntitiesListFragment {
                     String groupName = ((TextView) adapterItemView.findViewById(R.id.text1)).getText().toString();
                     if (mAddEditDialog == null) {
                         mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить класс", "Редактировать класс",
-                                groupName, listItemLocalId, listItemRemoteId);
+                                groupName, ids.getIdsByTable(Contract.Groups.TABLE));
                     }
                     mAddEditDialog.setDialogListener(mGroupDialogListener);
                     mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
@@ -105,7 +108,7 @@ public class GroupsFragment extends EntitiesListFragment {
                     }
                     mStatusBar.showStatus(status);
                     mStatusBar.showSpinner();
-                    mServiceHelperController.deleteGroups(mToken, new long[]{listItemLocalId}, new long[]{listItemRemoteId}, ApiServiceHelper.PRIORITY_HIGH);
+                    mServiceHelperController.deleteGroups(mToken, new EntityIds[]{ids.getIdsByTable(Contract.Groups.TABLE)}, ApiServiceHelper.PRIORITY_HIGH);
                     break;
                 default:
                     return;
@@ -142,11 +145,10 @@ public class GroupsFragment extends EntitiesListFragment {
     }
 
     @Override
-    public void onItemClick(View itemView, long localId, long remoteId) {
+    public void onItemClick(View itemView, JoinedEntityIds ids) {
         String groupName = ((TextView)itemView.findViewById(R.id.text1)).getText().toString();
         Intent intent = new Intent(getActivity(), GroupActivity.class);
-        intent.putExtra(GroupActivity.EXTRA_KEY_LOCAL_GROUP_ID, localId);
-        intent.putExtra(GroupActivity.EXTRA_KEY_REMOTE_GROUP_ID, remoteId);
+        intent.putExtra(GroupActivity.EXTRA_KEY_GROUP_IDS, ids.getIdsByTable(Contract.Groups.TABLE).toBundle());
         intent.putExtra(GroupActivity.EXTRA_KEY_GROUP_NAME, groupName);
         intent.putExtra(GroupActivity.EXTRA_KEY_IS_SUBGROUP, false);
         startActivity(intent);
@@ -172,7 +174,7 @@ public class GroupsFragment extends EntitiesListFragment {
     }
 
     @Override
-    protected RemoteIdCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
+    protected MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
         return mGroupPopupListener;
     }
 
@@ -192,14 +194,16 @@ public class GroupsFragment extends EntitiesListFragment {
     }
 
     @Override
-    protected RemoteIdCursorAdapter getRemoteIdAdapter() {
-        return new RemoteIdCursorAdapter(getActivity(),
+    protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
+        EntityIdsColumns[] columns = new EntityIdsColumns[]{
+            new EntityIdsColumns(Contract.Groups.TABLE, "_id", Contract.Groups.Remote.REMOTE_ID)
+        };
+        return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_checkable_1,
                 mCursor,
                 new String[]{Contract.Groups.FIELD_NAME},
                 new int[]{R.id.text1},
-                BaseColumns._ID,
-                Contract.Groups.Remote.REMOTE_ID,
+                columns,
                 Contract.Groups.ENTITY_STATUS,
                 R.id.checkbox1,
                 R.id.dropdown_btn1,
@@ -227,7 +231,7 @@ public class GroupsFragment extends EntitiesListFragment {
         switch (item.getItemId()) {
             case R.id.action_group_add:
                 if (mAddEditDialog == null) {
-                    mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить класс", "Редактировать класс", "", -1, -1);
+                    mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить класс", "Редактировать класс", "", new EntityIds(-1, -1));
                 }
                 mAddEditDialog.setDialogListener(mGroupDialogListener);
                 mAddEditDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
@@ -280,7 +284,7 @@ public class GroupsFragment extends EntitiesListFragment {
     protected void updateEntitiesList() {
         mStatusBar.showSpinner();
         mStatusBar.showStatus("Обновление списка классов");
-        mServiceHelperController.getAllGroups(mToken, 0, 0, ApiServiceHelper.PRIORITY_LOW);
+        mServiceHelperController.getAllGroups(mToken, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override

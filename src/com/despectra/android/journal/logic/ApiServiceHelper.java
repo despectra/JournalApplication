@@ -8,8 +8,8 @@ import android.os.IBinder;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.services.ApiService;
+import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.utils.JSONBuilder;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -292,70 +292,66 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void addGroup(String token, String name, long localParentId, long remoteParentId, int priority) {
+        public void addGroup(String token, String name, EntityIds parentIds, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
                 .addKeyValue("name", name)
-                .addKeyValue("LOCAL_parent_id", localParentId)
-                .addKeyValue("parent_id", remoteParentId).create();
+                .addKeyValue("LOCAL_parent_id", parentIds.getLocalId())
+                .addKeyValue("parent_id", parentIds.getRemoteId()).create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_GROUP, mClientName, data), priority);
         }
 
         @Override
-        public void getAllGroups(String token, long localParentId, long remoteParentId, int priority) {
-            getGroups(token, localParentId, remoteParentId, 0, 0, priority);
+        public void getAllGroups(String token, EntityIds parentIds, int priority) {
+            getGroups(token, parentIds, 0, 0, priority);
         }
 
         @Override
-        public void getGroups(String token, long localParentId, long remoteParentId, int offset, int count, int priority) {
+        public void getGroups(String token, EntityIds parentIds, int offset, int count, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addKeyValue("LOCAL_parent_group_id", localParentId)
-                .addKeyValue("parent_group_id", remoteParentId)
+                .addEntityIds("parent_group_id", parentIds)
                 .addKeyValue("offset", offset)
                 .addKeyValue("count", count).create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS, mClientName, data), priority);
         }
 
         @Override
-        public void deleteGroups(String token, long[] localIds, long[] remoteIds, int priority) {
+        public void deleteGroups(String token, EntityIds[] ids, int priority) {
             JSONObject data = new JSONBuilder()
                     .addKeyValue("token", token)
-                    .addArray("LOCAL_groups", Arrays.copyOf(localIds, localIds.length))
-                    .addArray("groups", remoteIds).create();
+                    .addEntityIdsArray("groups", ids).create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_GROUPS, mClientName, data), priority);
         }
 
         @Override
-        public void updateGroup(String token, long localId, long remoteId, String updName,
-                                long updLocalParentId, long updRemoteParentId, int priority) {
+        public void updateGroup(String token, EntityIds ids, String updName,
+                                EntityIds parentIds, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addKeyValue("LOCAL_id", localId)
-                .addKeyValue("id", remoteId)
+                .addEntityIds("id", ids)
                 .addKeyValue("data", new JSONBuilder()
                         .addKeyValue("name", updName)
-                        .addKeyValue("LOCAL_parent_id", updLocalParentId)
-                        .addKeyValue("parent_id", updRemoteParentId).create())
+                        .addEntityIds("parent_id", parentIds)
+                        .create())
                 .create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_GROUP, mClientName, data), priority);
         }
 
         @Override
-        public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority) {
+        public void getStudentsByGroup(String token, EntityIds groupIds, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addKeyValue("LOCAL_group_id", localGroupId)
-                .addKeyValue("group_id", remoteGroupId).create();
+                .addEntityIds("group_id", groupIds)
+                .create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_STUDENTS_BY_GROUP, mClientName, data), priority);
         }
 
         @Override
-        public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority) {
+        public void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addKeyValue("LOCAL_group_id", localGroupId)
-                .addKeyValue("group_id", remoteGroupId)
+                .addEntityIds("group_id", groupIds)
                 .addKeyValue("name", name)
                 .addKeyValue("middlename", middlename)
                 .addKeyValue("surname", surname)
@@ -364,11 +360,11 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void deleteStudents(String token, long[] localIds, long[] remoteIds, int priority) {
+        public void deleteStudents(String token, EntityIds[] ids, int priority) {
             JSONObject data = new JSONBuilder()
                     .addKeyValue("token", token)
-                    .addArray("LOCAL_students", localIds)
-                    .addArray("students", remoteIds).create();
+                    .addEntityIdsArray("students", ids)
+                    .create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_STUDENTS, mClientName, data), priority);
         }
 
@@ -395,22 +391,21 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void updateSubject(String token, long localId, long remoteId, String updName, int priority) {
+        public void updateSubject(String token, EntityIds ids, String updName, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addKeyValue("LOCAL_id", localId)
-                .addKeyValue("id", remoteId)
+                .addEntityIds("id", ids)
                 .addKeyValue("data", new JSONBuilder()
-                    .addKeyValue("name", updName).create()).create();
+                        .addKeyValue("name", updName).create()).create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_SUBJECT, mClientName, data), priority);
         }
 
         @Override
-        public void deleteSubjects(String token, long[] localIds, long[] remoteIds, int priority) {
+        public void deleteSubjects(String token, EntityIds[] ids, int priority) {
             JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addArray("LOCAL_subjects", localIds)
-                .addArray("subjects", remoteIds).create();
+                .addEntityIdsArray("subjects", ids)
+                .create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_SUBJECTS, mClientName, data), priority);
         }
 
@@ -435,11 +430,11 @@ public class ApiServiceHelper {
         }
 
         @Override
-        public void deleteTeachers(String token, long[] localIds, long[] remoteIds, int priority) {
+        public void deleteTeachers(String token, EntityIds[] ids, int priority) {
             JSONObject data = new JSONBuilder()
                     .addKeyValue("token", token)
-                    .addArray("LOCAL_teachers", localIds)
-                    .addArray("teachers", remoteIds).create();
+                    .addEntityIdsArray("teachers", ids)
+                    .create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_TEACHERS, mClientName, data), priority);
         }
 
@@ -522,22 +517,22 @@ public class ApiServiceHelper {
         public void getMinProfile(String token, int priority);
         public void getEvents(String token, int offset, int count, int priority);
         public void getAllEvents(String token, int priority);
-        public void addGroup(String token, String name, long localParentId, long remoteParentId, int priority);
-        public void getAllGroups(String token, long localParentId, long remoteParentId, int priority);
-        public void getGroups(String token, long localParentId, long remoteParentId, int offset, int count, int priority);
-        public void deleteGroups(String token, long[] localIds, long[] remoteIds, int priority);
-        public void updateGroup(String token, long localId, long remoteId, String updName, long updLocalParentId, long updRemoteParentId, int priority);
-        public void getStudentsByGroup(String token, long localGroupId, long remoteGroupId, int priority);
-        public void addStudentIntoGroup(String token, long localGroupId, long remoteGroupId, String name, String middlename, String surname, String login, int priority);
-        public void deleteStudents(String token, long[] localIds, long[] remoteIds, int priority);
+        public void addGroup(String token, String name, EntityIds parentIds, int priority);
+        public void getAllGroups(String token, EntityIds parentIds, int priority);
+        public void getGroups(String token, EntityIds parentIds, int offset, int count, int priority);
+        public void deleteGroups(String token, EntityIds[] ids, int priority);
+        public void updateGroup(String token, EntityIds ids, String updName, EntityIds parentIds, int priority);
+        public void getStudentsByGroup(String token, EntityIds groupIds, int priority);
+        public void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority);
+        public void deleteStudents(String token, EntityIds[] ids, int priority);
         public void getSubjects(String token, int offset, int count, int priority);
         public void getAllSubjects(String token, int priority);
         public void addSubject(String token, String name, int priority);
-        public void updateSubject(String token, long localId, long remoteId, String updName, int priority);
-        public void deleteSubjects(String token, long localIds[], long remoteIds[], int priority);
+        public void updateSubject(String token, EntityIds ids, String updName, int priority);
+        public void deleteSubjects(String token, EntityIds[] ids, int priority);
         public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority);
         public void getTeachers(String token, int offset, int count, int priority);
-        public void deleteTeachers(String token, long[] localIds, long remoteIds[], int priority);
+        public void deleteTeachers(String token, EntityIds[] ids, int priority);
 
 
         // TEMPORARY

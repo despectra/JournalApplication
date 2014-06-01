@@ -1,6 +1,5 @@
 package com.despectra.android.journal.view.users;
 
-import android.net.Uri;
 import android.support.v4.app.Fragment;
 import com.despectra.android.journal.view.RemoteIdCursorAdapter;
 

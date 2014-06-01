@@ -11,6 +11,9 @@ import android.widget.TextView;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.model.EntityIds;
+import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.*;
 import com.despectra.android.journal.view.AddEditSimpleItemDialog;
 
@@ -29,8 +32,7 @@ public class SubjectsFragment extends EntitiesListFragment {
             getHostActivity().showProgressBar();
 
             mServiceHelperController.deleteSubjects(mToken,
-                    mEntitiesAdapter.getCheckedLocalIdsAsArray(),
-                    mEntitiesAdapter.getCheckedRemoteIdsAsArray(),
+                    mEntitiesAdapter.getCheckedIdsOfTable(Contract.Subjects.TABLE),
                     ApiServiceHelper.PRIORITY_LOW);
             if (mIsInActionMode) {
                 mActionMode.finish();
@@ -48,17 +50,17 @@ public class SubjectsFragment extends EntitiesListFragment {
         }
 
         @Override
-        public void onEditItem(String name, long localId, long remoteId) {
+        public void onEditItem(String name, EntityIds ids) {
             if (!mToken.isEmpty()) {
                 getHostActivity().showProgressBar();
-                mServiceHelperController.updateSubject(mToken, localId, remoteId, name, ApiServiceHelper.PRIORITY_HIGH);
+                mServiceHelperController.updateSubject(mToken, ids, name, ApiServiceHelper.PRIORITY_HIGH);
             }
         }
     };
 
-    private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
+    private MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener() {
         @Override
-        public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
+        public void onMenuItemSelected(MenuItem item, View adapterItemView, JoinedEntityIds ids) {
             switch (item.getItemId()) {
                 case R.id.action_edit:
                     mAddEditDialog = (AddEditSimpleItemDialog) getFragmentManager().findFragmentByTag(AddEditSimpleItemDialog.FRAGMENT_TAG);
@@ -67,14 +69,16 @@ public class SubjectsFragment extends EntitiesListFragment {
                         mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавление предмета",
                                 "Редактирование предмета",
                                 groupName,
-                                listItemLocalId, listItemRemoteId);
+                                ids.getIdsByTable(Contract.Subjects.TABLE));
                     }
                     mAddEditDialog.setDialogListener(mSubjectDialogListener);
                     mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
                     getHostActivity().showProgressBar();
-                    mServiceHelperController.deleteSubjects(mToken, new long[]{listItemLocalId}, new long[]{listItemRemoteId}, ApiServiceHelper.PRIORITY_HIGH);
+                    mServiceHelperController.deleteSubjects(mToken,
+                            new EntityIds[]{ids.getIdsByTable(Contract.Subjects.TABLE)},
+                            ApiServiceHelper.PRIORITY_HIGH);
                     break;
                 default:
                     return;
@@ -118,7 +122,7 @@ public class SubjectsFragment extends EntitiesListFragment {
     }
 
     @Override
-    public void onItemClick(View itemView, long localId, long remoteId) {
+    public void onItemClick(View itemView, JoinedEntityIds ids) {
         //TODO view subject
     }
 
@@ -142,7 +146,7 @@ public class SubjectsFragment extends EntitiesListFragment {
     }
 
     @Override
-    protected RemoteIdCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
+    protected MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
         return mGroupPopupListener;
     }
 
@@ -162,14 +166,16 @@ public class SubjectsFragment extends EntitiesListFragment {
     }
 
     @Override
-    protected RemoteIdCursorAdapter getRemoteIdAdapter() {
-        return new RemoteIdCursorAdapter(getActivity(),
+    protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
+        EntityIdsColumns[] columns = new EntityIdsColumns[]{
+            new EntityIdsColumns(Contract.Subjects.TABLE, "_id", Contract.Subjects.Remote.REMOTE_ID)
+        };
+        return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_checkable_1,
                 mCursor,
                 new String[]{Contract.Subjects.FIELD_NAME},
                 new int[]{R.id.text1},
-                BaseColumns._ID,
-                Contract.Subjects.Remote.REMOTE_ID,
+                columns,
                 Contract.Subjects.ENTITY_STATUS,
                 R.id.checkbox1,
                 R.id.dropdown_btn1,
@@ -189,15 +195,15 @@ public class SubjectsFragment extends EntitiesListFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.groups_fragment_menu, menu);
+        inflater.inflate(R.menu.fragment_subjects_menu, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_group_add:
+            case R.id.action_add:
                 if (mAddEditDialog == null) {
-                    mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить предмет", "Редактировать предмет", "", -1, -1);
+                    mAddEditDialog = AddEditSimpleItemDialog.newInstance("Добавить предмет", "Редактировать предмет", "", new EntityIds(-1, -1));
                 }
                 mAddEditDialog.setDialogListener(mSubjectDialogListener);
                 mAddEditDialog.showInMode(AddEditDialog.MODE_ADD, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);

@@ -3,6 +3,7 @@ package com.despectra.android.journal.view.groups;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.view.MenuItem;
+import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.view.AbstractApiActionBarActivity;
 import com.despectra.android.journal.view.SimpleInfoDialog;
 import com.despectra.android.journal.view.AbstractApiFragment;
@@ -16,8 +17,7 @@ import java.util.Arrays;
  * Created by Dmitry on 12.04.14.
  */
 public class GroupActivity extends AbstractApiActionBarActivity implements BottomTabWidget.OnTabSelectedListener {
-    public static final String EXTRA_KEY_LOCAL_GROUP_ID = "locgroupId";
-    public static final String EXTRA_KEY_REMOTE_GROUP_ID = "remgroupId";
+    public static final String EXTRA_KEY_GROUP_IDS = "locgroupId";
     public static final String EXTRA_KEY_GROUP_NAME = "groupName";
     public static final String EXTRA_KEY_IS_SUBGROUP = "isSub";
 
@@ -27,8 +27,7 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
 
     private BottomTabWidget mTabs;
 
-    private long mLocalGroupId;
-    private long mRemoteGroupId;
+    private EntityIds mGroupIds;
     private String mGroupName;
     private String mTitle;
     private boolean mIsSubgroup;
@@ -38,10 +37,9 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group);
         getActionBar().setDisplayHomeAsUpEnabled(true);
-        mLocalGroupId = getIntent().getLongExtra(EXTRA_KEY_LOCAL_GROUP_ID, -1);
-        mRemoteGroupId = getIntent().getLongExtra(EXTRA_KEY_REMOTE_GROUP_ID, -1);
+        mGroupIds = EntityIds.fromBundle(getIntent().getBundleExtra(EXTRA_KEY_GROUP_IDS));
         mGroupName = getIntent().getStringExtra(EXTRA_KEY_GROUP_NAME);
-        if (mRemoteGroupId == -1 || mLocalGroupId == -1) {
+        if (mGroupIds.getLocalId() == -1 || mGroupIds.getRemoteId() == -1) {
             SimpleInfoDialog errorDialog = SimpleInfoDialog.newInstance("Ошибка", "Нет идентификатора класса");
             errorDialog.show(getSupportFragmentManager(), "errorDialog");
             return;
@@ -56,7 +54,7 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
             mTabs.setCurrentTab(savedInstanceState.getInt(KEY_SELECTED_TAB));
         } else {
             mTabs.setCurrentTab(0);
-            StudentsFragment fragment = StudentsFragment.newInstance(mTitle, mLocalGroupId, mRemoteGroupId);
+            StudentsFragment fragment = StudentsFragment.newInstance(mTitle, mGroupIds);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_layout, fragment, StudentsFragment.FRAGMENT_TAG)
                     .commit();
@@ -97,7 +95,7 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
         AbstractApiFragment fragment;
         switch (index) {
             case TAB_GENERAL:
-                fragment = StudentsFragment.newInstance(mTitle, mLocalGroupId, mRemoteGroupId);
+                fragment = StudentsFragment.newInstance(mTitle, mGroupIds);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.content_layout, fragment, StudentsFragment.FRAGMENT_TAG)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)

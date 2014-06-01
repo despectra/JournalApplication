@@ -1,15 +1,16 @@
 package com.despectra.android.journal.view.users;
 
 import android.net.Uri;
-import android.support.v4.app.Fragment;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.model.EntityIds;
+import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.utils.Utils;
-import com.despectra.android.journal.view.RemoteIdCursorAdapter;
-import org.json.JSONException;
+import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
 import org.json.JSONObject;
 
 /**
@@ -27,8 +28,12 @@ public class TeachersFragment extends AbstractUsersFragment {
     }
 
     @Override
-    protected void performUsersDeletion(long[] localIds, long[] remoteIds) {
-        mServiceHelperController.deleteTeachers(mToken, localIds, remoteIds, ApiServiceHelper.PRIORITY_HIGH);
+    protected void performUsersDeletion(JoinedEntityIds[] ids) {
+        EntityIds[] teachersIds = new EntityIds[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            teachersIds[i] = ids[i].getIdsByTable(Contract.Teachers.TABLE);
+        }
+        mServiceHelperController.deleteTeachers(mToken, teachersIds, ApiServiceHelper.PRIORITY_HIGH);
     }
 
     @Override
@@ -74,6 +79,7 @@ public class TeachersFragment extends AbstractUsersFragment {
     @Override
     protected String[] getLoaderProjection() {
         return new String[]{Contract.Teachers._ID + " AS _id", Contract.Teachers.Remote.REMOTE_ID,
+                Contract.Users._ID, Contract.Users.Remote.REMOTE_ID,
                 Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
                 Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN,
                 Contract.Users.ENTITY_STATUS};
@@ -90,7 +96,7 @@ public class TeachersFragment extends AbstractUsersFragment {
     }
 
     @Override
-    protected void performOnUserClick(long localId, long remoteId) {
+    protected void performOnUserClick(JoinedEntityIds ids) {
         //TODO
     }
 
@@ -115,8 +121,8 @@ public class TeachersFragment extends AbstractUsersFragment {
     }
 
     @Override
-    protected RemoteIdCursorAdapter getRemoteIdAdapter() {
-        return new RemoteIdCursorAdapter(getActivity(),
+    protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
+        /*return new RemoteIdCursorAdapter(getActivity(),
                 R.layout.item_student_1,
                 mCursor,
                 new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
@@ -124,6 +130,22 @@ public class TeachersFragment extends AbstractUsersFragment {
                 new int[]{R.id.name_view, R.id.surname_view, R.id.middlename_view, R.id.login_view},
                 "_id",
                 Contract.Teachers.Remote.REMOTE_ID,
+                Contract.Users.ENTITY_STATUS,
+                R.id.checkbox1,
+                R.id.dropdown_btn1,
+                0);*/
+        EntityIdsColumns[] idsColumns = new EntityIdsColumns[]{
+                new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.Remote.REMOTE_ID),
+                new EntityIdsColumns(Contract.Teachers.TABLE, "_id", Contract.Teachers.Remote.REMOTE_ID)
+        };
+
+        return new MultipleRemoteIdsCursorAdapter(getActivity(),
+                R.layout.item_student_1,
+                mCursor,
+                new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
+                        Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN},
+                new int[]{R.id.name_view, R.id.surname_view, R.id.middlename_view, R.id.login_view},
+                idsColumns,
                 Contract.Users.ENTITY_STATUS,
                 R.id.checkbox1,
                 R.id.dropdown_btn1,

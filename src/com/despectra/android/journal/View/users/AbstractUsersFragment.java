@@ -3,7 +3,6 @@ package com.despectra.android.journal.view.users;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.*;
@@ -11,8 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
-import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.*;
 
 /**
@@ -38,7 +36,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
         }
 
         @Override
-        public void onEditUser(long localId, long remoteId, String oldFirstName, String newFirstName, String oldMiddleName, String newMiddleName, String oldSecondName, String newSecondName) {
+        public void onEditUser(JoinedEntityIds ids, String oldFirstName, String newFirstName, String oldMiddleName, String newMiddleName, String oldSecondName, String newSecondName) {
             performUserUpdating();
         }
     };
@@ -50,18 +48,18 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
     private SimpleConfirmationDialog.OnConfirmListener mConfirmDeletingListener = new SimpleConfirmationDialog.OnConfirmListener() {
         @Override
         public void onConfirm() {
-            performUsersDeletion(mEntitiesAdapter.getCheckedLocalIdsAsArray(), mEntitiesAdapter.getCheckedRemoteIdsAsArray());
+            performUsersDeletion(mEntitiesAdapter.getCheckedIds());
             if (mIsInActionMode) {
                 mActionMode.finish();
             }
         }
     };
 
-    protected abstract void performUsersDeletion(long[] localIds, long remoteIds[]);
+    protected abstract void performUsersDeletion(JoinedEntityIds[] ids);
 
-    private RemoteIdCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new RemoteIdCursorAdapter.OnItemPopupMenuListener() {
+    private MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener mGroupPopupListener = new MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener() {
         @Override
-        public void onMenuItemSelected(MenuItem item, View adapterItemView, long listItemLocalId, long listItemRemoteId) {
+        public void onMenuItemSelected(MenuItem item, View adapterItemView, JoinedEntityIds ids) {
             switch (item.getItemId()) {
                 case R.id.action_edit:
                     mAddEditDialog = (AddEditSimpleUserDialog) getFragmentManager().findFragmentByTag(AddEditSimpleItemDialog.FRAGMENT_TAG);
@@ -70,7 +68,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
                     String middlename = ((TextView) adapterItemView.findViewById(R.id.middlename_view)).getText().toString();
                     String login = ((TextView) adapterItemView.findViewById(R.id.login_view)).getText().toString();
                     if (mAddEditDialog == null) {
-                        mAddEditDialog = AddEditSimpleUserDialog.newInstance(listItemLocalId, listItemRemoteId,
+                        mAddEditDialog = AddEditSimpleUserDialog.newInstance(ids,
                                 getAddEditDialogAddTitle(), getAddEditDialogEditTitle(),
                                 name, middlename, surname, login);
                     }
@@ -79,7 +77,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
                     break;
                 case R.id.action_delete:
                     getHostActivity().showProgressBar();
-                    performUsersDeletion(new long[]{listItemLocalId}, new long[]{listItemRemoteId});
+                    performUsersDeletion(new JoinedEntityIds[]{ids});
                     break;
                 default:
                     return;
@@ -134,7 +132,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
         switch (item.getItemId()) {
             case R.id.action_add:
                 if (mAddEditDialog == null) {
-                    mAddEditDialog = AddEditSimpleUserDialog.newInstance(-1, -1, getAddEditDialogAddTitle(), getAddEditDialogEditTitle(),
+                    mAddEditDialog = AddEditSimpleUserDialog.newInstance(new JoinedEntityIds(), getAddEditDialogAddTitle(), getAddEditDialogEditTitle(),
                             "", "", "", "");
                 }
                 mAddEditDialog.setDialogListener(mUserDialogListener);
@@ -191,11 +189,11 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
     protected abstract String getUsersCountStringBeginning();
 
     @Override
-    public void onItemClick(View itemView, long localId, long remoteId) {
-        performOnUserClick(localId, remoteId);
+    public void onItemClick(View itemView, JoinedEntityIds ids) {
+        performOnUserClick(ids);
     }
 
-    protected abstract void performOnUserClick(long localId, long remoteId);
+    protected abstract void performOnUserClick(JoinedEntityIds ids);
 
     @Override
     public boolean onActionModeItemClicked(ActionMode actionMode, MenuItem menuItem) {
@@ -215,7 +213,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
     protected abstract String getConfirmDelDialogMessage();
 
     @Override
-    protected RemoteIdCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
+    protected MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
         return mGroupPopupListener;
     }
 

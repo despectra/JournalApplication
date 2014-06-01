@@ -6,6 +6,8 @@ import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.model.EntityIds;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.AddEditDialog;
 
 /**
@@ -22,7 +24,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
     private EditText mMiddlenameEdit;
     private DialogListener mListener;
 
-    public static AddEditSimpleUserDialog newInstance(long localId, long remoteId, String addTitle, String editTitle,
+    public static AddEditSimpleUserDialog newInstance(JoinedEntityIds userIds, String addTitle, String editTitle,
                                                       String firstName, String middleName, String secondName, String login) {
         AddEditSimpleUserDialog dialog = new AddEditSimpleUserDialog();
         dialog.prepareAllArguments(R.layout.dialog_add_student,
@@ -32,7 +34,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
                 "Добавить и закрыть",
                 "Сохранить",
                 "Добавить и продолжить",
-                new SimpleUserDialogData(localId, remoteId, firstName, middleName, secondName, login));
+                new SimpleUserDialogData(userIds, firstName, middleName, secondName, login));
         return dialog;
     }
 
@@ -79,7 +81,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
                         mSurnameEdit.getText().toString(), mLoginEdit.getText().toString());
             } else {
                 SimpleUserDialogData data = (SimpleUserDialogData) mDialogData;
-                mListener.onEditUser(data.localId, data.remoteId,
+                mListener.onEditUser(data.userIds,
                         data.firstName, mNameEdit.getText().toString(),
                         data.middleName, mMiddlenameEdit.getText().toString(),
                         data.secondName, mSurnameEdit.getText().toString());
@@ -98,16 +100,14 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
 
     public static final class SimpleUserDialogData extends DialogData {
 
-        public long localId;
-        public long remoteId;
+        public JoinedEntityIds userIds;
         public String firstName;
         public String middleName;
         public String secondName;
         public String login;
 
-        public SimpleUserDialogData(long localId, long remoteId, String firstName, String middleName, String secondName, String login) {
-            this.localId = localId;
-            this.remoteId = remoteId;
+        public SimpleUserDialogData(JoinedEntityIds userIds, String firstName, String middleName, String secondName, String login) {
+            this.userIds = userIds;
             this.firstName = firstName;
             this.middleName = middleName;
             this.secondName = secondName;
@@ -115,8 +115,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
         }
 
         public SimpleUserDialogData(Parcel parcel) {
-            localId = parcel.readLong();
-            remoteId = parcel.readLong();
+            userIds = JoinedEntityIds.fromBundle(parcel.readBundle());
             firstName = parcel.readString();
             middleName = parcel.readString();
             secondName = parcel.readString();
@@ -130,8 +129,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
 
         @Override
         public void writeToParcel(Parcel parcel, int i) {
-            parcel.writeLong(localId);
-            parcel.writeLong(remoteId);
+            parcel.writeBundle(userIds.toBundle());
             parcel.writeString(firstName);
             parcel.writeString(middleName);
             parcel.writeString(secondName);
@@ -154,7 +152,7 @@ public class AddEditSimpleUserDialog extends AddEditDialog {
 
     public interface DialogListener {
         public void onAddUser(String firstName, String middleName, String secondName, String login);
-        public void onEditUser(long localId, long remoteId,
+        public void onEditUser(JoinedEntityIds userIds,
                                   String oldFirstName, String newFirstName,
                                   String oldMiddleName, String newMiddleName,
                                   String oldSecondName, String newSecondName);

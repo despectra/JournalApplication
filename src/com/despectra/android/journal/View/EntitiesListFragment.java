@@ -9,24 +9,24 @@ import android.preference.PreferenceManager;
 import android.view.*;
 import android.widget.ListView;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.model.JoinedEntityIds;
 
 /**
  * Created by Dmitry on 08.04.14.
  */
 public abstract class EntitiesListFragment extends AbstractApiFragment implements LoaderCallbacks<Cursor>,
-        RemoteIdCursorAdapter.OnItemCheckedListener,
-        RemoteIdCursorAdapter.OnItemClickListener
+        MultipleRemoteIdsCursorAdapter.OnItemCheckedListener,
+        MultipleRemoteIdsCursorAdapter.OnItemClickListener
 {
 
     public static final int LOADER_MAIN = 0;
 
     public static final String KEY_ACTION_MODE_ON = "hasAMode";
     public static final String KEY_CHECKED_GROUPS_COUNT = "checkedGroupsCount";
-    public static final String KEY_CHECKED_ENTITIES_LOCAL = "checkedLocal";
-    public static final String KEY_CHECKED_ENTITIES_REMOTE = "checkedRemote";
+    public static final String KEY_CHECKED_ENTITIES = "checked";
 
     protected ListView mEntitiesListView;
-    protected RemoteIdCursorAdapter mEntitiesAdapter;
+    protected MultipleRemoteIdsCursorAdapter mEntitiesAdapter;
     protected ActionMode mActionMode;
     protected Cursor mCursor;
 
@@ -87,9 +87,9 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
 
         mLoadEntities = (savedInstanceState == null);
         if (savedInstanceState != null) {
-            long[] checkedEntitiesLocalIds = savedInstanceState.getLongArray(KEY_CHECKED_ENTITIES_LOCAL);
-            long[] checkedEntitiesRemoteIds = savedInstanceState.getLongArray(KEY_CHECKED_ENTITIES_REMOTE);
-            mEntitiesAdapter.setCheckedItemIdsAsArray(checkedEntitiesLocalIds, checkedEntitiesRemoteIds, false);
+            JoinedEntityIds[] checkedEntities = (JoinedEntityIds[])savedInstanceState.getParcelableArray(KEY_CHECKED_ENTITIES);
+
+            mEntitiesAdapter.restoreCheckedItems(savedInstanceState.getBundle(KEY_CHECKED_ENTITIES), false);
             mIsInActionMode = savedInstanceState.getBoolean(KEY_ACTION_MODE_ON);
             mCheckedEntitiesCount = savedInstanceState.getInt(KEY_CHECKED_GROUPS_COUNT);
             if (mIsInActionMode) {
@@ -136,8 +136,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_ACTION_MODE_ON, mIsInActionMode);
         outState.putInt(KEY_CHECKED_GROUPS_COUNT, mCheckedEntitiesCount);
-        outState.putLongArray(KEY_CHECKED_ENTITIES_LOCAL, mEntitiesAdapter.getCheckedLocalIdsAsArray());
-        outState.putLongArray(KEY_CHECKED_ENTITIES_REMOTE, mEntitiesAdapter.getCheckedRemoteIdsAsArray());
+        outState.putBundle(KEY_CHECKED_ENTITIES, mEntitiesAdapter.getCheckedItems());
     }
 
     @Override
@@ -154,7 +153,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     }
 
     @Override
-    public void onItemChecked(long localId, long remoteId, int checkedCount, boolean checked) {
+    public void onItemChecked(JoinedEntityIds ids, int checkedCount, boolean checked) {
         mCheckedEntitiesCount = checkedCount;
         if (mCheckedEntitiesCount == 1) {
             if (checked) {
@@ -171,13 +170,13 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     }
 
     @Override
-    public abstract void onItemClick(View itemView, long localId, long remoteId);
+    public abstract void onItemClick(View itemView, JoinedEntityIds ids);
 
     public abstract int getActionModeMenuRes();
 
     public abstract boolean onActionModeItemClicked(ActionMode actionMode, MenuItem menuItem);
 
-    protected abstract RemoteIdCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener();
+    protected abstract MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener();
 
     protected abstract int getItemPopupMenuRes();
 
@@ -185,7 +184,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
 
     protected abstract int getListViewId();
 
-    protected abstract RemoteIdCursorAdapter getRemoteIdAdapter();
+    protected abstract MultipleRemoteIdsCursorAdapter getRemoteIdAdapter();
 
     protected abstract SimpleConfirmationDialog.OnConfirmListener getConfirmDelListener();
 
