@@ -1,4 +1,4 @@
-package com.despectra.android.journal.logic;
+package com.despectra.android.journal.logic.net;
 
 import org.apache.http.NameValuePair;
 import org.json.JSONObject;

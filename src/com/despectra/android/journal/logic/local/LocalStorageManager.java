@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Created by Dmitry on 01.04.14.
  */
-public class ProviderUpdater {
+public class LocalStorageManager {
 
     // insert new, update existing
     public static final int MODE_APPEND = 0;
@@ -27,7 +27,7 @@ public class ProviderUpdater {
     private ContentResolver mResolver;
 
     private String mProviderUri;
-    public ProviderUpdater(Context context, String providerUri) {
+    public LocalStorageManager(Context context, String providerUri) {
         mContext = context;
         mResolver = mContext.getContentResolver();
         mProviderUri = providerUri;

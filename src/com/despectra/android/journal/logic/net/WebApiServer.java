@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.http.AndroidHttpClient;
 import android.preference.PreferenceManager;
-import com.despectra.android.journal.logic.ApplicationServer;
 import com.despectra.android.journal.JournalApplication;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -33,7 +32,7 @@ import java.util.List;
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class WebApiServer implements ApplicationServer {
+public class WebApiServer implements com.despectra.android.journal.logic.ApplicationServer {
     public static final String AVATAR_FILENAME = "user_avatar";
 
     public static final int CONN_TIMEOUT_MS = 20000;
