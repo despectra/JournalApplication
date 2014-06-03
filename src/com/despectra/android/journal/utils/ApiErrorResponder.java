@@ -11,6 +11,23 @@ import org.json.JSONObject;
  * Created by Dmitry on 30.05.14.
  */
 public class ApiErrorResponder {
+
+    public static int getErrorCode(JSONObject corruptResponse) {
+        try {
+            return corruptResponse.getInt("error_code");
+        } catch (JSONException e) {
+            return -1;
+        }
+    }
+
+    public static String getErrorMessage(JSONObject corruptResponse) {
+        try {
+            return corruptResponse.getString("error_message");
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
     public static void respondToast(Context context, JSONObject corruptResponse) {
         String finalMessage = new ErrorExtractor().extractMessage(corruptResponse);
         Toast.makeText(context, finalMessage, Toast.LENGTH_SHORT).show();

@@ -7,4 +7,6 @@
 
     <include layout="@layout/entities_list"/>
 
+    <include layout="@layout/empty_list_notification"/>
+
 </LinearLayout>

@@ -2,7 +2,6 @@ package com.despectra.android.journal.logic.queries.common;
 
 import android.content.Context;
 import android.os.Handler;
-import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.net.ApplicationServer;
 import com.despectra.android.journal.logic.queries.*;
@@ -20,7 +19,7 @@ public class QueryExecutorImpl implements QueryExecutor, DelegatingInterface {
     public QueryExecutorImpl(Context context, ApplicationServer server, Handler responseHandler) {
         mContext = context;
         mServer = server;
-        mLocalStorageManager = new LocalStorageManager(context, Contract.STRING_URI);
+        mLocalStorageManager = new LocalStorageManager(context);
         mResponseHandler = responseHandler;
     }
 

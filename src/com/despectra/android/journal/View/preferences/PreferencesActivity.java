@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.preference.*;
 import android.widget.Toast;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.AbstractApiActionBarActivity;
 import com.despectra.android.journal.view.SimpleProgressDialog;
 import com.despectra.android.journal.R;
@@ -98,27 +99,18 @@ public class PreferencesActivity extends AbstractApiActionBarActivity implements
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (actionCode != -1) {
-            if (actionCode == APICodes.ACTION_GET_INFO) {
-                try {
-                    JSONObject data = (JSONObject) response;
-                    boolean ok = data.getBoolean("ok");
-                    if (ok) {
-                        mFragment.updateHost(mCheckedHost);
-                    }
-                    setCheckingState(false);
-                } catch (Exception ex) {
-                    Toast.makeText(this, String.format("Сервер %s недоступен", mCheckedHost), Toast.LENGTH_SHORT).show();
-                    setCheckingState(false);
-                }
-            }
-        } else {
-            Toast.makeText(this, String.format("Ошибка при обращении к серверу: %s", response), Toast.LENGTH_SHORT).show();
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        if (actionCode == APICodes.ACTION_GET_INFO) {
+            mFragment.updateHost(mCheckedHost);
             setCheckingState(false);
         }
     }
 
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        ApiErrorResponder.respondDialog(getSupportFragmentManager(), (JSONObject)response);
+        setCheckingState(false);
+    }
 
     public static class MainPreferencesFragment extends PreferenceFragment
             implements SharedPreferences.OnSharedPreferenceChangeListener {

@@ -17,8 +17,10 @@ import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.net.APICodes;
+import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.AbstractApiFragment;
 import com.despectra.android.journal.view.customviews.TitledCard;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 22.05.14.
@@ -124,9 +126,9 @@ public class WallFragment extends AbstractApiFragment implements LoaderManager.L
     private void updateWallState() {
         if (mWallCard != null) {
             if (mWallLoading) {
-                getHostActivity().showProgressBar();
+                showProgress();
             } else {
-                getHostActivity().hideProgressBar();
+                hideProgress();
             }
         }
     }
@@ -166,15 +168,17 @@ public class WallFragment extends AbstractApiFragment implements LoaderManager.L
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (actionCode != -1) {
-            switch (actionCode) {
-                case APICodes.ACTION_GET_EVENTS:
-                    setWallStateIdle();
-                    break;
-            }
-        } else {
-            setWallStateIdle();
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        switch (actionCode) {
+            case APICodes.ACTION_GET_EVENTS:
+                setWallStateIdle();
+                break;
         }
+    }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        setWallStateIdle();
+        ApiErrorResponder.respondDialog(getFragmentManager(), (JSONObject)response);
     }
 }

@@ -1,33 +1,69 @@
 package com.despectra.android.journal.view;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import com.despectra.android.journal.R;
 
 /**
  * Created by Dmitry on 03.06.14.
  */
-public class PagerContainerFragment extends Fragment {
+public abstract class PagerContainerFragment extends Fragment {
 
     private ViewPager mPager;
     private PagerTabStrip mTabStrip;
     private PagerAdapter mPagerAdapter;
 
-    private static class PagerAdapter extends FragmentStatePagerAdapter {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_pager_container, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        mPager = (ViewPager) getView().findViewById(R.id.fragment_main_page_single);
+        mPagerAdapter = new PagerAdapter(getChildFragmentManager());
+        mPager.post(new Runnable() {
+            @Override
+            public void run() {
+                mPager.setAdapter(mPagerAdapter);
+            }
+        });
+        mTabStrip = (PagerTabStrip) getView().findViewById(R.id.pager_tab_strip);
+        mTabStrip.setTabIndicatorColorResource(android.R.color.holo_blue_dark);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    public abstract Fragment getPagerItem(int position);
+    public abstract int getPagerItemsCount();
+    public abstract String getPagerItemTitle(int position);
+
+    private class PagerAdapter extends FragmentStatePagerAdapter {
+
         public PagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int i) {
-            return null;
+            return getPagerItem(i);
         }
 
         @Override
         public int getCount() {
-            return 0;
+            return getPagerItemsCount();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return getPagerItemTitle(position);
         }
     }
 }

@@ -9,6 +9,8 @@ import android.widget.ProgressBar;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.Utils;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 28.03.14.
@@ -90,4 +92,19 @@ public abstract class AbstractApiFragmentActivity extends FragmentActivity imple
     public String getClientName() {
         return getClass().getSimpleName();
     }
+
+    @Override
+    public void onResponse(int actionCode, int remainingActions, Object response) {
+        hideProgressBar();
+        JSONObject jsonResponse = (JSONObject) response;
+        if (Utils.isApiJsonSuccess(jsonResponse)) {
+            onResponseSuccess(actionCode, remainingActions, response);
+        } else {
+            onResponseError(actionCode, remainingActions, response);
+        }
+    }
+
+    protected abstract void onResponseSuccess(int actionCode, int remainingActions, Object response);
+
+    protected abstract void onResponseError(int actionCode, int remainingActions, Object response);
 }

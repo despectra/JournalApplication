@@ -105,7 +105,12 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+
+    }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
 
     }
 }

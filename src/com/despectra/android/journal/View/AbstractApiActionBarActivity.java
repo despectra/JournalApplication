@@ -10,11 +10,13 @@ import android.widget.ProgressBar;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.Utils;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 28.03.14.
  */
-public abstract class AbstractApiActionBarActivity extends ActionBarActivity implements ApiServiceHelper.ApiClient {
+public abstract class AbstractApiActionBarActivity extends ActionBarActivity implements ApiServiceHelper.ApiClient, IActivityProgressBar {
     protected JournalApplication mApplicationContext;
     protected ApiServiceHelper.Controller mServiceHelperController;
     protected ProgressBar mProgressBar;
@@ -40,13 +42,15 @@ public abstract class AbstractApiActionBarActivity extends ActionBarActivity imp
         return rootView;
     }
 
-    public void showProgressBar() {
+    @Override
+    public void showProgress() {
         //mProgressBar.setVisibility(View.VISIBLE);
         getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
         getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
     }
 
-    public void hideProgressBar() {
+    @Override
+    public void hideProgress() {
         //mProgressBar.setVisibility(View.INVISIBLE);
         getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
         getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_OFF);
@@ -91,4 +95,19 @@ public abstract class AbstractApiActionBarActivity extends ActionBarActivity imp
     public String getClientName() {
         return getClass().getSimpleName();
     }
+
+    @Override
+    public void onResponse(int actionCode, int remainingActions, Object response) {
+        hideProgress();
+        JSONObject jsonResponse = (JSONObject) response;
+        if (Utils.isApiJsonSuccess(jsonResponse)) {
+            onResponseSuccess(actionCode, remainingActions, response);
+        } else {
+            onResponseError(actionCode, remainingActions, response);
+        }
+    }
+
+    protected abstract void onResponseSuccess(int actionCode, int remainingActions, Object response);
+
+    protected abstract void onResponseError(int actionCode, int remainingActions, Object response);
 }

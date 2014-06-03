@@ -439,6 +439,16 @@ public class ApiServiceHelper {
         }
 
         @Override
+        public void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addKeyValue("user_id", userIds.getLocalId())
+                    .addEntityIds("teacher_id", teacherIds)
+                    .create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_TEACHER, mClientName, data), priority);
+        }
+
+        @Override
         public void addMockMarks(long groupId) {
             if (mBound) {
                 try {
@@ -533,6 +543,7 @@ public class ApiServiceHelper {
         public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority);
         public void getTeachers(String token, int offset, int count, int priority);
         public void deleteTeachers(String token, EntityIds[] ids, int priority);
+        public void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority);
 
 
         // TEMPORARY

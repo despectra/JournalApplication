@@ -41,6 +41,13 @@
             </intent-filter>-->
         </activity>
 
+        <activity
+            android:name=".view.users.TeacherActivity"
+            android:parentActivityName=".view.MainActivity"
+            android:label="Инфо об учителе">
+
+        </activity>
+
         <service android:name=".logic.services.ApiService">
         </service>
 

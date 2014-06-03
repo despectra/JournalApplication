@@ -31,7 +31,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
             if (mToken.isEmpty()) {
                 return;
             }
-            getHostActivity().showProgressBar();
+            showProgress();
             performUserAddition(firstName, middleName, secondName, login);
         }
 
@@ -76,7 +76,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
                     mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditSimpleUserDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
-                    getHostActivity().showProgressBar();
+                    showProgress();
                     performUsersDeletion(new JoinedEntityIds[]{ids});
                     break;
                 default:
@@ -240,15 +240,15 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
         if (runningCount > 0) {
-            getHostActivity().showProgressBar();
+            showProgress();
         } else {
-            getHostActivity().hideProgressBar();
+            hideProgress();
         }
     }
 
     @Override
     protected void updateEntitiesList() {
-        getHostActivity().showProgressBar();
+        showProgress();
         performUpdatingUsersList();
     }
 

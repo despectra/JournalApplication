@@ -1,5 +1,6 @@
 package com.despectra.android.journal.view.users;
 
+import android.content.Intent;
 import android.net.Uri;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.ApiServiceHelper;
@@ -98,6 +99,9 @@ public class TeachersFragment extends AbstractUsersFragment {
     @Override
     protected void performOnUserClick(JoinedEntityIds ids) {
         //TODO
+        Intent intent = new Intent(getActivity(), TeacherActivity.class);
+        intent.putExtra("userId", ids.toBundle());
+        startActivity(intent);
     }
 
     @Override
@@ -122,18 +126,6 @@ public class TeachersFragment extends AbstractUsersFragment {
 
     @Override
     protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
-        /*return new RemoteIdCursorAdapter(getActivity(),
-                R.layout.item_student_1,
-                mCursor,
-                new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
-                        Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN},
-                new int[]{R.id.name_view, R.id.surname_view, R.id.middlename_view, R.id.login_view},
-                "_id",
-                Contract.Teachers.Remote.REMOTE_ID,
-                Contract.Users.ENTITY_STATUS,
-                R.id.checkbox1,
-                R.id.dropdown_btn1,
-                0);*/
         EntityIdsColumns[] idsColumns = new EntityIdsColumns[]{
                 new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.Remote.REMOTE_ID),
                 new EntityIdsColumns(Contract.Teachers.TABLE, "_id", Contract.Teachers.Remote.REMOTE_ID)
@@ -158,25 +150,30 @@ public class TeachersFragment extends AbstractUsersFragment {
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        JSONObject jsonResponse = (JSONObject) response;
-        if (Utils.isApiJsonSuccess(jsonResponse)) {
-            switch (actionCode) {
-                case APICodes.ACTION_GET_TEACHERS:
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    getHostActivity().hideProgressBar();
-                    break;
-                case APICodes.ACTION_ADD_TEACHER:
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    getHostActivity().hideProgressBar();
-                    break;
-                case APICodes.ACTION_DELETE_TEACHERS:
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    getHostActivity().hideProgressBar();
-                    break;
-            }
-        } else {
-            ApiErrorResponder.respondDialog(getChildFragmentManager(), (JSONObject) response);
+    protected String getEmptyListMessage() {
+        return "Учителей нет. Добавьте их с помощью кнопки на панели действий";
+    }
+
+    @Override
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        switch (actionCode) {
+            case APICodes.ACTION_GET_TEACHERS:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                hideProgress();
+                break;
+            case APICodes.ACTION_ADD_TEACHER:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                hideProgress();
+                break;
+            case APICodes.ACTION_DELETE_TEACHERS:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                hideProgress();
+                break;
         }
+    }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        ApiErrorResponder.respondDialog(getChildFragmentManager(), (JSONObject) response);
     }
 }

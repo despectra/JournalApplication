@@ -6,12 +6,14 @@ import android.provider.BaseColumns;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
 import com.despectra.android.journal.view.RemoteIdCursorAdapter;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 13.04.14.
@@ -184,22 +186,30 @@ public class StudentsFragment extends AbstractUsersFragment {
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (actionCode != -1) {
-            switch (actionCode) {
-                case APICodes.ACTION_GET_STUDENTS_BY_GROUP:
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    getHostActivity().hideProgressBar();
-                    break;
-                case APICodes.ACTION_ADD_STUDENT_IN_GROUP:
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    getHostActivity().hideProgressBar();
-                    break;
-                case APICodes.ACTION_DELETE_STUDENTS:
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    getHostActivity().hideProgressBar();
-                    break;
-            }
+    protected String getEmptyListMessage() {
+        return "Учеников в этом классе нет. Добавьте с помощью кнопки на панели действий";
+    }
+
+    @Override
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        switch (actionCode) {
+            case APICodes.ACTION_GET_STUDENTS_BY_GROUP:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                hideProgress();
+                break;
+            case APICodes.ACTION_ADD_STUDENT_IN_GROUP:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                hideProgress();
+                break;
+            case APICodes.ACTION_DELETE_STUDENTS:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                hideProgress();
+                break;
         }
+    }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        ApiErrorResponder.respondDialog(getFragmentManager(), (JSONObject) response);
     }
 }

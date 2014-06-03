@@ -4,11 +4,13 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.Utils;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 07.04.14.
  */
-public abstract class AbstractApiFragment extends Fragment implements ApiServiceHelper.ApiClient {
+public abstract class AbstractApiFragment extends Fragment implements ApiServiceHelper.ApiClient, IActivityProgressBar {
     protected JournalApplication mApplicationContext;
     protected ApiServiceHelper.Controller mServiceHelperController;
 
@@ -58,8 +60,18 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
         mServiceHelperController = controller;
     }
 
-    public AbstractApiActionBarActivity getHostActivity() {
-        return (AbstractApiActionBarActivity) getActivity();
+    @Override
+    public void showProgress() {
+        if (getActivity() instanceof IActivityProgressBar) {
+            ((IActivityProgressBar)getActivity()).showProgress();
+        }
+    }
+
+    @Override
+    public void hideProgress() {
+        if (getActivity() instanceof IActivityProgressBar) {
+            ((IActivityProgressBar)getActivity()).hideProgress();
+        }
     }
 
     @Override
@@ -67,4 +79,19 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
         return getClass().getSimpleName();
     }
 
+
+    @Override
+    public void onResponse(int actionCode, int remainingActions, Object response) {
+        hideProgress();
+        JSONObject jsonResponse = (JSONObject) response;
+        if (Utils.isApiJsonSuccess(jsonResponse)) {
+            onResponseSuccess(actionCode, remainingActions, response);
+        } else {
+            onResponseError(actionCode, remainingActions, response);
+        }
+    }
+
+    protected abstract void onResponseSuccess(int actionCode, int remainingActions, Object response);
+
+    protected abstract void onResponseError(int actionCode, int remainingActions, Object response);
 }

@@ -12,6 +12,8 @@ import android.widget.*;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.utils.ApiErrorResponder;
+import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.*;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
@@ -35,13 +37,8 @@ public class GroupsFragment extends EntitiesListFragment {
     private SimpleConfirmationDialog.OnConfirmListener mConfirmDeletingListener = new SimpleConfirmationDialog.OnConfirmListener() {
         @Override
         public void onConfirm() {
-            int runningCount = mServiceHelperController.getRunningActionsCount();
-            if (runningCount > 0) {
-                mStatusBar.setStatusText(String.format("Удаление классов. Выполняется: %d", runningCount));
-            } else {
-                mStatusBar.showStatus("Удаление классов");
-                mStatusBar.showSpinner();
-            }
+            showProgress();
+
             JoinedEntityIds[] groupsAllIds = mEntitiesAdapter.getCheckedIds();
             EntityIds[] groupsIds = new EntityIds[groupsAllIds.length];
             for (int i = 0; i < groupsAllIds.length; i++) {
@@ -58,13 +55,7 @@ public class GroupsFragment extends EntitiesListFragment {
         @Override
         public void onAddItem(String name) {
             if (!mToken.isEmpty()) {
-                int runningCount = mServiceHelperController.getRunningActionsCount();
-                if (runningCount > 0) {
-                    mStatusBar.setStatusText(String.format("Добавление класса %s. Выполняется: %d", name, runningCount));
-                } else {
-                    mStatusBar.showStatus("Добавление класса " + name);
-                    mStatusBar.showSpinner();
-                }
+                showProgress();
                 mServiceHelperController.addGroup(mToken, name, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_HIGH);
             }
         }
@@ -72,13 +63,7 @@ public class GroupsFragment extends EntitiesListFragment {
         @Override
         public void onEditItem(String name, EntityIds itemIds) {
             if (!mToken.isEmpty()) {
-                int runningCount = mServiceHelperController.getRunningActionsCount();
-                if (runningCount > 0) {
-                    mStatusBar.setStatusText(String.format("Обновление класса %s. Выполняется: %d", name, runningCount));
-                } else {
-                    mStatusBar.showStatus("Обновление класса " + name);
-                    mStatusBar.showSpinner();
-                }
+                showProgress();
                 mServiceHelperController.updateGroup(mToken, itemIds, name, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_HIGH);
             }
         }
@@ -101,13 +86,7 @@ public class GroupsFragment extends EntitiesListFragment {
                     mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
-                    if (runningCount > 0) {
-                        status = String.format("Удаление классов. Выполняется: %d", runningCount);
-                    } else {
-                        status = "Удаление классов";
-                    }
-                    mStatusBar.showStatus(status);
-                    mStatusBar.showSpinner();
+                    showProgress();
                     mServiceHelperController.deleteGroups(mToken, new EntityIds[]{ids.getIdsByTable(Contract.Groups.TABLE)}, ApiServiceHelper.PRIORITY_HIGH);
                     break;
                 default:
@@ -142,6 +121,11 @@ public class GroupsFragment extends EntitiesListFragment {
                 null,
                 orderBy
         );
+    }
+
+    @Override
+    protected String getEmptyListMessage() {
+        return "Групп нет. Добавьте их с помощью кнопки на панели действий";
     }
 
     @Override
@@ -185,7 +169,7 @@ public class GroupsFragment extends EntitiesListFragment {
 
     @Override
     protected int getFragmentLayoutRes() {
-        return R.layout.fragment_groups;
+        return R.layout.fragment_simple_entities_list;
     }
 
     @Override
@@ -243,7 +227,6 @@ public class GroupsFragment extends EntitiesListFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        mStatusBar = (StatusBar) view.findViewById(R.id.groups_status_bar);
         return view;
     }
 
@@ -257,71 +240,27 @@ public class GroupsFragment extends EntitiesListFragment {
 
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
-        if (runningCount == 1) {
-            switch (mServiceHelperController.getLastRunningActionCode()) {
-                case APICodes.ACTION_ADD_GROUP:
-                    mStatusBar.showStatus("Добавление класса");
-                    mStatusBar.showSpinner();
-                    break;
-                case APICodes.ACTION_GET_GROUPS:
-                    mStatusBar.showStatus("Обновление списка классов");
-                    mStatusBar.showSpinner();
-                    break;
-                case APICodes.ACTION_DELETE_GROUPS:
-                    mStatusBar.showStatus("Удаление классов");
-                    mStatusBar.showSpinner();
-            }
-        } else if(runningCount > 1) {
-            mStatusBar.showStatus("Выполняемые запросы: " + runningCount);
-            mStatusBar.showSpinner();
-        } else {
-            mStatusBar.hideStatus();
-            mStatusBar.hideSpinner();
-        }
     }
 
     @Override
     protected void updateEntitiesList() {
-        mStatusBar.showSpinner();
-        mStatusBar.showStatus("Обновление списка классов");
+        showProgress();
         mServiceHelperController.getAllGroups(mToken, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (mStatusBar == null) {
-            return;
-        }
-        if (actionCode != -1) {
-            if (remainingActions > 0) {
-                mStatusBar.setStatusText("Выполняемые запросы: " + remainingActions);
-                return;
-            }
-            switch (actionCode) {
-                case APICodes.ACTION_GET_GROUPS:
-                    mStatusBar.hideSpinner();
-                    mStatusBar.hideStatus();
-                    break;
-                case APICodes.ACTION_ADD_GROUP:
-                    mStatusBar.hideSpinner();
-                    mStatusBar.showStatusThenHide("Класс добавлен", 1500);
-                    getLoaderManager().restartLoader(LOADER_MAIN, null, this);
-                    break;
-                case APICodes.ACTION_DELETE_GROUPS:
-                    mStatusBar.hideSpinner();
-                    mStatusBar.showStatusThenHide("Удалено", 1500);
-                    break;
-                case APICodes.ACTION_UPDATE_GROUP:
-                    mStatusBar.hideSpinner();
-                    mStatusBar.showStatusThenHide("Инфрмация о классах обновлена", 1500);
-            }
-        } else {
-            mStatusBar.hideSpinner();
-            JSONObject jsonResponse = (JSONObject) response;
-            try {
-                mStatusBar.setStatusText(jsonResponse.getString("error_message"));
-            } catch (JSONException e) {
-            }
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        switch (actionCode) {
+            case APICodes.ACTION_ADD_GROUP:
+                getLoaderManager().restartLoader(LOADER_MAIN, null, this);
+                break;
         }
     }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        ApiErrorResponder.respondDialog(getFragmentManager(), (JSONObject)response);
+    }
+
+
 }

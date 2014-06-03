@@ -6,10 +6,15 @@ import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
 import android.view.*;
 import android.widget.ListView;
+import android.widget.TextView;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.R;
 import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.utils.Utils;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 08.04.14.
@@ -26,6 +31,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     public static final String KEY_CHECKED_ENTITIES = "checked";
 
     protected ListView mEntitiesListView;
+    protected TextView mEmptyListNotificator;
     protected MultipleRemoteIdsCursorAdapter mEntitiesAdapter;
     protected ActionMode mActionMode;
     protected Cursor mCursor;
@@ -65,7 +71,9 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(getFragmentLayoutRes(), container, false);
-        mEntitiesListView = (ListView) v.findViewById(getListViewId());
+        mEntitiesListView = (ListView) v.findViewById(R.id.entities_list_view);
+        mEmptyListNotificator = (TextView) v.findViewById(R.id.listview_empty_message);
+        mEmptyListNotificator.setText(getEmptyListMessage());
         setHasOptionsMenu(true);
         return v;
     }
@@ -73,7 +81,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getHostActivity().getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        ((ActionBarActivity)getActivity()).getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         mToken = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
         if (mToken.isEmpty()) {
             throw new IllegalStateException("Current session token not found");
@@ -87,7 +95,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
 
         mLoadEntities = (savedInstanceState == null);
         if (savedInstanceState != null) {
-            JoinedEntityIds[] checkedEntities = (JoinedEntityIds[])savedInstanceState.getParcelableArray(KEY_CHECKED_ENTITIES);
+            //JoinedEntityIds[] checkedEntities = (JoinedEntityIds[])savedInstanceState.getParcelableArray(KEY_CHECKED_ENTITIES);
 
             mEntitiesAdapter.restoreCheckedItems(savedInstanceState.getBundle(KEY_CHECKED_ENTITIES), false);
             mIsInActionMode = savedInstanceState.getBoolean(KEY_ACTION_MODE_ON);
@@ -124,12 +132,12 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
         }
     }
 
-
     @Override
     public void onPause() {
         super.onPause();
         mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -168,6 +176,8 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
         }
 
     }
+
+    protected abstract String getEmptyListMessage();
 
     @Override
     public abstract void onItemClick(View itemView, JoinedEntityIds ids);

@@ -9,7 +9,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.ViewDragHelper;
 import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
@@ -17,9 +16,9 @@ import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.groups.GroupsFragment;
-import com.despectra.android.journal.view.journal.JournalFragment;
-import com.despectra.android.journal.view.main_page.MainPageFragment;
+import com.despectra.android.journal.view.main_page.MainPageFragmentFactory;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
 import com.despectra.android.journal.view.subjects.SubjectsFragment;
 import com.despectra.android.journal.view.users.StaffFragment;
@@ -27,7 +26,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
-import java.lang.reflect.Field;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -97,14 +95,14 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
         if (savedInstanceState != null) {
             restoreDrawerState(savedInstanceState.getInt(KEY_SELECTED_DRAWER_ITEM));
             String savedFragmentTag = savedInstanceState.getString(KEY_CUR_FRAGMENT);
-            mCurrentFragment = restoreFragment(savedFragmentTag);
+            //mCurrentFragment = restoreFragment(savedFragmentTag);
             mCurrentFragmentTag = savedFragmentTag;
             mActionBarTitle = savedInstanceState.getString(KEY_AB_TITLE);
             mStatus = savedInstanceState.getInt(KEY_STATUS);
             mLoadWall = false;
         } else {
             restoreDrawerState(ACTION_EVENTS);
-            mCurrentFragment = new MainPageFragment();
+            mCurrentFragment = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
             mCurrentFragmentTag = FRAGMENT_EVENTS;
             mActionBarTitle = "Главная";
             mStatus = STATUS_IDLE;
@@ -186,10 +184,10 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
 
     private Fragment restoreFragment(String savedFragmentTag) {
         FragmentManager fm = getSupportFragmentManager();
-        Fragment f = (Fragment) fm.findFragmentByTag(savedFragmentTag);
+        Fragment f = fm.findFragmentByTag(savedFragmentTag);
         if (f == null) {
             if (savedFragmentTag.equals(FRAGMENT_EVENTS)) {
-                f = new MainPageFragment();
+                f = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
             } else if(savedFragmentTag.equals(FRAGMENT_GROUPS)) {
                 f = new GroupsFragment();
             }
@@ -246,7 +244,7 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
                 mActionBarTitle = "Персонал";
                 break;
             case ACTION_EVENTS:
-                mCurrentFragment = new MainPageFragment();
+                mCurrentFragment = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
                 mCurrentFragmentTag = FRAGMENT_EVENTS;
                 mActionBarTitle = "Главная";
                 break;
@@ -288,21 +286,6 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
 
     private void initDrawer() {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-        //MEGA HACK, GOOGLE SUCK A DICK!!!
-        /*try {
-            Field mDragger = mDrawerLayout.getClass().getDeclaredField("mLeftDragger");
-            mDragger.setAccessible(true);
-            ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(mDrawerLayout);
-            Field mEdgeSize = draggerObj.getClass().getDeclaredField("mEdgeSize");
-            mEdgeSize.setAccessible(true);
-            int edge = mEdgeSize.getInt(draggerObj);
-            mEdgeSize.setInt(draggerObj, edge * 3);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }*/
-        //
         mDrawer = (ListView)findViewById(R.id.nav_drawer);
         mDrawerUserItemLayout = (RelativeLayout) LayoutInflater.from(this).inflate(R.layout.user_drawer_item, null);
         mDrawer.addHeaderView(mDrawerUserItemLayout);
@@ -361,26 +344,13 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
         finish();
     }
 
-    private void respondError(String errorMsg) {
-        setStatus(STATUS_IDLE);
-        Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+    @Override
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        completeLogout();
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (actionCode != -1) {
-            try {
-                JSONObject jsonData = (JSONObject) response;
-                int success = jsonData.getInt("success");
-                if ((actionCode == APICodes.ACTION_LOGOUT && success == 1) ||
-                        (actionCode == APICodes.ACTION_CHECK_TOKEN && success == 0)) {
-                    completeLogout();
-                } else if(actionCode == APICodes.ACTION_LOGOUT) {
-                    respondError("Ошибка при выходе. Попробуйте еще раз");
-                }
-            } catch (JSONException e) {
-                respondError("Ошибка: " + e.getMessage());
-            }
-        }
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        ApiErrorResponder.respondDialog(getSupportFragmentManager(), (JSONObject)response);
     }
 }

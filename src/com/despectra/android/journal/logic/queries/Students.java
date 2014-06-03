@@ -8,6 +8,8 @@ import android.util.Pair;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
+import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import com.despectra.android.journal.logic.services.ApiService;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONArray;
@@ -19,13 +21,17 @@ import java.util.Map;
 /**
 * Created by Dmitry on 02.06.14.
 */
-public class Students {
+public class Students extends QueryExecDelegate {
+
+    public Students(DelegatingInterface holderInterface) {
+        super(holderInterface);
+    }
 
     public JSONObject getByGroup(ApiServiceHelper.ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         String localGroupId = request.getString("LOCAL_group_id");
         request.remove("LOCAL_group_id");
-        JSONObject response = mServer.executeGetApiQuery("students.getByGroup", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery("students.getByGroup", request);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalStudents(response, localGroupId);
         }
@@ -42,9 +48,9 @@ public class Students {
         long localSGLinkId = preAddStudentGroupLink(localStudentId, localGroupId);
         //notify helper about caching completed
         Pair<String, String> progress = new Pair<String, String>(action.clientTag, "cached");
-        mResponseHandler.sendMessage(Message.obtain(mResponseHandler, ApiService.MSG_PROGRESS, progress));
+        getResponseHandler().sendMessage(Message.obtain(getResponseHandler(), ApiService.MSG_PROGRESS, progress));
 
-        JSONObject response = mServer.executeGetApiQuery("students.addStudentInGroup", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery("students.addStudentInGroup", request);
         if (Utils.isApiJsonSuccess(response)) {
             persistStudent(localUserId, localStudentId, localSGLinkId, response);
         }
@@ -54,9 +60,10 @@ public class Students {
     public JSONObject delete(ApiServiceHelper.ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         preDeleteStudents(request);
-        mResponseHandler.sendMessage(Message.obtain(mResponseHandler, ApiService.MSG_PROGRESS, new Pair<String, String>(action.clientTag, "cached")));
+        getResponseHandler().sendMessage(
+                Message.obtain(getResponseHandler(), ApiService.MSG_PROGRESS, new Pair<String, String>(action.clientTag, "cached")));
 
-        JSONObject response = mServer.executeGetApiQuery("students.deleteStudents", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery("students.deleteStudents", request);
 
         if (Utils.isApiJsonSuccess(response)) {
             persistStudentsDeletion();
@@ -65,9 +72,9 @@ public class Students {
     }
 
     private void persistStudentsDeletion() {
-        mLocalStorageManager.deleteMarkedEntities(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER);
-        mLocalStorageManager.deleteMarkedEntities(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER);
-        mLocalStorageManager.deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
+        getLocalStorageManager().deleteMarkedEntities(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER);
+        getLocalStorageManager().deleteMarkedEntities(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER);
+        getLocalStorageManager().deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
     }
 
     private void preDeleteStudents(JSONObject request) throws JSONException {
@@ -75,16 +82,16 @@ public class Students {
         request.remove("LOCAL_students");
         for (int i = 0; i < localStudents.length(); i++) {
             String localStudentId = localStudents.getString(i);
-            Cursor localUser = mContext.getContentResolver().query(Contract.Users.URI_STUDENTS,
+            Cursor localUser = getContext().getContentResolver().query(Contract.Users.URI_STUDENTS,
                     new String[]{Contract.Users._ID},
                     Contract.Students._ID + " = ?",
                     new String[]{ localStudentId },
                     null);
             localUser.moveToFirst();
             String localUserId = localUser.getString(0);
-            mLocalStorageManager.markRowAsDeleting(Contract.Users.HOLDER, localUserId);
-            mLocalStorageManager.markRowAsDeleting(Contract.Students.HOLDER, localStudentId);
-            Cursor localSGLink = mContext.getContentResolver().query(
+            getLocalStorageManager().markRowAsDeleting(Contract.Users.HOLDER, localUserId);
+            getLocalStorageManager().markRowAsDeleting(Contract.Students.HOLDER, localStudentId);
+            Cursor localSGLink = getContext().getContentResolver().query(
                     Contract.StudentsGroups.URI,
                     new String[]{Contract.StudentsGroups._ID},
                     Contract.StudentsGroups.FIELD_STUDENT_ID + " = ?",
@@ -92,7 +99,7 @@ public class Students {
                     null);
             localSGLink.moveToFirst();
             String localSGLinkId = localSGLink.getString(0);
-            mLocalStorageManager.markRowAsDeleting(Contract.StudentsGroups.HOLDER, localSGLinkId);
+            getLocalStorageManager().markRowAsDeleting(Contract.StudentsGroups.HOLDER, localSGLinkId);
         }
     }
 
@@ -100,11 +107,11 @@ public class Students {
         long remoteUserId = response.getLong("user_id");
         long remoteStudentId = response.getLong("student_id");
         long remoteSGLinkId = response.getLong("student_group_link_id");
-        mLocalStorageManager.persistTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER,
+        getLocalStorageManager().persistTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER,
                 localUserId, remoteUserId);
-        mLocalStorageManager.persistTempRow(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER,
+        getLocalStorageManager().persistTempRow(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER,
                 localStudentId, remoteStudentId);
-        mLocalStorageManager.persistTempRow(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER,
+        getLocalStorageManager().persistTempRow(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER,
                 localSGLinkId, remoteSGLinkId);
     }
 
@@ -112,14 +119,14 @@ public class Students {
         ContentValues tempSGLink = new ContentValues();
         tempSGLink.put(Contract.StudentsGroups.FIELD_STUDENT_ID, localStudentId);
         tempSGLink.put(Contract.StudentsGroups.FIELD_GROUP_ID, localGroupId);
-        return mLocalStorageManager.insertTempRow(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER,
+        return getLocalStorageManager().insertTempRow(Contract.StudentsGroups.HOLDER, Contract.StudentsGroups.Remote.HOLDER,
                 tempSGLink);
     }
 
     private long preAddStudent(long localUserId) {
         ContentValues tempStudent = new ContentValues();
         tempStudent.put(Contract.Students.FIELD_USER_ID, localUserId);
-        return mLocalStorageManager.insertTempRow(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER, tempStudent);
+        return getLocalStorageManager().insertTempRow(Contract.Students.HOLDER, Contract.Students.Remote.HOLDER, tempStudent);
     }
 
     private long preAddUser(JSONObject request) throws JSONException {
@@ -129,11 +136,11 @@ public class Students {
         tempUser.put(Contract.Users.FIELD_MIDDLENAME, request.getString("middlename"));
         tempUser.put(Contract.Users.FIELD_SURNAME, request.getString("surname"));
         tempUser.put(Contract.Users.FIELD_LEVEL, 2);
-        return mLocalStorageManager.insertTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER, tempUser);
+        return getLocalStorageManager().insertTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER, tempUser);
     }
 
     private void updateLocalStudents(JSONObject response, String localGroupId) throws JSONException {
-        Cursor localStudents = mLocalStorageManager.getResolver().query(
+        Cursor localStudents = getLocalStorageManager().getResolver().query(
                 Uri.parse(Contract.STRING_URI + "/groups_remote/" + localGroupId + "/students_remote"),
                 new String[]{Contract.StudentsGroups.Remote.REMOTE_ID, Contract.StudentsGroups.Remote._ID,
                         Contract.Students.Remote.REMOTE_ID, Contract.Students.Remote._ID,
@@ -148,7 +155,7 @@ public class Students {
             JSONObject student = remoteStudents.getJSONObject(i);
             student.put("level", 2);
         }
-        Map<Long, Long> insertedUsers = mLocalStorageManager.updateEntityWithJSONArray(
+        Map<Long, Long> insertedUsers = getLocalStorageManager().updateEntityWithJSONArray(
                 LocalStorageManager.MODE_REPLACE,
                 localStudents,
                 Contract.Users.HOLDER,
@@ -163,7 +170,7 @@ public class Students {
             JSONObject student = remoteStudents.getJSONObject(i);
             student.put("user_id", insertedUsers.get(student.getLong("user_id")));
         }
-        Map<Long, Long> insertedStudents = mLocalStorageManager.updateEntityWithJSONArray(
+        Map<Long, Long> insertedStudents = getLocalStorageManager().updateEntityWithJSONArray(
                 LocalStorageManager.MODE_REPLACE,
                 localStudents,
                 Contract.Students.HOLDER,
@@ -178,7 +185,7 @@ public class Students {
             student.put("student_id", insertedStudents.get(student.getLong("student_id")));
             student.put("group_id", localGroupId);
         }
-        mLocalStorageManager.updateEntityWithJSONArray(
+        getLocalStorageManager().updateEntityWithJSONArray(
                 LocalStorageManager.MODE_REPLACE,
                 localStudents,
                 Contract.StudentsGroups.HOLDER,

@@ -14,8 +14,11 @@ import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.utils.ApiErrorResponder;
+import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.*;
 import com.despectra.android.journal.view.AddEditSimpleItemDialog;
+import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 18.05.14.
@@ -29,7 +32,7 @@ public class SubjectsFragment extends EntitiesListFragment {
     private SimpleConfirmationDialog.OnConfirmListener mConfirmDeletingListener = new SimpleConfirmationDialog.OnConfirmListener() {
         @Override
         public void onConfirm() {
-            getHostActivity().showProgressBar();
+            showProgress();
 
             mServiceHelperController.deleteSubjects(mToken,
                     mEntitiesAdapter.getCheckedIdsOfTable(Contract.Subjects.TABLE),
@@ -44,7 +47,7 @@ public class SubjectsFragment extends EntitiesListFragment {
         @Override
         public void onAddItem(String name) {
             if (!mToken.isEmpty()) {
-                getHostActivity().showProgressBar();
+                showProgress();
                 mServiceHelperController.addSubject(mToken, name, ApiServiceHelper.PRIORITY_HIGH);
             }
         }
@@ -52,7 +55,7 @@ public class SubjectsFragment extends EntitiesListFragment {
         @Override
         public void onEditItem(String name, EntityIds ids) {
             if (!mToken.isEmpty()) {
-                getHostActivity().showProgressBar();
+                showProgress();
                 mServiceHelperController.updateSubject(mToken, ids, name, ApiServiceHelper.PRIORITY_HIGH);
             }
         }
@@ -75,7 +78,7 @@ public class SubjectsFragment extends EntitiesListFragment {
                     mAddEditDialog.showInMode(AddEditDialog.MODE_EDIT, getFragmentManager(), AddEditSimpleItemDialog.FRAGMENT_TAG);
                     break;
                 case R.id.action_delete:
-                    getHostActivity().showProgressBar();
+                    showProgress();
                     mServiceHelperController.deleteSubjects(mToken,
                             new EntityIds[]{ids.getIdsByTable(Contract.Subjects.TABLE)},
                             ApiServiceHelper.PRIORITY_HIGH);
@@ -122,6 +125,13 @@ public class SubjectsFragment extends EntitiesListFragment {
     }
 
     @Override
+    protected String getEmptyListMessage() {
+        return "Предметов нет. Добавьте их с помощью кнопки на панели действий";
+    }
+
+
+
+    @Override
     public void onItemClick(View itemView, JoinedEntityIds ids) {
         //TODO view subject
     }
@@ -157,7 +167,7 @@ public class SubjectsFragment extends EntitiesListFragment {
 
     @Override
     protected int getFragmentLayoutRes() {
-        return R.layout.fragment_subjects;
+        return R.layout.fragment_simple_entities_list;
     }
 
     @Override
@@ -215,25 +225,25 @@ public class SubjectsFragment extends EntitiesListFragment {
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
         if (runningCount > 0) {
-            getHostActivity().showProgressBar();
+            showProgress();
         } else {
-            getHostActivity().hideProgressBar();
+            hideProgress();
         }
     }
 
     @Override
     protected void updateEntitiesList() {
-        getHostActivity().showProgressBar();
+        showProgress();
         mServiceHelperController.getAllSubjects(mToken, ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        getHostActivity().hideProgressBar();
-        if (actionCode != -1) {
-
-        } else {
-
-        }
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
     }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        ApiErrorResponder.respondDialog(getFragmentManager(), (JSONObject)response);
+    }
+
 }

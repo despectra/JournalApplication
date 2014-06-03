@@ -8,7 +8,6 @@ import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.view.*;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.view.RemoteIdCursorAdapter;
 
 /**
  * Created by Dmitry on 07.04.14.
@@ -21,7 +20,7 @@ public class StaffFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_staff, container, false);
+        return inflater.inflate(R.layout.fragment_pager_container, container, false);
     }
 
     @Override

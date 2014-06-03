@@ -24,4 +24,5 @@ public class APICodes {
     public static final int ACTION_ADD_TEACHER = 17;
     public static final int ACTION_GET_TEACHERS = 18;
     public static final int ACTION_DELETE_TEACHERS = 19;
+    public static final int ACTION_GET_TEACHER = 20;
 }

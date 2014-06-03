@@ -8,9 +8,9 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Pair;
 import com.despectra.android.journal.JournalApplication;
-import com.despectra.android.journal.logic.DataProcessor;
-import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.logic.local.ProviderUpdater;
+import com.despectra.android.journal.logic.queries.common.QueryExecutor;
+import com.despectra.android.journal.logic.queries.common.QueryExecutorImpl;
+import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
@@ -46,10 +46,10 @@ public class ApiService extends Service {
     public static final int MSG_PROGRESS = 1;
 
     private static WebApiServer mServer;
-    private DataProcessor mDataProcessor;
+    private QueryExecutor mQueryExecutor;
     private ApiServiceBinder mBinder;
     private ApiServiceHelper mServiceHelper;
-    private ProviderUpdater mUpdater;
+    private LocalStorageManager mUpdater;
     private Handler mResponseHandler;
 
     public ApiService() {
@@ -78,8 +78,8 @@ public class ApiService extends Service {
                 }
             }
         };
-        mUpdater = new ProviderUpdater(getApplicationContext(), Contract.STRING_URI);
-        mDataProcessor = new DataProcessor(this, mServer, mResponseHandler);
+        mUpdater = new LocalStorageManager(getApplicationContext());
+        mQueryExecutor = new QueryExecutorImpl(this, mServer, mResponseHandler);
         createActionsImplementations();
     }
 
@@ -118,91 +118,97 @@ public class ApiService extends Service {
         mActionsImpls.put(APICodes.ACTION_GET_EVENTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return  mDataProcessor.forEvents().get(action);
+                return  mQueryExecutor.forEvents().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forGroups().add(action);
+                return mQueryExecutor.forGroups().add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_GROUPS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forGroups().get(action);
+                return mQueryExecutor.forGroups().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_GROUPS, new ActionImpl() {
             @Override
             public JSONObject doAction (ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forGroups().delete(action);
+                return mQueryExecutor.forGroups().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UPDATE_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forGroups().update(action);
+                return mQueryExecutor.forGroups().update(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_STUDENTS_BY_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forStudents().getByGroup(action);
+                return mQueryExecutor.forStudents().getByGroup(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_STUDENT_IN_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forStudents().addInGroup(action);
+                return mQueryExecutor.forStudents().addInGroup(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_STUDENTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forStudents().delete(action);
+                return mQueryExecutor.forStudents().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forSubjects().get(action);
+                return mQueryExecutor.forSubjects().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forSubjects().add(action);
+                return mQueryExecutor.forSubjects().add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UPDATE_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forSubjects().update(action);
+                return mQueryExecutor.forSubjects().update(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_SUBJECTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forSubjects().delete(action);
+                return mQueryExecutor.forSubjects().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_TEACHER, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forTeachers().add(action);
+                return mQueryExecutor.forTeachers().add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_TEACHERS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forTeachers().get(action);
+                return mQueryExecutor.forTeachers().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_TEACHERS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mDataProcessor.forTeachers().delete(action);
+                return mQueryExecutor.forTeachers().delete(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_GET_TEACHER, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mQueryExecutor.forTeachers().getOne(action);
             }
         });
     }

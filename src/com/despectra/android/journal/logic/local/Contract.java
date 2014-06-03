@@ -255,6 +255,7 @@ public class Contract {
     }
 
     public static class EntityColumnsHolder {
+        public Uri URI;
         public String TABLE;
         public String _ID;
         public String ENTITY_STATUS;
@@ -265,7 +266,9 @@ public class Contract {
                 Field tableField = c.getDeclaredField("TABLE");
                 Field idField = c.getDeclaredField("_ID");
                 Field entityStatusField = c.getDeclaredField("ENTITY_STATUS");
+
                 TABLE = (String)tableField.get(null);
+                URI = Uri.parse(Contract.STRING_URI + "/" + TABLE);
                 _ID = (String) idField.get(null);
                 ENTITY_STATUS = (String) entityStatusField.get(null);
             } catch (ClassNotFoundException e) {
@@ -279,6 +282,7 @@ public class Contract {
     }
 
     public static class RemoteColumnsHolder {
+        public Uri URI;
         public String TABLE;
         public String _ID;
         public String REMOTE_ID;
@@ -290,6 +294,7 @@ public class Contract {
                 Field idField = c.getDeclaredField("_ID");
                 Field remoteIdField = c.getDeclaredField("REMOTE_ID");
                 TABLE = (String) tableField.get(null);
+                URI = Uri.parse(Contract.STRING_URI + "/" + TABLE);
                 _ID = (String) idField.get(null);
                 REMOTE_ID = (String) remoteIdField.get(null);
             } catch (ClassNotFoundException e) {

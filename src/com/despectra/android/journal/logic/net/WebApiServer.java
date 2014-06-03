@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Created by Dmitry on 25.03.14.
  */
-public class WebApiServer implements com.despectra.android.journal.logic.ApplicationServer {
+public class WebApiServer implements ApplicationServer {
     public static final String AVATAR_FILENAME = "user_avatar";
 
     public static final int CONN_TIMEOUT_MS = 20000;

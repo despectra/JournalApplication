@@ -13,6 +13,7 @@ import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
 import org.json.JSONObject;
@@ -38,7 +39,6 @@ public class LoginActivity extends AbstractApiFragmentActivity implements TextVi
     private TextView mResponseText;
 
     private SimpleProgressDialog mLoggingDialog;
-    private SimpleInfoDialog mErrorDialog;
 
     private int mLoggingStatus;
     private String mLogin;
@@ -160,63 +160,48 @@ public class LoginActivity extends AbstractApiFragmentActivity implements TextVi
     }
 
     @Override
-    public void onResponse(int actionCode, int remainingActions, Object response) {
-        if (actionCode != -1) {
-            JSONObject jsonData = (JSONObject)response;
-            try {
-                switch (actionCode) {
-                    case APICodes.ACTION_LOGIN:
-                        int success = jsonData.getInt("success");
-                        if (success == 0) {
-                            onLoggingError(jsonData.getString("error_message"));
-                            return;
-                        }
-                        String token = jsonData.getString("token");
-                        PreferenceManager.getDefaultSharedPreferences(this)
-                                .edit()
-                                .putString(JournalApplication.PREFERENCE_KEY_TOKEN, token)
-                                .putString(JournalApplication.PREFERENCE_KEY_LOGIN, mLogin)
-                                .commit();
-                        mLoggingStatus = STATUS_RETRIEVING_DATA;
-                        updateProgressDialogMessage();
-                        mServiceHelperController.getMinProfile(token, ApiServiceHelper.PRIORITY_LOW);
-                        break;
-                    case APICodes.ACTION_GET_MIN_PROFILE:
-                        if (jsonData.has("success")) {
-                            onLoggingError(jsonData.getString("error_message"));
-                            return;
-                        }
-                        int uid = jsonData.getInt("uid");
-                        String name = jsonData.getString("name");
-                        String middleName = jsonData.getString("middlename");
-                        String surname = jsonData.getString("surname");
-                        int level = jsonData.getInt("level");
-                        PreferenceManager.getDefaultSharedPreferences(this)
-                                .edit()
-                                .putInt(JournalApplication.PREFERENCE_KEY_UID, uid)
-                                .putString(JournalApplication.PREFERENCE_KEY_NAME, name)
-                                .putString(JournalApplication.PREFERENCE_KEY_MIDDLENAME, middleName)
-                                .putString(JournalApplication.PREFERENCE_KEY_SURNAME, surname)
-                                .putInt(JournalApplication.PREFERENCE_KEY_LEVEL, level)
-                                .commit();
-                        mLoggingDialog.dismiss();
-                        launchMainActivity();
-                        break;
-                }
-            } catch (Exception ex) {
-                ;
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+        JSONObject jsonData = (JSONObject)response;
+        try {
+            switch (actionCode) {
+                case APICodes.ACTION_LOGIN:
+                    String token = jsonData.getString("token");
+                    PreferenceManager.getDefaultSharedPreferences(this)
+                            .edit()
+                            .putString(JournalApplication.PREFERENCE_KEY_TOKEN, token)
+                            .putString(JournalApplication.PREFERENCE_KEY_LOGIN, mLogin)
+                            .commit();
+                    mLoggingStatus = STATUS_RETRIEVING_DATA;
+                    updateProgressDialogMessage();
+                    mServiceHelperController.getMinProfile(token, ApiServiceHelper.PRIORITY_LOW);
+                    break;
+                case APICodes.ACTION_GET_MIN_PROFILE:
+                    int uid = jsonData.getInt("uid");
+                    String name = jsonData.getString("name");
+                    String middleName = jsonData.getString("middlename");
+                    String surname = jsonData.getString("surname");
+                    int level = jsonData.getInt("level");
+                    PreferenceManager.getDefaultSharedPreferences(this)
+                            .edit()
+                            .putInt(JournalApplication.PREFERENCE_KEY_UID, uid)
+                            .putString(JournalApplication.PREFERENCE_KEY_NAME, name)
+                            .putString(JournalApplication.PREFERENCE_KEY_MIDDLENAME, middleName)
+                            .putString(JournalApplication.PREFERENCE_KEY_SURNAME, surname)
+                            .putInt(JournalApplication.PREFERENCE_KEY_LEVEL, level)
+                            .commit();
+                    mLoggingDialog.dismiss();
+                    launchMainActivity();
+                    break;
             }
-        } else {
-            onLoggingError("Ошибка при входе");
+        } catch (Exception ex) {
+            ;
         }
     }
 
-    private void onLoggingError(String errorMsg) {
-        mLoggingStatus = STATUS_IDLE;
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+        JSONObject jsonData = (JSONObject)response;
+        ApiErrorResponder.respondDialog(getSupportFragmentManager(), jsonData);
         mLoggingDialog.dismiss();
-        if (mErrorDialog == null) {
-            mErrorDialog = SimpleInfoDialog.newInstance("Ошибка", errorMsg);
-            mErrorDialog.show(getSupportFragmentManager(), ERROR_DIALOG_TAG);
-        }
     }
 }

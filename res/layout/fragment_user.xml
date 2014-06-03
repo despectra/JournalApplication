@@ -5,4 +5,57 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@drawable/user_header_background"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/user_avatar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/empty_ava"/>
+
+        <TextView
+            android:id="@+id/user_second_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/user_avatar"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="10dp"
+            android:fontFamily="sans-serig"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:text="Пахомов"/>
+
+        <TextView
+            android:id="@+id/user_first_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/user_second_name"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="5dp"
+            android:fontFamily="sans-serig"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:text="Сергей"/>
+
+        <TextView
+            android:id="@+id/user_middlename"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/user_first_name"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="5dp"
+            android:fontFamily="sans-serig"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:ellipsize="end"
+            android:text="B/"/>
+
+    </RelativeLayout>
+
 </LinearLayout>

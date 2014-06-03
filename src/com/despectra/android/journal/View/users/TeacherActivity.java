@@ -1,7 +1,42 @@
 package com.despectra.android.journal.view.users;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import com.despectra.android.journal.R;
+import com.despectra.android.journal.model.EntityIds;
+import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.view.AbstractApiActionBarActivity;
+
 /**
  * Created by Dmitry on 01.06.14.
  */
-public class TeacherActivity {
+public class TeacherActivity extends AbstractApiActionBarActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_abstract);
+        TeacherFragment fragment = new TeacherFragment();
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        Bundle userIds = extras.getBundle("userId");
+
+        Bundle args = new Bundle();
+        args.putBundle("userId", userIds);
+        fragment.setArguments(args);
+        getSupportFragmentManager().beginTransaction()
+            .replace(R.id.activity_container, fragment, "AbstractUserFragment")
+            .commit();
+    }
+
+    @Override
+    protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
+
+    }
+
+    @Override
+    protected void onResponseError(int actionCode, int remainingActions, Object response) {
+
+    }
 }
