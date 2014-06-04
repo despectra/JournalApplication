@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -69,16 +70,29 @@ public class WebApiServer implements ApplicationServer {
     }
 
 
-    public void loadAvatar(JSONObject json) throws JSONException, IOException {
-        String avatarUrl = "http://" + json.getString("avatar");
-        InputStream in = (InputStream) new URL(avatarUrl).getContent();
-        FileOutputStream fos = mContext.openFileOutput(AVATAR_FILENAME, Context.MODE_PRIVATE);
-        int b;
-        while ((b = in.read()) != -1) {
-            fos.write(b);
+    public void loadAvatar(JSONObject json) throws IOException {
+        InputStream in = null;
+        FileOutputStream fos = null;
+        try {
+            String avatarUrl = "http://" + json.getString("avatar");
+            in = (InputStream) new URL(avatarUrl).getContent();
+            fos = mContext.openFileOutput(AVATAR_FILENAME, Context.MODE_PRIVATE);
+            int b;
+            while ((b = in.read()) != -1) {
+                fos.write(b);
+            }
+        } catch (IOException e1) {
+            ;
+        } catch (JSONException e2) {
+            ;
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (fos != null) {
+                fos.close();
+            }
         }
-        in.close();
-        fos.close();
     }
 
     private String getHost(){
@@ -88,21 +102,6 @@ public class WebApiServer implements ApplicationServer {
 
     private String getFullApiPath() {
         return getHost() + "/api/index.php";
-    }
-
-    private JSONObject doPostApiQuery(String apiMethod, NameValuePair[] body) throws Exception {
-        List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
-        requestParams.addAll(Arrays.asList(body));
-        HttpPost request = new HttpPost(getFullApiPath() + "?" + apiMethod);
-        request.setEntity(new UrlEncodedFormEntity(requestParams, "UTF-8"));
-        return new JSONObject(doQuery(request));
-    }
-
-    private JSONObject doGetApiQuery(String apiMethod, String arg) throws Exception {
-        arg = URLEncoder.encode(arg, "UTF-8");
-        String requestBody = (arg.isEmpty()) ? apiMethod : String.format("%s=%s", apiMethod, arg);
-        HttpGet request = new HttpGet(String.format("%s?%s", getFullApiPath(), requestBody));
-        return new JSONObject(doQuery(request));
     }
 
     private String doQuery(HttpUriRequest request) throws Exception {

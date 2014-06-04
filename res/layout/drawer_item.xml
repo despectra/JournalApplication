@@ -5,6 +5,7 @@
     android:id="@+id/text1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fontFamily="sans-serif"
     android:textAppearance="?android:textAppearanceMedium"
     android:minHeight="50dp"
     android:gravity="center_vertical"

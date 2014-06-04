@@ -115,7 +115,13 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
             mCheckedEntitiesCount = 0;
         }
         getLoaderManager().initLoader(LOADER_MAIN, null, this);
+        String title = getTitle();
+        if (title != null) {
+            getActivity().setTitle(title);
+        }
     }
+
+    protected abstract String getTitle();
 
     protected abstract void restoreCustom();
 

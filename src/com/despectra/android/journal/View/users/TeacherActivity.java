@@ -17,17 +17,24 @@ public class TeacherActivity extends AbstractApiActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_abstract);
-        TeacherFragment fragment = new TeacherFragment();
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-        Bundle userIds = extras.getBundle("userId");
+        if (savedInstanceState == null) {
+            TeacherFragment fragment = new TeacherFragment();
+            Intent intent = getIntent();
+            Bundle extras = intent.getExtras();
+            Bundle userIds = extras.getBundle("userId");
 
-        Bundle args = new Bundle();
-        args.putBundle("userId", userIds);
-        fragment.setArguments(args);
-        getSupportFragmentManager().beginTransaction()
-            .replace(R.id.activity_container, fragment, "AbstractUserFragment")
-            .commit();
+            Bundle args = new Bundle();
+            args.putBundle("userId", userIds);
+            fragment.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.activity_container, fragment, "AbstractUserFragment")
+                    .commit();
+        }
+    }
+
+    @Override
+    protected boolean showUpButton() {
+        return true;
     }
 
     @Override

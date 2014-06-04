@@ -186,6 +186,11 @@ public class StudentsFragment extends AbstractUsersFragment {
     }
 
     @Override
+    protected String getTitle() {
+        return "Обзор класса";
+    }
+
+    @Override
     protected String getEmptyListMessage() {
         return "Учеников в этом классе нет. Добавьте с помощью кнопки на панели действий";
     }

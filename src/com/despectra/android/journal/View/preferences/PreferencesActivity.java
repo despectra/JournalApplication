@@ -72,6 +72,11 @@ public class PreferencesActivity extends AbstractApiActionBarActivity implements
         super.onDestroy();
     }
 
+    @Override
+    protected boolean showUpButton() {
+        return true;
+    }
+
     public void setCheckingState(boolean checking) {
         mIsChecking = checking;
         if (mIsChecking) {

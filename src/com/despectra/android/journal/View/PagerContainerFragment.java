@@ -20,6 +20,10 @@ public abstract class PagerContainerFragment extends Fragment {
     private PagerTabStrip mTabStrip;
     private PagerAdapter mPagerAdapter;
 
+    public PagerContainerFragment() {
+        super();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_pager_container, container, false);
@@ -30,12 +34,13 @@ public abstract class PagerContainerFragment extends Fragment {
         setHasOptionsMenu(true);
         mPager = (ViewPager) getView().findViewById(R.id.fragment_main_page_single);
         mPagerAdapter = new PagerAdapter(getChildFragmentManager());
-        mPager.post(new Runnable() {
+        /*mPager.post(new Runnable() {
             @Override
             public void run() {
                 mPager.setAdapter(mPagerAdapter);
             }
-        });
+        });*/
+        mPager.setAdapter(mPagerAdapter);
         mTabStrip = (PagerTabStrip) getView().findViewById(R.id.pager_tab_strip);
         mTabStrip.setTabIndicatorColorResource(android.R.color.holo_blue_dark);
         super.onActivityCreated(savedInstanceState);

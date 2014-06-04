@@ -80,14 +80,8 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                finish();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
+    protected boolean showUpButton() {
+        return true;
     }
 
     @Override

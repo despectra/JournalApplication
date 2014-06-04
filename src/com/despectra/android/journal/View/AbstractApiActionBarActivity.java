@@ -3,6 +3,7 @@ package com.despectra.android.journal.view;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.FrameLayout;
@@ -25,8 +26,22 @@ public abstract class AbstractApiActionBarActivity extends ActionBarActivity imp
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_PROGRESS);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(showUpButton());
         mApplicationContext = (JournalApplication) getApplicationContext();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONCREATE);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if (showUpButton()) {
+                    finish();
+                }
+                return true;
+            default:
+                return false;
+        }
     }
 
     @Override
@@ -106,6 +121,8 @@ public abstract class AbstractApiActionBarActivity extends ActionBarActivity imp
             onResponseError(actionCode, remainingActions, response);
         }
     }
+
+    protected abstract boolean showUpButton();
 
     protected abstract void onResponseSuccess(int actionCode, int remainingActions, Object response);
 

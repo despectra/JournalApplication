@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -13,7 +12,6 @@ import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.utils.ApiErrorResponder;
@@ -22,7 +20,6 @@ import com.despectra.android.journal.view.main_page.MainPageFragmentFactory;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
 import com.despectra.android.journal.view.subjects.SubjectsFragment;
 import com.despectra.android.journal.view.users.StaffFragment;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
@@ -31,8 +28,6 @@ import java.io.FileNotFoundException;
  * Created by Dmitry on 25.03.14.
  */
 public class MainActivity extends AbstractApiActionBarActivity implements AdapterView.OnItemClickListener {
-
-    public static final String[] USER_DATA_PREFS_KEYS = new String[]{"token", "uid", "name", "surname", "middlename", "level", "avatar"};
 
     public static final int ACTION_EVENTS = 1;
     public static final int ACTION_STAFF = 2;
@@ -47,20 +42,11 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
     public static final int STATUS_LOGGING_OUT = 1;
 
     public static final String PROGRESS_DIALOG_TAG = "progressDialog";
-    public static final String FRAGMENT_EVENTS = "EventsFragment";
-    public static final String FRAGMENT_JOURNAL = "JournalFragment";
-    private static final String FRAGMENT_SCHEDULE = "ScheduleFragment";
-    private static final String FRAGMENT_GROUPS = "GroupsFragment";
 
-    public static final String KEY_CUR_FRAGMENT = "curFragment";
     public static final String KEY_SELECTED_DRAWER_ITEM = "selectedDrawer";
-    public static final String KEY_AB_TITLE = "actionBarTitle";
     public static final String KEY_STATUS = "status";
     private static final String TAG = "MainActivity";
 
-    private Fragment mCurrentFragment;
-    private String mActionBarTitle;
-    private String mCurrentFragmentTag;
     private String mToken;
     private int mUserId;
     private String mName;
@@ -94,25 +80,18 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
 
         if (savedInstanceState != null) {
             restoreDrawerState(savedInstanceState.getInt(KEY_SELECTED_DRAWER_ITEM));
-            String savedFragmentTag = savedInstanceState.getString(KEY_CUR_FRAGMENT);
-            //mCurrentFragment = restoreFragment(savedFragmentTag);
-            mCurrentFragmentTag = savedFragmentTag;
-            mActionBarTitle = savedInstanceState.getString(KEY_AB_TITLE);
             mStatus = savedInstanceState.getInt(KEY_STATUS);
             mLoadWall = false;
         } else {
             restoreDrawerState(ACTION_EVENTS);
-            mCurrentFragment = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
-            mCurrentFragmentTag = FRAGMENT_EVENTS;
-            mActionBarTitle = "Главная";
             mStatus = STATUS_IDLE;
             mLoadWall = true;
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag);
+            ft.replace(R.id.fragment_layout,
+                    MainPageFragmentFactory.instantiate(this, getSupportFragmentManager()),
+                    MainPageFragmentFactory.FRAGMENT_TAG);
             ft.commit();
         }
-
-        restoreActionBar();
         restoreSpinnerDialog();
     }
 
@@ -126,7 +105,6 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
     protected void onResume() {
         super.onResume();
         mApplicationContext.getApiServiceHelper().registerClient(this, this);
-
     }
 
     @Override
@@ -139,14 +117,17 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_SELECTED_DRAWER_ITEM, mSelectedDrawerItem);
-        outState.putString(KEY_CUR_FRAGMENT, mCurrentFragmentTag);
-        outState.putString(KEY_AB_TITLE, mActionBarTitle);
         outState.putInt(KEY_STATUS, mStatus);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected boolean showUpButton() {
+        return false;
     }
 
     private void restoreSpinnerDialog() {
@@ -173,26 +154,9 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
         }
     }
 
-    private void restoreActionBar() {
-        getActionBar().setTitle(mActionBarTitle);
-    }
-
     private void restoreDrawerState(int savedSelectedItem) {
         mDrawer.setSelection(savedSelectedItem);
         mSelectedDrawerItem = savedSelectedItem;
-    }
-
-    private Fragment restoreFragment(String savedFragmentTag) {
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment f = fm.findFragmentByTag(savedFragmentTag);
-        if (f == null) {
-            if (savedFragmentTag.equals(FRAGMENT_EVENTS)) {
-                f = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
-            } else if(savedFragmentTag.equals(FRAGMENT_GROUPS)) {
-                f = new GroupsFragment();
-            }
-        }
-        return f;
     }
 
     private void setStatus(int status) {
@@ -237,42 +201,38 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
         }
         mDrawer.setSelection(mSelectedDrawerItem);
         mSelectedDrawerItem = position;
+        Fragment fragment;
+        String fragmentTag;
         switch(mSelectedDrawerItem) {
             case ACTION_STAFF:
-                mCurrentFragment = new StaffFragment();
-                mCurrentFragmentTag = StaffFragment.FRAGMENT_TAG;
-                mActionBarTitle = "Персонал";
+                fragmentTag = StaffFragment.FRAGMENT_TAG;
+                fragment = getSupportFragmentManager().findFragmentByTag(StaffFragment.FRAGMENT_TAG);
+                if (fragment == null) {
+                    fragment = new StaffFragment();
+                }
                 break;
             case ACTION_EVENTS:
-                mCurrentFragment = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
-                mCurrentFragmentTag = FRAGMENT_EVENTS;
-                mActionBarTitle = "Главная";
+                fragmentTag = MainPageFragmentFactory.FRAGMENT_TAG;
+                fragment = MainPageFragmentFactory.instantiate(this, getSupportFragmentManager());
                 break;
             case ACTION_GROUPS:
-                mCurrentFragment = new GroupsFragment();
-                mCurrentFragmentTag = GroupsFragment.FRAGMENT_TAG;
-                mActionBarTitle = "Классы";
+                fragmentTag = GroupsFragment.FRAGMENT_TAG;
+                fragment = getSupportFragmentManager().findFragmentByTag(GroupsFragment.FRAGMENT_TAG);
+                if (fragment == null) {
+                    fragment = new GroupsFragment();
+                }
                 break;
-            /*case ACTION_JOURNAL:
-                mCurrentFragment = new JournalFragment();
-                mCurrentFragmentTag = FRAGMENT_JOURNAL;
-                mActionBarTitle = "Журналы";
-                break;*/
             case ACTION_SUBJECTS:
-                mCurrentFragment = new SubjectsFragment();
-                mCurrentFragmentTag = SubjectsFragment.FRAGMENT_TAG;
-                mActionBarTitle = "Предметы";
+                fragmentTag = SubjectsFragment.FRAGMENT_TAG;
+                fragment = getSupportFragmentManager().findFragmentByTag(SubjectsFragment.FRAGMENT_TAG);
+                if (fragment == null) {
+                    fragment = new SubjectsFragment();
+                }
                 break;
-                /*mCurrentFragment = new JournalFragment();
-                mCurrentFragmentTag = FRAGMENT_JOURNAL;
-                break;*//*
-            case ACTION_SCHEDULE:
-                mCurrentFragment = new ScheduleFragment();
-                mCurrentFragmentTag = FRAGMENT_SCHEDULE;
-                mActionBarTitle = "Расписание";*/
+            default:
+                return;
         }
-        replaceCurrentFragment();
-        restoreActionBar();
+        replaceCurrentFragment(fragment, fragmentTag);
     }
 
     private void readNewPreferences() {
@@ -313,16 +273,16 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
         try {
             mUserAvatarView.setImageBitmap(BitmapFactory.decodeStream(openFileInput(WebApiServer.AVATAR_FILENAME)));
         } catch (FileNotFoundException ex) {
-            mUserAvatarView.setImageDrawable(getResources().getDrawable(R.drawable.test_ava));
+            mUserAvatarView.setImageDrawable(getResources().getDrawable(R.drawable.empty_ava));
         }
         mUserSurnameView.setText(mSurname);
         mUserNameView.setText(mName);
     }
 
-    private void replaceCurrentFragment() {
+    private void replaceCurrentFragment(Fragment fragment, String tag) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragment_layout, mCurrentFragment, mCurrentFragmentTag)
+                .replace(R.id.fragment_layout, fragment, tag)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
                 .commit();
     }

@@ -36,6 +36,7 @@ public class StaffFragment extends Fragment {
         });
         PagerTabStrip tabStrip = (PagerTabStrip) getView().findViewById(R.id.pager_tab_strip);
         tabStrip.setTabIndicatorColorResource(android.R.color.holo_blue_dark);
+        getActivity().setTitle("Персонал школы");
         super.onActivityCreated(savedInstanceState);
     }
 

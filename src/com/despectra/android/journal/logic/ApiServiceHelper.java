@@ -10,6 +10,7 @@ import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.services.ApiService;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.utils.JSONBuilder;
+import com.despectra.android.journal.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -249,7 +250,7 @@ public class ApiServiceHelper {
         public void login(String login, String passwd, int priority) {
             JSONObject data = new JSONBuilder()
                     .addKeyValue("login", login)
-                    .addKeyValue("passwd", passwd).create();
+                    .addKeyValue("passwd", Utils.md5(passwd)).create();
             startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGIN, mClientName, data), priority);
         }
 

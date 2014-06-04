@@ -3,30 +3,18 @@ package com.despectra.android.journal.view.users;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.view.PagerTabStrip;
-import android.support.v4.view.ViewPager;
 import android.view.*;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
-import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.AbstractApiFragment;
-import com.despectra.android.journal.view.EntitiesListFragment;
-import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
-import com.despectra.android.journal.view.SimpleConfirmationDialog;
-import com.despectra.android.journal.view.main_page.MainPageFragment;
 import org.json.JSONObject;
 
 /**
@@ -36,9 +24,18 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
 
     protected String mToken;
     protected JoinedEntityIds mUserIds;
+    protected String mFirstName;
+    protected String mSecondName;
+    protected String mMiddleName;
     private TextView mFirstNameView;
     private TextView mSndNameView;
     private TextView mMiddleNameView;
+
+    private boolean mIsUpdating;
+
+    public AbstractUserFragment() {
+        super();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,6 +44,13 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
         mToken = PreferenceManager.getDefaultSharedPreferences(getActivity())
                 .getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
         mUserIds = JoinedEntityIds.fromBundle(args.getBundle("userId"));
+        mIsUpdating = (savedInstanceState != null && savedInstanceState.getBoolean("updating"));
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("updating", mIsUpdating);
     }
 
     @Override
@@ -68,18 +72,16 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
     public void onResume() {
         super.onResume();
         mApplicationContext.getApiServiceHelper().registerClient(this, this);
-        updateUserInfo();
+        if (!mIsUpdating) {
+            mIsUpdating = true;
+            updateUserInfo();
+        }
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                getActivity().finish();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+    public void onPause() {
+        super.onPause();
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     protected abstract void updateUserInfo();
@@ -105,9 +107,13 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
             return;
         }
         cursor.moveToFirst();
-        mFirstNameView.setText(cursor.getString(0));
-        mSndNameView.setText(cursor.getString(1));
-        mMiddleNameView.setText(cursor.getString(2));
+        mFirstName = cursor.getString(0);
+        mSecondName = cursor.getString(1);
+        mMiddleName = cursor.getString(2);
+
+        mFirstNameView.setText(mFirstName);
+        mSndNameView.setText(mSecondName);
+        mMiddleNameView.setText(mMiddleName);
     }
 
     @Override

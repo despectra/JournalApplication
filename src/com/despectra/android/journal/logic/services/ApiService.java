@@ -14,6 +14,7 @@ import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
 
 import java.util.*;
@@ -93,14 +94,19 @@ public class ApiService extends Service {
         mActionsImpls.put(APICodes.ACTION_LOGOUT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mServer.executeGetApiQuery("auth.logout", action.actionData);
+                JSONObject response = mServer.executeGetApiQuery("auth.logout", action.actionData);
+                deleteFile(WebApiServer.AVATAR_FILENAME);
+                return response;
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_MIN_PROFILE, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
-                return mServer.executeGetApiQuery("profile.getMinProfile", action.actionData);
-                //TODO load ava
+                JSONObject response = mServer.executeGetApiQuery("profile.getMinProfile", action.actionData);
+                if (Utils.isApiJsonSuccess(response)) {
+                    mServer.loadAvatar(response);
+                }
+                return response;
             }
         });
         mActionsImpls.put(APICodes.ACTION_CHECK_TOKEN, new ActionImpl() {

@@ -150,6 +150,11 @@ public class TeachersFragment extends AbstractUsersFragment {
     }
 
     @Override
+    protected String getTitle() {
+        return null;
+    }
+
+    @Override
     protected String getEmptyListMessage() {
         return "Учителей нет. Добавьте их с помощью кнопки на панели действий";
     }

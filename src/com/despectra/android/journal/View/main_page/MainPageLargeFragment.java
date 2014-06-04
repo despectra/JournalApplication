@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.*;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +16,8 @@ import com.despectra.android.journal.R;
 /**
  * Created by Dmirty on 17.02.14.
  */
-public class MainPageFragment extends Fragment {
-
-    private FrameLayout mLargeFirstLayout;
-    private FrameLayout mLargeSecondLayout;
+public class MainPageLargeFragment extends Fragment {
+    public static final String FRAGMENT_TAG = "MainPageFragment";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -29,14 +28,13 @@ public class MainPageFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setHasOptionsMenu(false);
-            //for tablets
-        mLargeFirstLayout = (FrameLayout) getView().findViewById(R.id.fragment_main_page_fst);
-        mLargeSecondLayout = (FrameLayout) getView().findViewById(R.id.fragment_main_page_snd);
         WallFragment fstFragment = new WallFragment();
         CurrentDayScheduleFragment sndFragment = new CurrentDayScheduleFragment();
         getChildFragmentManager().beginTransaction()
                 .replace(R.id.fragment_main_page_fst, fstFragment)
                 .replace(R.id.fragment_main_page_snd, sndFragment)
                 .commit();
+
+        getActivity().setTitle("Главная");
     }
 }

@@ -90,6 +90,11 @@ public class SubjectsFragment extends EntitiesListFragment {
     };
 
     @Override
+    protected String getTitle() {
+        return "Предметы";
+    }
+
+    @Override
     protected void restoreCustom() {
         mAddEditDialog = (AddEditSimpleItemDialog) getFragmentManager().findFragmentByTag(AddEditSimpleItemDialog.FRAGMENT_TAG);
         if (mAddEditDialog != null) {

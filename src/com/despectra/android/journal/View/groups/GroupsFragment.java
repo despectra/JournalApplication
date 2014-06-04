@@ -231,6 +231,11 @@ public class GroupsFragment extends EntitiesListFragment {
     }
 
     @Override
+    protected String getTitle() {
+        return "Классы";
+    }
+
+    @Override
     protected void restoreCustom() {
         mAddEditDialog = (AddEditSimpleItemDialog) getFragmentManager().findFragmentByTag(mAddEditDialog.FRAGMENT_TAG);
         if (mAddEditDialog != null) {
