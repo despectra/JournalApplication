@@ -450,6 +450,32 @@ public class ApiServiceHelper {
         }
 
         @Override
+        public void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addEntityIds("teacher_id", teacherIds)
+                    .create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_SUBJECTS_OF_TEACHER, mClientName, data), priority);
+        }
+
+        @Override
+        public void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addEntityIds("teacher_id", teacherIds)
+                    .addEntityIdsArray("subjects_ids", subjectsIds).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_SET_SUBJECTS_OF_TEACHER, mClientName, data), priority);
+        }
+
+        @Override
+        public void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addEntityIdsArray("links_ids", linksIds).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UNSET_SUBJECTS_OF_TEACHER, mClientName, data), priority);
+        }
+
+        @Override
         public void addMockMarks(long groupId) {
             if (mBound) {
                 try {
@@ -545,6 +571,9 @@ public class ApiServiceHelper {
         public void getTeachers(String token, int offset, int count, int priority);
         public void deleteTeachers(String token, EntityIds[] ids, int priority);
         public void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority);
+        public void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority);
+        public void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority);
+        public void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority);
 
 
         // TEMPORARY

@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Message;
 import android.util.Pair;
+import android.widget.ZoomControls;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
@@ -16,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -99,6 +101,113 @@ public class Teachers extends QueryExecDelegate {
             persistTeachersDeletion();
         }
         return response;
+    }
+
+    public JSONObject getSubjectsOfTeacher(ApiServiceHelper.ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        long localTeacherId = request.getLong("LOCAL_teacher_id");
+        request.remove("LOCAL_teacher_id");
+        JSONObject response = getApplicationServer().executeGetApiQuery("teachers.getSubjectsOfTeacher", request);
+        if (Utils.isApiJsonSuccess(response)) {
+            updateLocalSubjectsLinks(localTeacherId, response);
+        }
+        return response;
+    }
+
+    public JSONObject setSubjectsOfTeacher(ApiServiceHelper.ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        long localTeacherId = request.getLong("LOCAL_teacher_id");
+        JSONArray localSubjectsIds = request.getJSONArray("LOCAL_subjects_ids");
+        request.remove("LOCAL_teacher_id");
+        request.remove("LOCAL_subjects_ids");
+
+        long[] localLinksIds = preSetLocalSubjectsOfTeacher(localTeacherId, localSubjectsIds);
+        JSONObject response = getApplicationServer().executeGetApiQuery("teachers.setSubjectsOfTeacher", request);
+        if (Utils.isApiJsonSuccess(response)) {
+            persistSetSubjectsOfTeacher(localLinksIds, response.getJSONArray("affected_links"));
+        }
+        return response;
+    }
+
+    public JSONObject unsetSubjectsOfTeacher(ApiServiceHelper.ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        JSONArray localLinks = request.getJSONArray("LOCAL_links_ids");
+        request.remove("LOCAL_links_ids");
+
+        preUnsetSubjectsOfTeacher(localLinks);
+        JSONObject response = getApplicationServer().executeGetApiQuery("teachers.unsetSubjectsOfTeacher", request);
+        if (Utils.isApiJsonSuccess(response)) {
+            persistUnsetSubjectsOfTeacher(localLinks);
+        }
+        return response;
+    }
+
+    private void persistUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
+        for (int i = 0; i < localLinks.length(); i++) {
+            getLocalStorageManager().deleteEntityByLocalId(Contract.TeachersSubjects.HOLDER, Contract.TeachersSubjects.Remote.HOLDER,
+                    localLinks.getLong(i));
+        }
+    }
+
+    private void preUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
+        for (int i = 0; i < localLinks.length(); i++) {
+            getLocalStorageManager().markRowAsDeleting(Contract.TeachersSubjects.HOLDER,
+                    localLinks.getString(i));
+        }
+    }
+
+    private void persistSetSubjectsOfTeacher(long[] localTempIds, JSONArray affectedIds) throws Exception {
+        for (int i = 0; i < affectedIds.length(); i++) {
+            long localId = localTempIds[i];
+            long affectedId = affectedIds.getLong(i);
+            getLocalStorageManager().persistTempRow(
+                    Contract.TeachersSubjects.HOLDER,
+                    Contract.TeachersSubjects.Remote.HOLDER,
+                    localId,
+                    affectedId
+            );
+        }
+    }
+
+    private long[] preSetLocalSubjectsOfTeacher(long localTeacherId, JSONArray localSubjectsIds) throws Exception {
+        long[] tempIds = new long[localSubjectsIds.length()];
+        for (int i = 0; i < localSubjectsIds.length(); i++) {
+            ContentValues values = new ContentValues();
+            values.put(Contract.TeachersSubjects.FIELD_TEACHER_ID, localTeacherId);
+            values.put(Contract.TeachersSubjects.FIELD_SUBJECT_ID, localSubjectsIds.getString(i));
+            tempIds[i] = getLocalStorageManager().insertTempRow(
+                    Contract.TeachersSubjects.HOLDER,
+                    Contract.TeachersSubjects.Remote.HOLDER,
+                    values
+            );
+        }
+        return tempIds;
+    }
+
+    private void updateLocalSubjectsLinks(long teacherId, JSONObject response) throws Exception {
+        Cursor existingSubjects = getLocalStorageManager().getResolver().query(
+                Contract.TeachersSubjects.URI,
+                new String[]{Contract.TeachersSubjects.Remote._ID, Contract.TeachersSubjects.Remote.REMOTE_ID},
+                Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
+                new String[]{String.valueOf(teacherId)},
+                null
+        );
+        JSONArray subjects = response.getJSONArray("subjects");
+        for (int i = 0; i < subjects.length(); i++) {
+            JSONObject subj = subjects.getJSONObject(i);
+            subj.put("teacher_id", teacherId);
+            long remoteSubjectId = subj.getLong("subject_id");
+            long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.Remote.HOLDER, remoteSubjectId);
+            subj.put("LOCAL_subject_id", localSubjectId);
+        }
+        getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
+                existingSubjects,
+                Contract.TeachersSubjects.HOLDER,
+                Contract.TeachersSubjects.Remote.HOLDER,
+                subjects,
+                "id",
+                new String[]{"teacher_id", "LOCAL_subject_id"},
+                new String[]{Contract.TeachersSubjects.FIELD_TEACHER_ID, Contract.TeachersSubjects.FIELD_SUBJECT_ID});
     }
 
     private long preAddUser(JSONObject request) throws JSONException {

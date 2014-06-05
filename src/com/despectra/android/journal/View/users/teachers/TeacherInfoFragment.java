@@ -1,9 +1,10 @@
-package com.despectra.android.journal.view.users;
+package com.despectra.android.journal.view.users.teachers;
 
 import android.database.Cursor;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBarActivity;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.view.users.AbstractUserFragment;
 
 /**
  * Created by Dmitry on 04.06.14.

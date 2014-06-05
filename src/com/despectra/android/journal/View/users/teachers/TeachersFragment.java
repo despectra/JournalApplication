@@ -1,4 +1,4 @@
-package com.despectra.android.journal.view.users;
+package com.despectra.android.journal.view.users.teachers;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -10,8 +10,8 @@ import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
-import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
+import com.despectra.android.journal.view.users.AbstractUsersFragment;
 import org.json.JSONObject;
 
 /**

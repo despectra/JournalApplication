@@ -30,7 +30,6 @@ public abstract class AddEditDialog extends DialogFragment {
     protected View mMainView;
     protected int mMode;
     protected int mMainViewId;
-    protected boolean mDontClose;
     protected String mAdditionTitle;
     protected String mEditionTitle;
     protected String mNegativeBtnText;
@@ -55,7 +54,6 @@ public abstract class AddEditDialog extends DialogFragment {
                 neutralEditBtnText,
                 positiveBtnText,
                 dialogData);
-        //apply custom arguments. I may implement this in future
         setArguments(args);
     }
 

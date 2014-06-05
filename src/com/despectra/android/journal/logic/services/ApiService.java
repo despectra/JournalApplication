@@ -14,6 +14,7 @@ import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.utils.JSONBuilder;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
 
@@ -217,6 +218,24 @@ public class ApiService extends Service {
                 return mQueryExecutor.forTeachers().getOne(action);
             }
         });
+        mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS_OF_TEACHER, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mQueryExecutor.forTeachers().getSubjectsOfTeacher(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_SET_SUBJECTS_OF_TEACHER, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mQueryExecutor.forTeachers().setSubjectsOfTeacher(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_UNSET_SUBJECTS_OF_TEACHER, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+                return mQueryExecutor.forTeachers().unsetSubjectsOfTeacher(action);
+            }
+        });
     }
 
     @Override
@@ -309,11 +328,14 @@ public class ApiService extends Service {
                     mResponseHandler.sendMessage(Message.obtain(mResponseHandler, MSG_RESPONSE, response));
                 } catch (Exception ex) {
                     try {
-                        String msg = ex.getMessage().replace("\"", "");
+                        JSONObject jsonResponse = new JSONBuilder()
+                                .addKeyValue("success", "0")
+                                .addKeyValue("error_code", "1")
+                                .addKeyValue("error_message", ex.getMessage()).create();
                         response.responseAction = new ApiServiceHelper.ApiAction(
                                 action.apiCode,
                                 action.clientTag,
-                                new JSONObject(String.format("{\"success\":\"0\", \"error_code\":\"1\", \"error_message\":\"%s\"}", msg))
+                                jsonResponse
                         );
                     } catch (Exception e) {
                     }

@@ -1,11 +1,8 @@
-package com.despectra.android.journal.view.users;
+package com.despectra.android.journal.view.users.teachers;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.model.EntityIds;
-import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.AbstractApiActionBarActivity;
 
 /**

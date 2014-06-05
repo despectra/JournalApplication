@@ -209,6 +209,39 @@ public class Contract {
         }
     }
 
+    public static final class TeachersSubjects implements BaseColumns {
+        public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("TeachersSubjects");
+        public static final String TABLE = "teachers_subjects";
+        public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String FIELD_TEACHER_ID =TABLE + "_teacher_id";
+        public static final String FIELD_SUBJECT_ID = TABLE + "_subject_id";
+        public static final String TABLE_JOIN_REMOTE = new SQLJoinBuilder(TABLE).join(Remote.TABLE).onEq(Remote._ID, _ID).create();
+        public static final String TABLE_JOIN_SUBJECTS =
+                new SQLJoinBuilder(TABLE_JOIN_REMOTE).join(Subjects.TABLE).onEq(FIELD_SUBJECT_ID, Subjects._ID)
+                        .join(Subjects.Remote.TABLE).onEq(Subjects._ID, Subjects.Remote._ID).create();
+        public static final String TABLE_JOIN_TEACHERS_REMOTE =
+                new SQLJoinBuilder(TABLE_JOIN_REMOTE).join(Teachers.Remote.TABLE).onEq(FIELD_TEACHER_ID, Teachers.Remote._ID).create();
+
+        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
+        public static final Uri URI = Uri.parse(STRING_URI + "/teachers_subjects");
+        public static final Uri URI_WITH_SUBJECTS = Uri.parse(STRING_URI + "/teachers_subjects/s");
+        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
+        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
+        public static final int URI_CODE = 270;
+        public static final int ID_URI_CODE = 271;
+        public static final int URI_WITH_SUBJECTS_CODE = 273;
+
+        public static final class Remote implements RemoteColumns {
+            public static final RemoteColumnsHolder HOLDER = new RemoteColumnsHolder("TeachersSubjects");
+            public static final String TABLE = "teachers_subjects_remote";
+            public static final String _ID = TABLE + RemoteColumns._ID;
+            public static final String REMOTE_ID = TABLE + RemoteColumns.REMOTE_ID;
+            public static final Uri URI = Uri.parse(STRING_URI + "/teachers_subjects_remote");
+            public static final int URI_CODE = 275;
+            public static final int ID_URI_CODE = 276;
+        }
+    }
+
     public static final class Marks implements BaseColumns {
         public static final EntityColumnsHolder HOLDER = new EntityColumnsHolder("Marks");
         public static final String TABLE = "marks";

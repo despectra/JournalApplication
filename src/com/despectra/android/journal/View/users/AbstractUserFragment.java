@@ -103,7 +103,7 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         if (cursor.getCount() <= 0) {
-            Toast.makeText(getActivity(), "OMG, No user info in LOCAL", Toast.LENGTH_LONG).show();
+            //Toast.makeText(getActivity(), "OMG, No user info in LOCAL", Toast.LENGTH_LONG).show();
             return;
         }
         cursor.moveToFirst();

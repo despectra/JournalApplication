@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 24;
+    public static final int VERSION = 25;
 
     public static final String CREATE_TABLE_ENTITY_REMOTE = "" +
             "CREATE TABLE IF NOT EXISTS %1$s_remote (" +
@@ -65,6 +65,13 @@ public class DBHelper extends SQLiteOpenHelper {
             "teachers_user_id INTEGER NOT NULL," +
             "teachers_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
+    public static final String CREATE_TABLE_TEACHERS_SUBJECTS = "" +
+            "CREATE TABLE IF NOT EXISTS teachers_subjects (" +
+            "teachers_subjects_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "teachers_subjects_teacher_id INTEGER NOT NULL," +
+            "teachers_subjects_subject_id INTEGER NOT NULL," +
+            "teachers_subjects_entity_status INTEGER DEFAULT 0 NOT NULL)";
+
     public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
             "lessons_id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -118,6 +125,8 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "lessons"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "marks"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers_subjects"));
+
     }
 
     private void buildSchema(SQLiteDatabase sqLiteDatabase) {
@@ -135,7 +144,8 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "subjects"));
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS);
         sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "teachers"));
-
+        sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS_SUBJECTS);
+        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "teachers_subjects"));
 
         sqLiteDatabase.execSQL(CREATE_TABLE_LESSONS);
         sqLiteDatabase.execSQL(CREATE_TABLE_MARKS);

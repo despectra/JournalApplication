@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item
+        android:id="@+id/TEMP_clear_local_DB"
+        android:title="Очистить локальную БД"/>
+
+    <item
         android:id="@+id/action_logout"
         android:title="Выход"
         android:showAsAction="always"/>

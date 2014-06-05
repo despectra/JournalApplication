@@ -1,13 +1,8 @@
-package com.despectra.android.journal.view.users;
+package com.despectra.android.journal.view.users.teachers;
 
-import android.database.Cursor;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBarActivity;
-import com.despectra.android.journal.logic.ApiServiceHelper;
-import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.PagerContainerFragment;
+import com.despectra.android.journal.view.subjects.SubjectsOfTeacherFragment;
 
 /**
  * Created by Dmitry on 03.06.14.
@@ -20,16 +15,21 @@ public class TeacherFragment extends PagerContainerFragment {
 
     @Override
     public Fragment getPagerItem(int position) {
+        Fragment fragment = null;
         switch (position) {
             case 0:
-                AbstractUserFragment fragment = new TeacherInfoFragment();
+                fragment = new TeacherInfoFragment();
                 fragment.setArguments(getArguments());
                 return fragment;
             case 1:
+                fragment = new SubjectsOfTeacherFragment();
+                fragment.setArguments(getArguments());
+                return fragment;
             case 2:
             default:
-                return new Fragment();
+                fragment = new Fragment();
         }
+        return fragment;
     }
 
     @Override

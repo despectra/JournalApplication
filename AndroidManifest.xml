@@ -42,7 +42,7 @@
         </activity>
 
         <activity
-            android:name=".view.users.TeacherActivity"
+            android:name=".view.users.teachers.TeacherActivity"
             android:parentActivityName=".view.MainActivity"
             android:label="Инфо об учителе">
 

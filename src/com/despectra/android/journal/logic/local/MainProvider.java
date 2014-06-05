@@ -48,6 +48,10 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "subjects_remote/#", Contract.Subjects.Remote.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers", Contract.Teachers.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_remote", Contract.Teachers.Remote.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects", Contract.TeachersSubjects.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_remote", Contract.TeachersSubjects.Remote.URI_CODE);
+
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/s", Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE);
 
         mMatcher.addURI(Contract.AUTHORITY, "marks", Contract.Marks.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "marks/group", Contract.Marks.URI_BY_GROUP_CODE);
@@ -109,6 +113,10 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE_JOIN_USERS);
         mReadTables.append(Contract.Teachers.Remote.URI_CODE, Contract.Teachers.Remote.TABLE);
 
+        mReadTables.append(Contract.TeachersSubjects.URI_CODE, Contract.TeachersSubjects.TABLE_JOIN_SUBJECTS);
+        mReadTables.append(Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE, Contract.TeachersSubjects.TABLE_JOIN_SUBJECTS);
+        mReadTables.append(Contract.TeachersSubjects.Remote.URI_CODE, Contract.TeachersSubjects.Remote.TABLE);
+
         mReadTables.append(Contract.Marks.URI_BY_GROUP_CODE, Contract.Marks.TABLE_BY_GROUP);
         mReadTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
 
@@ -151,6 +159,9 @@ public class MainProvider extends ContentProvider {
         mWriteTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE);
         mWriteTables.append(Contract.Teachers.Remote.URI_CODE, Contract.Teachers.Remote.TABLE);
 
+        mWriteTables.append(Contract.TeachersSubjects.URI_CODE, Contract.TeachersSubjects.TABLE);
+        mWriteTables.append(Contract.TeachersSubjects.Remote.URI_CODE, Contract.TeachersSubjects.Remote.TABLE);
+
         mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
         mWriteTables.append(Contract.Marks.ID_URI_CODE, Contract.Marks.TABLE);
         mWriteTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
@@ -180,6 +191,9 @@ public class MainProvider extends ContentProvider {
 
         mPrimaryColumns.append(Contract.Teachers.ID_URI_CODE, Contract.Teachers._ID);
         mPrimaryColumns.append(Contract.Teachers.Remote.ID_URI_CODE, Contract.Teachers.Remote._ID);
+
+        mPrimaryColumns.append(Contract.TeachersSubjects.ID_URI_CODE, Contract.TeachersSubjects._ID);
+        mPrimaryColumns.append(Contract.TeachersSubjects.Remote.ID_URI_CODE, Contract.TeachersSubjects.Remote._ID);
 
         mPrimaryColumns.append(Contract.Marks.ID_URI_CODE, Contract.Marks._ID);
         mPrimaryColumns.append(Contract.Lessons.ID_URI_CODE, Contract.Lessons._ID);

@@ -8,6 +8,7 @@ import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.view.*;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.view.users.teachers.TeachersFragment;
 
 /**
  * Created by Dmitry on 07.04.14.

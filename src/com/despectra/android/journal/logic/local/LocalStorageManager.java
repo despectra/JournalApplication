@@ -134,20 +134,19 @@ public class LocalStorageManager {
                                long remoteId) {
         ContentValues data = new ContentValues();
         data.put(localTable.ENTITY_STATUS, Contract.STATUS_IDLE);
-        mResolver.update(
+        int affected = mResolver.update(
                 localTable.URI,
                 data,
-                String.format("%s = %d", localTable._ID, localId),
-                null
+                localTable._ID + " = ?",
+                new String[]{String.valueOf(localId)}
         );
-
-        ContentValues idsData = new ContentValues();
-        idsData.put(remoteTable.REMOTE_ID, remoteId);
-        mResolver.update(
+        data.clear();
+        data.put(remoteTable.REMOTE_ID, remoteId);
+        affected = mResolver.update(
                 remoteTable.URI,
-                idsData,
-                String.format("%s = %d", remoteTable._ID, localId),
-                null
+                data,
+                remoteTable._ID + " = ?",
+                new String[]{String.valueOf(localId)}
         );
     }
 
@@ -182,6 +181,36 @@ public class LocalStorageManager {
         String[] args = new String[]{String.valueOf(localId)};
         mResolver.delete(localTable.URI, localTable._ID + " = ?", args);
         mResolver.delete(remoteTable.URI, remoteTable._ID + " = ?", args);
+    }
+
+    public long getRemoteIdByLocal(Contract.RemoteColumnsHolder remoteTable, long localId) {
+        Cursor row = mResolver.query(
+                remoteTable.URI,
+                new String[]{remoteTable.REMOTE_ID},
+                remoteTable._ID + " = ?",
+                new String[]{String.valueOf(localId)},
+                null
+        );
+        if (row.getCount() > 0) {
+            row.moveToFirst();
+            return row.getLong(0);
+        }
+        return -1;
+    }
+
+    public long getLocalIdByRemote(Contract.RemoteColumnsHolder remoteTable, long remoteId) {
+        Cursor row = mResolver.query(
+                remoteTable.URI,
+                new String[]{remoteTable._ID},
+                remoteTable.REMOTE_ID + " = ?",
+                new String[]{String.valueOf(remoteId)},
+                null
+        );
+        if (row.getCount() > 0) {
+            row.moveToFirst();
+            return row.getLong(0);
+        }
+        return -1;
     }
 
     public void markRowAsIdle(Contract.EntityColumnsHolder table, String localId) {

@@ -1,6 +1,10 @@
 package com.despectra.android.journal.view;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteCursorDriver;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQuery;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -12,9 +16,11 @@ import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.logic.local.DBHelper;
 import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.logic.ApiServiceHelper;
 import com.despectra.android.journal.utils.ApiErrorResponder;
+import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.groups.GroupsFragment;
 import com.despectra.android.journal.view.main_page.MainPageFragmentFactory;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
@@ -178,6 +184,16 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
         switch (item.getItemId()) {
             case R.id.action_logout:
                 performLogout();
+                break;
+            case R.id.TEMP_clear_local_DB:
+                String login = PreferenceManager.getDefaultSharedPreferences(this).getString(JournalApplication.PREFERENCE_KEY_LOGIN, "");
+                final SQLiteDatabase db = this.openOrCreateDatabase(login, MODE_PRIVATE, null);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Utils.clearLocalDB(db);
+                    }
+                }).run();
                 break;
         }
         return super.onOptionsItemSelected(item);
