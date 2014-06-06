@@ -1,6 +1,5 @@
 package com.despectra.android.journal.view;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.MenuItem;
@@ -10,7 +9,8 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.HelperController;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
 
@@ -19,7 +19,7 @@ import org.json.JSONObject;
  */
 public abstract class AbstractApiActionBarActivity extends ActionBarActivity implements ApiServiceHelper.ApiClient, IActivityProgressBar {
     protected JournalApplication mApplicationContext;
-    protected ApiServiceHelper.Controller mServiceHelperController;
+    protected HelperController mServiceHelperController;
     protected ProgressBar mProgressBar;
 
     @Override
@@ -102,7 +102,7 @@ public abstract class AbstractApiActionBarActivity extends ActionBarActivity imp
     }
 
     @Override
-    public void setServiceHelperController(ApiServiceHelper.Controller controller) {
+    public void setServiceHelperController(HelperController controller) {
         mServiceHelperController = controller;
     }
 

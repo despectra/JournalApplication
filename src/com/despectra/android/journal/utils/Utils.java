@@ -79,35 +79,18 @@ public class Utils {
         db.execSQL(String.format(DBHelper.DROP_TABLE, "students"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "users"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "students_groups"));
-        db.execSQL(String.format(DBHelper.DROP_TABLE, "events_remote"));
-        db.execSQL(String.format(DBHelper.DROP_TABLE, "groups_remote"));
-        db.execSQL(String.format(DBHelper.DROP_TABLE, "students_remote"));
-        db.execSQL(String.format(DBHelper.DROP_TABLE, "users_remote"));
-        db.execSQL(String.format(DBHelper.DROP_TABLE, "students_groups_remote"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "subjects"));
-        db.execSQL(String.format(DBHelper.DROP_TABLE, "subjects_remote"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "lessons"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "marks"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "teachers"));
         db.execSQL(String.format(DBHelper.DROP_TABLE, "teachers_subjects"));
         db.execSQL(DBHelper.CREATE_TABLE_EVENTS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "events"));
         db.execSQL(DBHelper.CREATE_TABLE_GROUPS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "groups"));
         db.execSQL(DBHelper.CREATE_TABLE_STUDENTS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "students"));
         db.execSQL(DBHelper.CREATE_TABLE_USERS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "users"));
         db.execSQL(DBHelper.CREATE_TABLE_STUDENTS_GROUPS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "students_groups"));
         db.execSQL(DBHelper.CREATE_TABLE_SUBJECTS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "subjects"));
         db.execSQL(DBHelper.CREATE_TABLE_TEACHERS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "teachers"));
         db.execSQL(DBHelper.CREATE_TABLE_TEACHERS_SUBJECTS);
-        db.execSQL(String.format(DBHelper.CREATE_TABLE_ENTITY_REMOTE, "teachers_subjects"));
-
-        db.execSQL(DBHelper.CREATE_TABLE_LESSONS);
-        db.execSQL(DBHelper.CREATE_TABLE_MARKS);
     }
 }

@@ -3,19 +3,17 @@ package com.despectra.android.journal.view.subjects;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.*;
 import android.widget.TextView;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
-import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.*;
 import com.despectra.android.journal.view.AddEditSimpleItemDialog;
 import org.json.JSONObject;
@@ -111,7 +109,7 @@ public class SubjectsFragment extends EntitiesListFragment {
             case LOADER_MAIN:
                 baseUri = Contract.Subjects.URI;
                 projection = new String[]{Contract.Subjects._ID + " AS _id",
-                        Contract.Subjects.Remote.REMOTE_ID,
+                        Contract.Subjects.REMOTE_ID,
                         Contract.Subjects.FIELD_NAME,
                         Contract.Subjects.ENTITY_STATUS};
                 orderBy = Contract.Subjects.FIELD_NAME + " ASC";
@@ -183,7 +181,7 @@ public class SubjectsFragment extends EntitiesListFragment {
     @Override
     protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
         EntityIdsColumns[] columns = new EntityIdsColumns[]{
-            new EntityIdsColumns(Contract.Subjects.TABLE, "_id", Contract.Subjects.Remote.REMOTE_ID)
+            new EntityIdsColumns(Contract.Subjects.TABLE, "_id", Contract.Subjects.REMOTE_ID)
         };
         return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_checkable_1,

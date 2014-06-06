@@ -2,7 +2,8 @@ package com.despectra.android.journal.logic.queries;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiAction;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
@@ -21,20 +22,19 @@ public class Groups extends QueryExecDelegate {
         super(holderInterface);
     }
 
-    public JSONObject add(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject add(ApiAction action) throws Exception {
         long localId = preAddGroup(action.actionData);
         JSONObject jsonResponse = getApplicationServer().executeGetApiQuery("groups.addGroup", action.actionData);
         if (jsonResponse.has("group_id")) {
             //persist in cache
             getLocalStorageManager().persistTempRow(Contract.Groups.HOLDER,
-                    Contract.Groups.Remote.HOLDER,
                     localId,
                     jsonResponse.getLong("group_id"));
         }
         return jsonResponse;
     }
 
-    public JSONObject get(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject get(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         String localParentId = request.getString("LOCAL_parent_group_id");
         request.remove("LOCAL_parent_group_id");
@@ -45,7 +45,7 @@ public class Groups extends QueryExecDelegate {
         return response;
     }
 
-    public JSONObject update(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject update(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         String localGroupId = request.getString("LOCAL_id");
         request.remove("LOCAL_id");
@@ -64,12 +64,12 @@ public class Groups extends QueryExecDelegate {
         return response;
     }
 
-    public JSONObject delete(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject delete(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         preDeleteGroups(request);
         JSONObject response = getApplicationServer().executeGetApiQuery("groups.deleteGroups", request);
         if (Utils.isApiJsonSuccess(response)) {
-            getLocalStorageManager().deleteMarkedEntities(Contract.Groups.HOLDER, Contract.Groups.Remote.HOLDER);
+            getLocalStorageManager().deleteMarkedEntities(Contract.Groups.HOLDER);
         }
         return response;
     }
@@ -89,14 +89,14 @@ public class Groups extends QueryExecDelegate {
         group.put(Contract.Groups.FIELD_NAME, jsonRequest.getString("name"));
         group.put(Contract.Groups.FIELD_PARENT_ID, localParentId);
         //write in local cache
-        return getLocalStorageManager().insertTempRow(Contract.Groups.HOLDER, Contract.Groups.Remote.HOLDER, group);
+        return getLocalStorageManager().insertTempRow(Contract.Groups.HOLDER, group);
     }
 
     private void updateLocalGroups(JSONObject jsonResponse, String localParentId) throws JSONException {
         JSONArray groups = jsonResponse.getJSONArray("groups");
         Cursor localGroups = getLocalStorageManager().getResolver().query(
-                Contract.Groups.Remote.URI,
-                new String[]{Contract.Groups.Remote._ID, Contract.Groups.Remote.REMOTE_ID},
+                Contract.Groups.URI,
+                new String[]{Contract.Groups._ID, Contract.Groups.REMOTE_ID},
                 null,
                 null,
                 null
@@ -108,7 +108,6 @@ public class Groups extends QueryExecDelegate {
                 LocalStorageManager.MODE_REPLACE,
                 localGroups,
                 Contract.Groups.HOLDER,
-                Contract.Groups.Remote.HOLDER,
                 jsonResponse.getJSONArray("groups"),
                 "id",
                 new String[]{"name", "parent_id"},

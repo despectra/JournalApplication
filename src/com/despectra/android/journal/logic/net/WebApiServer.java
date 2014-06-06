@@ -25,10 +25,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.InflaterInputStream;
 
 /**
  * Created by Dmitry on 25.03.14.
@@ -39,7 +37,7 @@ public class WebApiServer implements ApplicationServer {
     public static final int CONN_TIMEOUT_MS = 20000;
     public static final int IO_TIMEOUT_MS = 15000;
 
-    private static WebApiServer mServerInstance;
+    private static WebApiServer sServerInstance;
     private Context mContext;
     private HttpClient mClient;
     private String mHost;
@@ -52,12 +50,12 @@ public class WebApiServer implements ApplicationServer {
     }
 
     public synchronized static WebApiServer instantiate(Context context, String host) {
-        if (mServerInstance == null) {
-            mServerInstance = new WebApiServer(context, host);
+        if (sServerInstance == null) {
+            sServerInstance = new WebApiServer(context, host);
         } else {
-            mServerInstance.setHost(host);
+            sServerInstance.setHost(host);
         }
-        return mServerInstance;
+        return sServerInstance;
     }
 
     public void setHost(String host) {

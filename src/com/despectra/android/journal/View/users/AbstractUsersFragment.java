@@ -9,7 +9,7 @@ import android.view.*;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.*;
 

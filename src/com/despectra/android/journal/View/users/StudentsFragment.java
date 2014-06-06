@@ -2,17 +2,15 @@ package com.despectra.android.journal.view.users;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
-import com.despectra.android.journal.view.RemoteIdCursorAdapter;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import org.json.JSONObject;
 
 /**
@@ -94,7 +92,7 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected Uri getLoaderUri() {
-        return Uri.parse(String.format("%s/groups_remote/%d/students_remote", Contract.STRING_URI, mGroupIds.getLocalId()));
+        return Uri.parse(String.format("%s/groups/%d/students", Contract.STRING_URI, mGroupIds.getLocalId()));
     }
 
     @Override
@@ -109,8 +107,8 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected String[] getLoaderProjection() {
-        return new String[]{Contract.Students._ID + " AS _id", Contract.Students.Remote.REMOTE_ID,
-                Contract.Users._ID, Contract.Users.Remote.REMOTE_ID,
+        return new String[]{Contract.Students._ID + " AS _id", Contract.Students.REMOTE_ID,
+                Contract.Users._ID, Contract.Users.REMOTE_ID,
                 Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
                 Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN,
                 Contract.Users.ENTITY_STATUS};
@@ -154,8 +152,8 @@ public class StudentsFragment extends AbstractUsersFragment {
     @Override
     protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
         EntityIdsColumns[] columns = new EntityIdsColumns[] {
-            new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.Remote.REMOTE_ID),
-            new EntityIdsColumns(Contract.Students.TABLE, "_id", Contract.Students.Remote.REMOTE_ID)
+            new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.REMOTE_ID),
+            new EntityIdsColumns(Contract.Students.TABLE, "_id", Contract.Students.REMOTE_ID)
         };
         /*return new RemoteIdCursorAdapter(getActivity(),
                 R.layout.item_student_1,
@@ -197,8 +195,9 @@ public class StudentsFragment extends AbstractUsersFragment {
 
     @Override
     protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
-        switch (actionCode) {
-            case APICodes.ACTION_GET_STUDENTS_BY_GROUP:
+        /*switch (actionCode) {*/
+        hideProgress();
+            /*case APICodes.ACTION_GET_STUDENTS_BY_GROUP:
                 getLoaderManager().restartLoader(LOADER_MAIN, null, this);
                 hideProgress();
                 break;
@@ -209,8 +208,8 @@ public class StudentsFragment extends AbstractUsersFragment {
             case APICodes.ACTION_DELETE_STUDENTS:
                 getLoaderManager().restartLoader(LOADER_MAIN, null, this);
                 hideProgress();
-                break;
-        }
+                break;*/
+        /*}*/
     }
 
     @Override

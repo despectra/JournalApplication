@@ -2,7 +2,7 @@ package com.despectra.android.journal;
 
 import android.app.Application;
 import android.util.Log;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 
 import java.util.HashMap;
 import java.util.Map;

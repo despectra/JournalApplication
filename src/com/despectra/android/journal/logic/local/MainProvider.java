@@ -21,104 +21,60 @@ public class MainProvider extends ContentProvider {
         mMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         mMatcher.addURI(Contract.AUTHORITY, "events", Contract.Events.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "events/#", Contract.Events.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "events_remote", Contract.Events.Remote.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "groups", Contract.Groups.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups_remote", Contract.Groups.Remote.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups_remote/#", Contract.Groups.Remote.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups_remote/#/students_remote", Contract.Students.Remote.URI_BY_GROUP_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "groups/#", Contract.Groups.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "groups/#/students", Contract.Students.URI_BY_GROUP_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "groups/#/students/#", Contract.Students.ID_URI_BY_GROUP_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students", Contract.Students.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students/#", Contract.Students.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students_remote", Contract.Students.Remote.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students_remote/#", Contract.Students.Remote.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students/users", Contract.Users.URI_STUDENTS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students/as_users", Contract.Students.URI_AS_USERS_CODE); //TODO check URI in usages
         mMatcher.addURI(Contract.AUTHORITY, "users", Contract.Users.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "users/#", Contract.Users.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "users_remote", Contract.Users.Remote.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "users_remote/#", Contract.Users.Remote.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_groups", Contract.StudentsGroups.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_groups/#", Contract.StudentsGroups.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students_groups_remote", Contract.StudentsGroups.Remote.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students_groups_remote/#", Contract.StudentsGroups.Remote.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects", Contract.Subjects.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Contract.Subjects.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "subjects_remote", Contract.Subjects.Remote.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "subjects_remote/#", Contract.Subjects.Remote.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers", Contract.Teachers.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_remote", Contract.Teachers.Remote.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Contract.Teachers.URI_AS_USERS_CODE); //TODO check URI in usages
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects", Contract.TeachersSubjects.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_remote", Contract.TeachersSubjects.Remote.URI_CODE);
-
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/s", Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/t", Contract.TeachersSubjects.URI_WITH_TEACHERS_CODE);
 
-        mMatcher.addURI(Contract.AUTHORITY, "marks", Contract.Marks.URI_CODE);
+        /*mMatcher.addURI(Contract.AUTHORITY, "marks", Contract.Marks.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "marks/group", Contract.Marks.URI_BY_GROUP_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "lessons", Contract.Lessons.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Contract.Lessons.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Contract.Lessons.ID_URI_CODE);*/
     }
 
     private static final SparseArray<String> mReadTables;
     static {
         mReadTables = new SparseArray<String>();
 
-        mReadTables.append(Contract.Events.URI_CODE, Contract.Events.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Events.ID_URI_CODE, Contract.Events.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Events.Remote.URI_CODE, Contract.Events.Remote.TABLE);
-        mReadTables.append(Contract.Events.Remote.ID_URI_CODE, Contract.Events.Remote.TABLE);
-
-        mReadTables.append(Contract.Groups.URI_CODE, Contract.Groups.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Groups.ID_URI_CODE, Contract.Groups.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Groups.Remote.URI_CODE, Contract.Groups.Remote.TABLE);
-        mReadTables.append(Contract.Groups.Remote.ID_URI_CODE, Contract.Groups.Remote.TABLE);
-
-        mReadTables.append(Contract.Students.URI_CODE, Contract.Students.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Students.ID_URI_CODE, Contract.Students.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Students.Remote.URI_CODE, Contract.Students.Remote.TABLE);
-        mReadTables.append(Contract.Students.Remote.ID_URI_CODE, Contract.Students.Remote.TABLE);
-        mReadTables.append(Contract.Students.Remote.URI_BY_GROUP_CODE,
-                new SQLJoinBuilder(Contract.Users.Remote.TABLE)
-                .join(Contract.Users.TABLE).onEq(Contract.Users.Remote._ID, Contract.Users._ID)
-                .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
-                .join(Contract.Students.Remote.TABLE).onEq(Contract.Students.Remote._ID, Contract.Students._ID)
+        mReadTables.append(Contract.Events.URI_CODE, Contract.Events.TABLE);
+        mReadTables.append(Contract.Events.ID_URI_CODE, Contract.Events.TABLE);
+        mReadTables.append(Contract.Groups.URI_CODE, Contract.Groups.TABLE);
+        mReadTables.append(Contract.Groups.ID_URI_CODE, Contract.Groups.TABLE);
+        mReadTables.append(Contract.Students.URI_CODE, Contract.Students.TABLE);
+        mReadTables.append(Contract.Students.ID_URI_CODE, Contract.Students.TABLE);
+        mReadTables.append(Contract.Students.URI_BY_GROUP_CODE, new SQLJoinBuilder(Contract.Students.TABLE)
+                .join(Contract.Users.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .join(Contract.StudentsGroups.TABLE).onEq(Contract.StudentsGroups.FIELD_STUDENT_ID, Contract.Students._ID)
-                .join(Contract.StudentsGroups.Remote.TABLE).onEq(Contract.StudentsGroups._ID, Contract.StudentsGroups.Remote._ID)
                 .create());
-        mReadTables.append(Contract.Students.URI_BY_GROUP_CODE,
-                new SQLJoinBuilder(Contract.Users.TABLE)
-                .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
-                .join(Contract.StudentsGroups.TABLE).onEq(Contract.Students._ID, Contract.StudentsGroups.FIELD_STUDENT_ID)
-                .create());
-
-        mReadTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Users.URI_STUDENTS_CODE,
-                new SQLJoinBuilder(Contract.Users.TABLE)
+        mReadTables.append(Contract.Students.URI_AS_USERS_CODE, new SQLJoinBuilder(Contract.Users.TABLE)
                 .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
                 .create());
-        mReadTables.append(Contract.Users.Remote.URI_CODE, Contract.Users.Remote.TABLE);
-        mReadTables.append(Contract.Users.Remote.ID_URI_CODE, Contract.Users.Remote.TABLE);
-
-        mReadTables.append(Contract.StudentsGroups.URI_CODE, Contract.StudentsGroups.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.StudentsGroups.Remote.URI_CODE, Contract.StudentsGroups.Remote.TABLE);
-        mReadTables.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote.TABLE);
-
-        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE_JOIN_REMOTE);
-        mReadTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
-        mReadTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
-
-        mReadTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE_JOIN_USERS);
-        mReadTables.append(Contract.Teachers.Remote.URI_CODE, Contract.Teachers.Remote.TABLE);
-
+        mReadTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE);
+        mReadTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE);
+        mReadTables.append(Contract.StudentsGroups.URI_CODE, Contract.StudentsGroups.TABLE);
+        mReadTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE);
+        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
+        mReadTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE);
+        mReadTables.append(Contract.Teachers.URI_AS_USERS_CODE, Contract.Teachers.TABLE_JOIN_USERS);
         mReadTables.append(Contract.TeachersSubjects.URI_CODE, Contract.TeachersSubjects.TABLE_JOIN_SUBJECTS);
         mReadTables.append(Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE, Contract.TeachersSubjects.TABLE_JOIN_SUBJECTS);
-        mReadTables.append(Contract.TeachersSubjects.Remote.URI_CODE, Contract.TeachersSubjects.Remote.TABLE);
-
-        mReadTables.append(Contract.Marks.URI_BY_GROUP_CODE, Contract.Marks.TABLE_BY_GROUP);
-        mReadTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
+        /*mReadTables.append(Contract.Marks.URI_BY_GROUP_CODE, Contract.Marks.TABLE_BY_GROUP);
+        mReadTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);*/
 
     }
 
@@ -128,75 +84,38 @@ public class MainProvider extends ContentProvider {
 
         mWriteTables.append(Contract.Events.URI_CODE, Contract.Events.TABLE);
         mWriteTables.append(Contract.Events.ID_URI_CODE, Contract.Events.TABLE);
-        mWriteTables.append(Contract.Events.Remote.URI_CODE, Contract.Events.Remote.TABLE);
-        mWriteTables.append(Contract.Events.Remote.ID_URI_CODE, Contract.Events.Remote.TABLE);
-
         mWriteTables.append(Contract.Groups.URI_CODE, Contract.Groups.TABLE);
         mWriteTables.append(Contract.Groups.ID_URI_CODE, Contract.Groups.TABLE);
-        mWriteTables.append(Contract.Groups.Remote.URI_CODE, Contract.Groups.Remote.TABLE);
-        mWriteTables.append(Contract.Groups.Remote.ID_URI_CODE, Contract.Groups.Remote.TABLE);
-
         mWriteTables.append(Contract.Students.URI_CODE, Contract.Students.TABLE);
         mWriteTables.append(Contract.Students.ID_URI_CODE, Contract.Students.TABLE);
-        mWriteTables.append(Contract.Students.Remote.URI_CODE, Contract.Students.Remote.TABLE);
-        mWriteTables.append(Contract.Students.Remote.ID_URI_CODE, Contract.Students.Remote.TABLE);
-
         mWriteTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE);
         mWriteTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE);
-        mWriteTables.append(Contract.Users.Remote.URI_CODE, Contract.Users.Remote.TABLE);
-        mWriteTables.append(Contract.Users.Remote.ID_URI_CODE, Contract.Users.Remote.TABLE);
-
         mWriteTables.append(Contract.StudentsGroups.URI_CODE, Contract.StudentsGroups.TABLE);
         mWriteTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE);
-        mWriteTables.append(Contract.StudentsGroups.Remote.URI_CODE, Contract.StudentsGroups.Remote.TABLE);
-        mWriteTables.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote.TABLE);
-
         mWriteTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
         mWriteTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
-        mWriteTables.append(Contract.Subjects.Remote.URI_CODE, Contract.Subjects.Remote.TABLE);
-        mWriteTables.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote.TABLE);
-
         mWriteTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE);
-        mWriteTables.append(Contract.Teachers.Remote.URI_CODE, Contract.Teachers.Remote.TABLE);
-
         mWriteTables.append(Contract.TeachersSubjects.URI_CODE, Contract.TeachersSubjects.TABLE);
-        mWriteTables.append(Contract.TeachersSubjects.Remote.URI_CODE, Contract.TeachersSubjects.Remote.TABLE);
 
-        mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
+       /* mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
         mWriteTables.append(Contract.Marks.ID_URI_CODE, Contract.Marks.TABLE);
-        mWriteTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);
+        mWriteTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);*/
     }
 
     private static final SparseArray<String> mPrimaryColumns;
     static {
         mPrimaryColumns = new SparseArray<String>();
-
         mPrimaryColumns.append(Contract.Events.ID_URI_CODE, Contract.Events._ID);
-        mPrimaryColumns.append(Contract.Events.Remote.ID_URI_CODE, Contract.Events.Remote._ID);
-
         mPrimaryColumns.append(Contract.Groups.ID_URI_CODE, Contract.Groups._ID);
-        mPrimaryColumns.append(Contract.Groups.Remote.ID_URI_CODE, Contract.Groups.Remote._ID);
-
         mPrimaryColumns.append(Contract.Students.ID_URI_CODE, Contract.Students._ID);
-        mPrimaryColumns.append(Contract.Students.Remote.ID_URI_CODE, Contract.Students.Remote._ID);
-
         mPrimaryColumns.append(Contract.Users.ID_URI_CODE, Contract.Users._ID);
-        mPrimaryColumns.append(Contract.Users.Remote.ID_URI_CODE, Contract.Users.Remote._ID);
-
         mPrimaryColumns.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups._ID);
-        mPrimaryColumns.append(Contract.StudentsGroups.Remote.ID_URI_CODE, Contract.StudentsGroups.Remote._ID);
-
         mPrimaryColumns.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects._ID);
-        mPrimaryColumns.append(Contract.Subjects.Remote.ID_URI_CODE, Contract.Subjects.Remote._ID);
-
         mPrimaryColumns.append(Contract.Teachers.ID_URI_CODE, Contract.Teachers._ID);
-        mPrimaryColumns.append(Contract.Teachers.Remote.ID_URI_CODE, Contract.Teachers.Remote._ID);
-
         mPrimaryColumns.append(Contract.TeachersSubjects.ID_URI_CODE, Contract.TeachersSubjects._ID);
-        mPrimaryColumns.append(Contract.TeachersSubjects.Remote.ID_URI_CODE, Contract.TeachersSubjects.Remote._ID);
 
-        mPrimaryColumns.append(Contract.Marks.ID_URI_CODE, Contract.Marks._ID);
-        mPrimaryColumns.append(Contract.Lessons.ID_URI_CODE, Contract.Lessons._ID);
+        /*mPrimaryColumns.append(Contract.Marks.ID_URI_CODE, Contract.Marks._ID);
+        mPrimaryColumns.append(Contract.Lessons.ID_URI_CODE, Contract.Lessons._ID);*/
 
     }
 

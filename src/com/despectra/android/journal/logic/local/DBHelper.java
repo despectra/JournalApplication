@@ -9,16 +9,12 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 25;
-
-    public static final String CREATE_TABLE_ENTITY_REMOTE = "" +
-            "CREATE TABLE IF NOT EXISTS %1$s_remote (" +
-            "%1$s_remote_local_id INTEGER PRIMARY KEY," +
-            "%1$s_remote_remote_id INTEGER DEFAULT 0 NOT NULL)";
+    public static final int VERSION = 26;
 
     public static final String CREATE_TABLE_EVENTS = "" +
             "CREATE TABLE IF NOT EXISTS events (" +
             "events_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "events_remote_id INTEGER DEFAULT 0 NOT NULL, " +
             "events_text TEXT, " +
             "events_datetime DATETIME NOT NULL, " +
             "events_entity_status INTEGER DEFAULT 0 NOT NULL)";
@@ -26,6 +22,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CREATE_TABLE_GROUPS = "" +
             "CREATE TABLE IF NOT EXISTS groups (" +
             "groups_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "groups_remote_id INTEGER DEFAULT 0 NOT NULL, " +
             "groups_name TEXT, " +
             "groups_parent_id INTEGER DEFAULT 0 NOT NULL, " +
             "groups_entity_status INTEGER DEFAULT 0 NOT NULL)";
@@ -33,12 +30,14 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CREATE_TABLE_STUDENTS = "" +
             "CREATE TABLE IF NOT EXISTS students (" +
             "students_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "students_remote_id INTEGER DEFAULT 0 NOT NULL, " +
             "students_user_id INTEGER NOT NULL, " +
             "students_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_USERS = "" +
             "CREATE TABLE IF NOT EXISTS users (" +
             "users_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "users_remote_id INTEGER DEFAULT 0 NOT NULL, " +
             "users_login TEXT NOT NULL, " +
             "users_name TEXT NOT NULL, " +
             "users_middlename TEXT NOT NULL, " +
@@ -48,7 +47,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String CREATE_TABLE_STUDENTS_GROUPS = "" +
             "CREATE TABLE IF NOT EXISTS students_groups (" +
-            "students_groups_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "students_groups_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "students_groups_remote_id INTEGER DEFAULT 0 NOT NULL, " +
             "students_groups_group_id INTEGER NOT_NULL, " +
             "students_groups_student_id INTEGER NOT NULL, " +
             "students_groups_entity_status INTEGER DEFAULT 0 NOT NULL)";
@@ -56,23 +56,26 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CREATE_TABLE_SUBJECTS = "" +
             "CREATE TABLE IF NOT EXISTS subjects (" +
             "subjects_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "subjects_remote_id INTEGER DEFAULT 0 NOT NULL," +
             "subjects_name TEXT NOT NULL," +
             "subjects_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_TEACHERS = "" +
             "CREATE TABLE IF NOT EXISTS teachers (" +
             "teachers_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "teachers_remote_id INTEGER DEFAULT 0 NOT NULL," +
             "teachers_user_id INTEGER NOT NULL," +
             "teachers_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_TEACHERS_SUBJECTS = "" +
             "CREATE TABLE IF NOT EXISTS teachers_subjects (" +
             "teachers_subjects_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "teachers_subjects_remote_id INTEGER DEFAULT 0 NOT NULL," +
             "teachers_subjects_teacher_id INTEGER NOT NULL," +
             "teachers_subjects_subject_id INTEGER NOT NULL," +
             "teachers_subjects_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
-    public static final String CREATE_TABLE_LESSONS = "" +
+/*    public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
             "lessons_id INTEGER PRIMARY KEY AUTOINCREMENT," +
             "lessons_group_id INTEGER NOT NULL," +
@@ -85,7 +88,7 @@ public class DBHelper extends SQLiteOpenHelper {
             "marks_lesson_id INTEGER NOT NULL," +
             "marks_student_id INTEGER NOT NULL," +
             "marks_entity_status INTEGER DEFAULT 0 NOT NULL," +
-            "marks_mark TEXT NOT NULL)";
+            "marks_mark TEXT NOT NULL)";*/
 
     public static final String DROP_TABLE = "" +
             "DROP TABLE %s";
@@ -115,15 +118,7 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "students"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "users"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "students_groups"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "events_remote"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "groups_remote"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "students_remote"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "users_remote"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "students_groups_remote"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "subjects"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "subjects_remote"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "lessons"));
-        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "marks"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers_subjects"));
 
@@ -131,24 +126,13 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private void buildSchema(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(CREATE_TABLE_EVENTS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "events"));
         sqLiteDatabase.execSQL(CREATE_TABLE_GROUPS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "groups"));
         sqLiteDatabase.execSQL(CREATE_TABLE_STUDENTS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "students"));
         sqLiteDatabase.execSQL(CREATE_TABLE_USERS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "users"));
         sqLiteDatabase.execSQL(CREATE_TABLE_STUDENTS_GROUPS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "students_groups"));
         sqLiteDatabase.execSQL(CREATE_TABLE_SUBJECTS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "subjects"));
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "teachers"));
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS_SUBJECTS);
-        sqLiteDatabase.execSQL(String.format(CREATE_TABLE_ENTITY_REMOTE, "teachers_subjects"));
-
-        sqLiteDatabase.execSQL(CREATE_TABLE_LESSONS);
-        sqLiteDatabase.execSQL(CREATE_TABLE_MARKS);
     }
 
     public static class JoinBuilder {

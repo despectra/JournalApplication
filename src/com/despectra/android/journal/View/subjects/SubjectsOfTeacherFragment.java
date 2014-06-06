@@ -6,7 +6,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.*;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
@@ -77,14 +77,23 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         return new CursorLoader(
                 getActivity(),
-                Contract.TeachersSubjects.URI,
-                new String[]{Contract.TeachersSubjects._ID, Contract.TeachersSubjects.Remote.REMOTE_ID,
-                        Contract.Subjects._ID + " as _id", Contract.Subjects.Remote.REMOTE_ID,
-                        Contract.Subjects.FIELD_NAME, Contract.TeachersSubjects.ENTITY_STATUS},
+                Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                new String[]{Contract.TeachersSubjects._ID + " AS _id",
+                        Contract.TeachersSubjects.REMOTE_ID,
+                        Contract.Subjects._ID,
+                        Contract.Subjects.REMOTE_ID,
+                        Contract.Subjects.FIELD_NAME,
+                        Contract.TeachersSubjects.ENTITY_STATUS
+                },
                 Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
                 new String[]{String.valueOf(mTeacherIds.getLocalId())},
                 Contract.Subjects.FIELD_NAME + " ASC"
                 );
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        super.onLoadFinished(cursorLoader, cursor);
     }
 
     @Override
@@ -141,11 +150,11 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
     protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
         EntityIdsColumns[] columns = new EntityIdsColumns[]{
             new EntityIdsColumns(Contract.TeachersSubjects.TABLE,
-                    Contract.TeachersSubjects._ID,
-                    Contract.TeachersSubjects.Remote.REMOTE_ID),
-            new EntityIdsColumns(Contract.Subjects.TABLE,
                     "_id",
-                    Contract.Subjects.Remote.REMOTE_ID)
+                    Contract.TeachersSubjects.REMOTE_ID),
+            new EntityIdsColumns(Contract.Subjects.TABLE,
+                    Contract.Subjects._ID,
+                    Contract.Subjects.REMOTE_ID)
         };
         return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_checkable_1,

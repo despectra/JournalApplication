@@ -14,7 +14,7 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.utils.ApiErrorResponder;
@@ -141,7 +141,11 @@ public class WallFragment extends AbstractApiFragment implements LoaderManager.L
         switch (id) {
             case WALL_LOADER_ID:
                 baseUri = Contract.Events.URI;
-                projection = new String[]{Contract.Events._ID + " AS _id", Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME};
+                projection = new String[]{Contract.Events._ID + " AS _id",
+                        Contract.Events.REMOTE_ID,
+                        Contract.Events.FIELD_TEXT,
+                        Contract.Events.FIELD_DATETIME
+                };
                 orderBy = Contract.Events.FIELD_DATETIME + " DESC";
                 break;
             default:

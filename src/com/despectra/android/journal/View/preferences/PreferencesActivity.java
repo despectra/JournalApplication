@@ -10,7 +10,7 @@ import com.despectra.android.journal.view.AbstractApiActionBarActivity;
 import com.despectra.android.journal.view.SimpleProgressDialog;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import org.json.JSONObject;
 
 import java.util.regex.Pattern;

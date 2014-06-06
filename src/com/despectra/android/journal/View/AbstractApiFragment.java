@@ -3,7 +3,8 @@ package com.despectra.android.journal.view;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import com.despectra.android.journal.JournalApplication;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.HelperController;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
 
@@ -12,7 +13,7 @@ import org.json.JSONObject;
  */
 public abstract class AbstractApiFragment extends Fragment implements ApiServiceHelper.ApiClient, IActivityProgressBar {
     protected JournalApplication mApplicationContext;
-    protected ApiServiceHelper.Controller mServiceHelperController;
+    protected HelperController mServiceHelperController;
 
     protected AbstractApiFragment() {
         super();
@@ -56,7 +57,7 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
     }
 
     @Override
-    public void setServiceHelperController(ApiServiceHelper.Controller controller) {
+    public void setServiceHelperController(HelperController controller) {
         mServiceHelperController = controller;
     }
 

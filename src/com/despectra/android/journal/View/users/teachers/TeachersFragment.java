@@ -3,7 +3,7 @@ package com.despectra.android.journal.view.users.teachers;
 import android.content.Intent;
 import android.net.Uri;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.model.EntityIds;
@@ -64,7 +64,7 @@ public class TeachersFragment extends AbstractUsersFragment {
 
     @Override
     protected Uri getLoaderUri() {
-        return Uri.parse(Contract.STRING_URI + "/teachers");
+        return Contract.Teachers.URI_AS_USERS;
     }
 
     @Override
@@ -79,8 +79,8 @@ public class TeachersFragment extends AbstractUsersFragment {
 
     @Override
     protected String[] getLoaderProjection() {
-        return new String[]{Contract.Teachers._ID + " AS _id", Contract.Teachers.Remote.REMOTE_ID,
-                Contract.Users._ID, Contract.Users.Remote.REMOTE_ID,
+        return new String[]{Contract.Teachers._ID + " AS _id", Contract.Teachers.REMOTE_ID,
+                Contract.Users._ID, Contract.Users.REMOTE_ID,
                 Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
                 Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN,
                 Contract.Users.ENTITY_STATUS};
@@ -127,8 +127,8 @@ public class TeachersFragment extends AbstractUsersFragment {
     @Override
     protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
         EntityIdsColumns[] idsColumns = new EntityIdsColumns[]{
-                new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.Remote.REMOTE_ID),
-                new EntityIdsColumns(Contract.Teachers.TABLE, "_id", Contract.Teachers.Remote.REMOTE_ID)
+                new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.REMOTE_ID),
+                new EntityIdsColumns(Contract.Teachers.TABLE, "_id", Contract.Teachers.REMOTE_ID)
         };
 
         return new MultipleRemoteIdsCursorAdapter(getActivity(),
@@ -161,7 +161,8 @@ public class TeachersFragment extends AbstractUsersFragment {
 
     @Override
     protected void onResponseSuccess(int actionCode, int remainingActions, Object response) {
-        switch (actionCode) {
+        hideProgress();
+        /*switch (actionCode) {
             case APICodes.ACTION_GET_TEACHERS:
                 getLoaderManager().restartLoader(LOADER_MAIN, null, this);
                 hideProgress();
@@ -174,7 +175,7 @@ public class TeachersFragment extends AbstractUsersFragment {
                 getLoaderManager().restartLoader(LOADER_MAIN, null, this);
                 hideProgress();
                 break;
-        }
+        }*/
     }
 
     @Override

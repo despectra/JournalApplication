@@ -2,11 +2,10 @@ package com.despectra.android.journal.logic.queries;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Message;
 import android.util.Pair;
-import android.widget.ZoomControls;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiAction;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
@@ -17,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -28,16 +26,17 @@ public class Teachers extends QueryExecDelegate {
         super(holderInterface);
     }
 
-    public JSONObject get(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject get(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         JSONObject response = getApplicationServer().executeGetApiQuery("teachers.getTeachers", request);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalTeachers(response);
+            getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
         }
         return response;
     }
 
-    public JSONObject getOne(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject getOne(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         long localTeacherId = request.getLong("LOCAL_teacher_id");
         long localUserId = request.getLong("user_id");
@@ -70,51 +69,54 @@ public class Teachers extends QueryExecDelegate {
     }
 
     private void deleteLocalTeacher(long localUserId, long localTeacherId) {
-        getLocalStorageManager().deleteEntityByLocalId(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER, localTeacherId);
-        getLocalStorageManager().deleteEntityByLocalId(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER, localUserId);
+        getLocalStorageManager().deleteEntityByLocalId(Contract.Teachers.HOLDER, localTeacherId);
+        getLocalStorageManager().deleteEntityByLocalId(Contract.Users.HOLDER, localUserId);
     }
 
-    public JSONObject add(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject add(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
 
         long localUserId = preAddUser(request);
         long localTeacherId = preAddTeacher(localUserId);
         //notify helper about caching completed
-        Pair<String, String> progress = new Pair<String, String>(action.clientTag, "cached");
-        getResponseHandler().sendMessage(Message.obtain(getResponseHandler(), ApiService.MSG_PROGRESS, progress));
+        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
 
         JSONObject response = getApplicationServer().executeGetApiQuery("teachers.addTeacher", request);
         if (Utils.isApiJsonSuccess(response)) {
             persistTeacher(localUserId, localTeacherId, response);
+            getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
         }
         return response;
     }
 
-    public JSONObject delete(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject delete(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         preDeleteTeachers(request);
-        getResponseHandler().sendMessage(Message.obtain(getResponseHandler(), ApiService.MSG_PROGRESS, new Pair<String, String>(action.clientTag, "cached")));
+        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
 
         JSONObject response = getApplicationServer().executeGetApiQuery("teachers.deleteTeachers", request);
-
         if (Utils.isApiJsonSuccess(response)) {
             persistTeachersDeletion();
+            getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
         }
         return response;
     }
 
-    public JSONObject getSubjectsOfTeacher(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject getSubjectsOfTeacher(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         long localTeacherId = request.getLong("LOCAL_teacher_id");
         request.remove("LOCAL_teacher_id");
         JSONObject response = getApplicationServer().executeGetApiQuery("teachers.getSubjectsOfTeacher", request);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalSubjectsLinks(localTeacherId, response);
+            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                    action,
+                    "SubjectsOfTeacherFragment");
         }
         return response;
     }
 
-    public JSONObject setSubjectsOfTeacher(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject setSubjectsOfTeacher(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         long localTeacherId = request.getLong("LOCAL_teacher_id");
         JSONArray localSubjectsIds = request.getJSONArray("LOCAL_subjects_ids");
@@ -122,30 +124,41 @@ public class Teachers extends QueryExecDelegate {
         request.remove("LOCAL_subjects_ids");
 
         long[] localLinksIds = preSetLocalSubjectsOfTeacher(localTeacherId, localSubjectsIds);
+        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                action,
+                "SubjectsOfTeacherFragment");
         JSONObject response = getApplicationServer().executeGetApiQuery("teachers.setSubjectsOfTeacher", request);
         if (Utils.isApiJsonSuccess(response)) {
             persistSetSubjectsOfTeacher(localLinksIds, response.getJSONArray("affected_links"));
+            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                    action,
+                    "SubjectsOfTeacherFragment");
         }
         return response;
     }
 
-    public JSONObject unsetSubjectsOfTeacher(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject unsetSubjectsOfTeacher(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         JSONArray localLinks = request.getJSONArray("LOCAL_links_ids");
         request.remove("LOCAL_links_ids");
 
         preUnsetSubjectsOfTeacher(localLinks);
+        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                action,
+                "SubjectsOfTeacherFragment");
         JSONObject response = getApplicationServer().executeGetApiQuery("teachers.unsetSubjectsOfTeacher", request);
         if (Utils.isApiJsonSuccess(response)) {
             persistUnsetSubjectsOfTeacher(localLinks);
+            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                    action,
+                    "SubjectsOfTeacherFragment");
         }
         return response;
     }
 
     private void persistUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
         for (int i = 0; i < localLinks.length(); i++) {
-            getLocalStorageManager().deleteEntityByLocalId(Contract.TeachersSubjects.HOLDER, Contract.TeachersSubjects.Remote.HOLDER,
-                    localLinks.getLong(i));
+            getLocalStorageManager().deleteEntityByLocalId(Contract.TeachersSubjects.HOLDER, localLinks.getLong(i));
         }
     }
 
@@ -160,12 +173,7 @@ public class Teachers extends QueryExecDelegate {
         for (int i = 0; i < affectedIds.length(); i++) {
             long localId = localTempIds[i];
             long affectedId = affectedIds.getLong(i);
-            getLocalStorageManager().persistTempRow(
-                    Contract.TeachersSubjects.HOLDER,
-                    Contract.TeachersSubjects.Remote.HOLDER,
-                    localId,
-                    affectedId
-            );
+            getLocalStorageManager().persistTempRow(Contract.TeachersSubjects.HOLDER, localId, affectedId);
         }
     }
 
@@ -175,11 +183,7 @@ public class Teachers extends QueryExecDelegate {
             ContentValues values = new ContentValues();
             values.put(Contract.TeachersSubjects.FIELD_TEACHER_ID, localTeacherId);
             values.put(Contract.TeachersSubjects.FIELD_SUBJECT_ID, localSubjectsIds.getString(i));
-            tempIds[i] = getLocalStorageManager().insertTempRow(
-                    Contract.TeachersSubjects.HOLDER,
-                    Contract.TeachersSubjects.Remote.HOLDER,
-                    values
-            );
+            tempIds[i] = getLocalStorageManager().insertTempRow(Contract.TeachersSubjects.HOLDER, values);
         }
         return tempIds;
     }
@@ -187,7 +191,7 @@ public class Teachers extends QueryExecDelegate {
     private void updateLocalSubjectsLinks(long teacherId, JSONObject response) throws Exception {
         Cursor existingSubjects = getLocalStorageManager().getResolver().query(
                 Contract.TeachersSubjects.URI,
-                new String[]{Contract.TeachersSubjects.Remote._ID, Contract.TeachersSubjects.Remote.REMOTE_ID},
+                new String[]{Contract.TeachersSubjects._ID, Contract.TeachersSubjects.REMOTE_ID},
                 Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
                 new String[]{String.valueOf(teacherId)},
                 null
@@ -197,13 +201,12 @@ public class Teachers extends QueryExecDelegate {
             JSONObject subj = subjects.getJSONObject(i);
             subj.put("teacher_id", teacherId);
             long remoteSubjectId = subj.getLong("subject_id");
-            long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.Remote.HOLDER, remoteSubjectId);
+            long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.HOLDER, remoteSubjectId);
             subj.put("LOCAL_subject_id", localSubjectId);
         }
         getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
                 existingSubjects,
                 Contract.TeachersSubjects.HOLDER,
-                Contract.TeachersSubjects.Remote.HOLDER,
                 subjects,
                 "id",
                 new String[]{"teacher_id", "LOCAL_subject_id"},
@@ -217,22 +220,20 @@ public class Teachers extends QueryExecDelegate {
         tempUser.put(Contract.Users.FIELD_MIDDLENAME, request.getString("middleName"));
         tempUser.put(Contract.Users.FIELD_SURNAME, request.getString("secondName"));
         tempUser.put(Contract.Users.FIELD_LEVEL, 4);
-        return getLocalStorageManager().insertTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER, tempUser);
+        return getLocalStorageManager().insertTempRow(Contract.Users.HOLDER, tempUser);
     }
 
     private long preAddTeacher(long localUserId) {
         ContentValues tempStudent = new ContentValues();
         tempStudent.put(Contract.Teachers.FIELD_USER_ID, localUserId);
-        return getLocalStorageManager().insertTempRow(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER, tempStudent);
+        return getLocalStorageManager().insertTempRow(Contract.Teachers.HOLDER, tempStudent);
     }
 
     private void persistTeacher(long localUserId, long localTeacherId, JSONObject response) throws JSONException {
         long remoteUserId = response.getLong("user_id");
         long remoteStudentId = response.getLong("teacher_id");
-        getLocalStorageManager().persistTempRow(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER,
-                localUserId, remoteUserId);
-        getLocalStorageManager().persistTempRow(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER,
-                localTeacherId, remoteStudentId);
+        getLocalStorageManager().persistTempRow(Contract.Users.HOLDER, localUserId, remoteUserId);
+        getLocalStorageManager().persistTempRow(Contract.Teachers.HOLDER, localTeacherId, remoteStudentId);
     }
 
     private void preDeleteTeachers(JSONObject request) throws JSONException {
@@ -240,7 +241,7 @@ public class Teachers extends QueryExecDelegate {
         request.remove("LOCAL_teachers");
         for (int i = 0; i < localTeachers.length(); i++) {
             String localTeacherId = localTeachers.getString(i);
-            Cursor localUser = getContext().getContentResolver().query(Contract.Teachers.URI,
+            Cursor localUser = getContext().getContentResolver().query(Contract.Teachers.URI_AS_USERS,
                     new String[]{Contract.Users._ID},
                     Contract.Teachers._ID + " = ?",
                     new String[]{ localTeacherId },
@@ -253,15 +254,15 @@ public class Teachers extends QueryExecDelegate {
     }
 
     private void persistTeachersDeletion() {
-        getLocalStorageManager().deleteMarkedEntities(Contract.Teachers.HOLDER, Contract.Teachers.Remote.HOLDER);
-        getLocalStorageManager().deleteMarkedEntities(Contract.Users.HOLDER, Contract.Users.Remote.HOLDER);
+        getLocalStorageManager().deleteMarkedEntities(Contract.Teachers.HOLDER);
+        getLocalStorageManager().deleteMarkedEntities(Contract.Users.HOLDER);
     }
 
     private void updateLocalTeachers(JSONObject response) throws JSONException {
         Cursor localTeachers = getLocalStorageManager().getResolver().query(
-                Uri.parse(Contract.STRING_URI + "/teachers"),
-                new String[]{Contract.Teachers.Remote.REMOTE_ID, Contract.Teachers.Remote._ID,
-                        Contract.Users.Remote.REMOTE_ID, Contract.Users.Remote._ID},
+                Contract.Teachers.URI_AS_USERS,
+                new String[]{Contract.Teachers.REMOTE_ID, Contract.Teachers._ID,
+                        Contract.Users.REMOTE_ID, Contract.Users._ID},
                 null,
                 null,
                 null
@@ -275,7 +276,6 @@ public class Teachers extends QueryExecDelegate {
                 LocalStorageManager.MODE_REPLACE,
                 localTeachers,
                 Contract.Users.HOLDER,
-                Contract.Users.Remote.HOLDER,
                 remoteTeachers,
                 "user_id",
                 new String[]{"name", "middlename", "surname", "login", "level"},
@@ -290,7 +290,6 @@ public class Teachers extends QueryExecDelegate {
                 LocalStorageManager.MODE_REPLACE,
                 localTeachers,
                 Contract.Teachers.HOLDER,
-                Contract.Teachers.Remote.HOLDER,
                 remoteTeachers,
                 "teacher_id",
                 new String[]{"user_id"},

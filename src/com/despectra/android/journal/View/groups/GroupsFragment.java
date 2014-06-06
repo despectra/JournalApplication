@@ -6,21 +6,18 @@ import android.support.v4.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.view.*;
 import android.widget.*;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
-import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.*;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.view.customviews.StatusBar;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -104,7 +101,7 @@ public class GroupsFragment extends EntitiesListFragment {
             case LOADER_MAIN:
                 baseUri = Contract.Groups.URI;
                 projection = new String[]{Contract.Groups._ID + " AS _id",
-                        Contract.Groups.Remote.REMOTE_ID,
+                        Contract.Groups.REMOTE_ID,
                         Contract.Groups.FIELD_NAME,
                         Contract.Groups.FIELD_PARENT_ID,
                         Contract.Groups.ENTITY_STATUS};
@@ -180,7 +177,7 @@ public class GroupsFragment extends EntitiesListFragment {
     @Override
     protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
         EntityIdsColumns[] columns = new EntityIdsColumns[]{
-            new EntityIdsColumns(Contract.Groups.TABLE, "_id", Contract.Groups.Remote.REMOTE_ID)
+            new EntityIdsColumns(Contract.Groups.TABLE, "_id", Contract.Groups.REMOTE_ID)
         };
         return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_checkable_1,

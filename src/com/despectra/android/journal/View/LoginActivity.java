@@ -12,7 +12,7 @@ import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.net.APICodes;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;

@@ -154,9 +154,6 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     }
 
     @Override
-    public abstract Loader<Cursor> onCreateLoader(int id, Bundle bundle);
-
-    @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mEntitiesAdapter.swapCursor(cursor);
     }

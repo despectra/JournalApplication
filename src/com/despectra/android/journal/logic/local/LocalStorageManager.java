@@ -5,7 +5,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.logic.helper.ApiAction;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,10 +35,26 @@ public class LocalStorageManager {
         return mResolver;
     }
 
+    public void notifyUri(Uri uri) {
+        getResolver().notifyChange(uri, null);
+    }
+
+    public void notifyUriForClients(Uri uri, ApiAction executingAction, String... clientsNames) {
+        boolean notify = false;
+        for (String client : clientsNames) {
+            notify = notify || executingAction.clientTag.equals(client);
+            if (notify) {
+                break;
+            }
+        }
+        if (notify) {
+            notifyUri(uri);
+        }
+    }
+
     public Map<Long, Long> updateEntityWithJSONArray(int updatingMode,
                                             Cursor existingIds,
-                                            Contract.EntityColumnsHolder localTable,
-                                            Contract.RemoteColumnsHolder remoteTable,
+                                            Contract.EntityTable table,
                                             JSONArray json,
                                             String jsonIdCol,
                                             String[] jsonCols,
@@ -46,8 +63,8 @@ public class LocalStorageManager {
         Map<Long, JSONObject> receivedRows = new HashMap<Long, JSONObject>();
         Map<Long, Long> affectedRows = new HashMap<Long, Long>();
 
-        int remoteIdColIndex = existingIds.getColumnIndex(remoteTable.REMOTE_ID);
-        int localIdColIndex = existingIds.getColumnIndex(remoteTable._ID);
+        int remoteIdColIndex = existingIds.getColumnIndex(table.REMOTE_ID);
+        int localIdColIndex = existingIds.getColumnIndex(table._ID);
 
         if (existingIds.moveToFirst()) {
             do {
@@ -66,7 +83,7 @@ public class LocalStorageManager {
             long localId = row.getKey();
             long remoteId = row.getValue();
             if (receivedRows.containsKey(remoteId)) {
-                updateSingleEntity(localTable, localId, receivedRows.get(remoteId), jsonCols, entityTableCols);
+                updateSingleEntity(table, localId, receivedRows.get(remoteId), jsonCols, entityTableCols);
                 affectedRows.put(remoteId, localId);
                 existingRowsIt.remove();
                 receivedRows.remove(remoteId);
@@ -77,7 +94,7 @@ public class LocalStorageManager {
         Iterator jsonRowsIt = receivedRows.entrySet().iterator();
         while(jsonRowsIt.hasNext()) {
             Map.Entry<Long, JSONObject> row = (Map.Entry<Long, JSONObject>)jsonRowsIt.next();
-            Map.Entry<Long, Long> insertedIds = insertNewEntity(localTable, remoteTable, row.getValue(), jsonIdCol, jsonCols, entityTableCols);
+            Map.Entry<Long, Long> insertedIds = insertNewEntity(table, row.getValue(), row.getKey(), jsonCols, entityTableCols);
             affectedRows.put(insertedIds.getKey(), insertedIds.getValue());
             jsonRowsIt.remove();
         }
@@ -86,25 +103,21 @@ public class LocalStorageManager {
             //delete non-existing
             for (Map.Entry<Long, Long> row : existingRows.entrySet()) {
                 long localId = row.getKey();
-                deleteEntityByLocalId(localTable, remoteTable, localId);
+                deleteEntityByLocalId(table, localId);
             }
         }
         return affectedRows;
     }
 
-    public Map.Entry<Long, Long> insertNewEntity(Contract.EntityColumnsHolder localTable, Contract.RemoteColumnsHolder remoteTable, JSONObject jsonRow, String jsonIdCol, String[] from, String[] to) throws JSONException {
-        ContentValues data = getContentValuesFromJson(jsonRow, from, to);
-        Uri result = mResolver.insert(localTable.URI, data);
-        long localId = Long.valueOf(result.getLastPathSegment());
-        long remoteId = jsonRow.getLong(jsonIdCol);
-        ContentValues remoteIdData = new ContentValues();
-        remoteIdData.put(remoteTable._ID, localId);
-        remoteIdData.put(remoteTable.REMOTE_ID, remoteId);
-        mResolver.insert(remoteTable.URI, remoteIdData);
-        return new AbstractMap.SimpleEntry<Long, Long>(remoteId, localId);
+    public Map.Entry<Long, Long> insertNewEntity(Contract.EntityTable table, JSONObject jsonDataRow, long insertingId, String[] from, String[] to) throws JSONException {
+        ContentValues data = getContentValuesFromJson(jsonDataRow, from, to);
+        data.put(table.REMOTE_ID, insertingId);
+        Uri result = mResolver.insert(table.URI, data);
+        long localInsertedId = Long.valueOf(result.getLastPathSegment());
+        return new AbstractMap.SimpleEntry<Long, Long>(insertingId, localInsertedId);
     }
 
-    public void updateSingleEntity(Contract.EntityColumnsHolder localTable, long localId, JSONObject jsonData, String[] from, String[] to) throws JSONException {
+    public void updateSingleEntity(Contract.EntityTable localTable, long localId, JSONObject jsonData, String[] from, String[] to) throws JSONException {
         ContentValues data = getContentValuesFromJson(jsonData, from, to);
         mResolver.update(localTable.URI, data, String.format("%s = %d", localTable._ID, localId), null);
     }
@@ -117,59 +130,32 @@ public class LocalStorageManager {
         return data;
     }
 
-    public long insertTempRow(Contract.EntityColumnsHolder localTable, Contract.RemoteColumnsHolder remoteTable, ContentValues data) {
+    public long insertTempRow(Contract.EntityTable localTable, ContentValues data) {
         data.put(localTable.ENTITY_STATUS, Contract.STATUS_INSERTING);
         Uri result = mResolver.insert(localTable.URI, data);
-        long localId = Long.valueOf(result.getLastPathSegment());
-
-        ContentValues idsData = new ContentValues();
-        idsData.put(remoteTable._ID, localId);
-        mResolver.insert(remoteTable.URI, idsData);
-        return localId;
+        return Long.valueOf(result.getLastPathSegment());
     }
 
-    public void persistTempRow(Contract.EntityColumnsHolder localTable,
-                               Contract.RemoteColumnsHolder remoteTable,
+    public void persistTempRow(Contract.EntityTable table,
                                long localId,
                                long remoteId) {
         ContentValues data = new ContentValues();
-        data.put(localTable.ENTITY_STATUS, Contract.STATUS_IDLE);
+        data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
+        data.put(table.REMOTE_ID, remoteId);
         int affected = mResolver.update(
-                localTable.URI,
+                table.URI,
                 data,
-                localTable._ID + " = ?",
-                new String[]{String.valueOf(localId)}
-        );
-        data.clear();
-        data.put(remoteTable.REMOTE_ID, remoteId);
-        affected = mResolver.update(
-                remoteTable.URI,
-                data,
-                remoteTable._ID + " = ?",
+                table._ID + " = ?",
                 new String[]{String.valueOf(localId)}
         );
     }
 
-    public void persistUpdatingRow(Contract.EntityColumnsHolder table, String localId, ContentValues data) {
+    public void persistUpdatingRow(Contract.EntityTable table, String localId, ContentValues data) {
         data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
         mResolver.update(table.URI, data, table._ID + " = ?", new String[]{localId});
     }
 
-    public void deleteMarkedEntities(Contract.EntityColumnsHolder local, Contract.RemoteColumnsHolder remote) {
-        Cursor localDeletingIds = mResolver.query(
-                local.URI,
-                new String[]{local._ID},
-                local.ENTITY_STATUS + " = ?",
-                new String[]{String.valueOf(Contract.STATUS_DELETING)},
-                null);
-        deleteMarkedRows(local);
-        localDeletingIds.moveToFirst();
-        do {
-            mResolver.delete(remote.URI, remote._ID + " = ?", new String[]{localDeletingIds.getString(0)});
-        } while (localDeletingIds.moveToNext());
-    }
-
-    public void deleteMarkedRows(Contract.EntityColumnsHolder table) {
+    public void deleteMarkedEntities(Contract.EntityTable table) {
         mResolver.delete(
                 table.URI,
                 table.ENTITY_STATUS + " = ?",
@@ -177,17 +163,16 @@ public class LocalStorageManager {
         );
     }
 
-    public void deleteEntityByLocalId(Contract.EntityColumnsHolder localTable, Contract.RemoteColumnsHolder remoteTable, long localId) {
+    public void deleteEntityByLocalId(Contract.EntityTable localTable, long localId) {
         String[] args = new String[]{String.valueOf(localId)};
         mResolver.delete(localTable.URI, localTable._ID + " = ?", args);
-        mResolver.delete(remoteTable.URI, remoteTable._ID + " = ?", args);
     }
 
-    public long getRemoteIdByLocal(Contract.RemoteColumnsHolder remoteTable, long localId) {
+    public long getRemoteIdByLocal(Contract.EntityTable table, long localId) {
         Cursor row = mResolver.query(
-                remoteTable.URI,
-                new String[]{remoteTable.REMOTE_ID},
-                remoteTable._ID + " = ?",
+                table.URI,
+                new String[]{table.REMOTE_ID},
+                table._ID + " = ?",
                 new String[]{String.valueOf(localId)},
                 null
         );
@@ -198,11 +183,11 @@ public class LocalStorageManager {
         return -1;
     }
 
-    public long getLocalIdByRemote(Contract.RemoteColumnsHolder remoteTable, long remoteId) {
+    public long getLocalIdByRemote(Contract.EntityTable table, long remoteId) {
         Cursor row = mResolver.query(
-                remoteTable.URI,
-                new String[]{remoteTable._ID},
-                remoteTable.REMOTE_ID + " = ?",
+                table.URI,
+                new String[]{table._ID},
+                table.REMOTE_ID + " = ?",
                 new String[]{String.valueOf(remoteId)},
                 null
         );
@@ -213,19 +198,19 @@ public class LocalStorageManager {
         return -1;
     }
 
-    public void markRowAsIdle(Contract.EntityColumnsHolder table, String localId) {
+    public void markRowAsIdle(Contract.EntityTable table, String localId) {
         markEntityRowWithStatus(table, localId, Contract.STATUS_IDLE);
     }
 
-    public void markRowAsUpdating(Contract.EntityColumnsHolder table, String localId) {
+    public void markRowAsUpdating(Contract.EntityTable table, String localId) {
         markEntityRowWithStatus(table, localId, Contract.STATUS_UPDATING);
     }
 
-    public void markRowAsDeleting(Contract.EntityColumnsHolder table, String localId) {
+    public void markRowAsDeleting(Contract.EntityTable table, String localId) {
         markEntityRowWithStatus(table, localId, Contract.STATUS_DELETING);
     }
 
-    private void markEntityRowWithStatus(Contract.EntityColumnsHolder table, String localId, int status) {
+    private void markEntityRowWithStatus(Contract.EntityTable table, String localId, int status) {
         ContentValues data = new ContentValues();
         data.put(table.ENTITY_STATUS, status);
         mResolver.update(table.URI,  data, table._ID + " = ?", new String[]{localId});

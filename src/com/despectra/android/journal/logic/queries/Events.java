@@ -1,7 +1,8 @@
 package com.despectra.android.journal.logic.queries;
 
 import android.database.Cursor;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiAction;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
@@ -17,7 +18,7 @@ public class Events extends QueryExecDelegate {
         super(holderInterface);
     }
 
-    public JSONObject get(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject get(ApiAction action) throws Exception {
         JSONObject response = getApplicationServer().executeGetApiQuery("events.getEvents", action.actionData);
         if (response.has("events")) {
             updateLocalEvents(response);
@@ -27,8 +28,8 @@ public class Events extends QueryExecDelegate {
 
     private void updateLocalEvents(JSONObject jsonResponse) throws JSONException {
         Cursor localEvents = getLocalStorageManager().getResolver().query(
-                Contract.Events.Remote.URI,
-                new String[]{Contract.Events.Remote._ID, Contract.Events.Remote.REMOTE_ID},
+                Contract.Events.URI,
+                new String[]{Contract.Events._ID, Contract.Events.REMOTE_ID},
                 null,
                 null,
                 null
@@ -36,8 +37,7 @@ public class Events extends QueryExecDelegate {
         getLocalStorageManager().updateEntityWithJSONArray(
                 LocalStorageManager.MODE_REPLACE,
                 localEvents,
-                new Contract.EntityColumnsHolder("Events"),
-                new Contract.RemoteColumnsHolder("Events"),
+                Contract.Events.HOLDER,
                 jsonResponse.getJSONArray("events"),
                 "id",
                 new String[]{"text", "datetime"},

@@ -2,7 +2,8 @@ package com.despectra.android.journal.logic.queries;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiAction;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
@@ -21,20 +22,16 @@ public class Subjects extends QueryExecDelegate {
         super(holderInterface);
     }
 
-    public JSONObject add(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject add(ApiAction action) throws Exception {
         long localId = preAddSubject(action.actionData);
         JSONObject jsonResponse = getApplicationServer().executeGetApiQuery("subjects.addSubject", action.actionData);
         if (jsonResponse.has("subject_id")) {
-            //persist in cache
-            getLocalStorageManager().persistTempRow(Contract.Subjects.HOLDER,
-                    Contract.Subjects.Remote.HOLDER,
-                    localId,
-                    jsonResponse.getLong("subject_id"));
+            getLocalStorageManager().persistTempRow(Contract.Subjects.HOLDER, localId, jsonResponse.getLong("subject_id"));
         }
         return jsonResponse;
     }
 
-    public JSONObject get(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject get(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         JSONObject response = getApplicationServer().executeGetApiQuery("subjects.getSubjects", request);
         if (response.has("subjects")) {
@@ -43,7 +40,7 @@ public class Subjects extends QueryExecDelegate {
         return response;
     }
 
-    public JSONObject update(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject update(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         String localSubjId = request.getString("LOCAL_id");
         request.remove("LOCAL_id");
@@ -59,12 +56,12 @@ public class Subjects extends QueryExecDelegate {
         return response;
     }
 
-    public JSONObject delete(ApiServiceHelper.ApiAction action) throws Exception {
+    public JSONObject delete(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         preDeleteSubject(request);
         JSONObject response = getApplicationServer().executeGetApiQuery("subjects.deleteSubjects", request);
         if (Utils.isApiJsonSuccess(response)) {
-            getLocalStorageManager().deleteMarkedEntities(Contract.Subjects.HOLDER, Contract.Subjects.Remote.HOLDER);
+            getLocalStorageManager().deleteMarkedEntities(Contract.Subjects.HOLDER);
         }
         return response;
     }
@@ -81,14 +78,14 @@ public class Subjects extends QueryExecDelegate {
         ContentValues subj = new ContentValues();
         subj.put(Contract.Subjects.FIELD_NAME, jsonRequest.getString("name"));
         //write in local cache
-        return getLocalStorageManager().insertTempRow(Contract.Subjects.HOLDER, Contract.Subjects.Remote.HOLDER, subj);
+        return getLocalStorageManager().insertTempRow(Contract.Subjects.HOLDER, subj);
     }
 
     private void updateLocalSubjects(JSONObject response) throws Exception {
         JSONArray subjects = response.getJSONArray("subjects");
         Cursor localGroups = getLocalStorageManager().getResolver().query(
-                Contract.Subjects.Remote.URI,
-                new String[]{Contract.Subjects.Remote._ID, Contract.Subjects.Remote.REMOTE_ID},
+                Contract.Subjects.URI,
+                new String[]{Contract.Subjects._ID, Contract.Subjects.REMOTE_ID},
                 null,
                 null,
                 null
@@ -97,7 +94,6 @@ public class Subjects extends QueryExecDelegate {
                 LocalStorageManager.MODE_REPLACE,
                 localGroups,
                 Contract.Subjects.HOLDER,
-                Contract.Subjects.Remote.HOLDER,
                 subjects,
                 "id",
                 new String[]{"name"},

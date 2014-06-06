@@ -8,12 +8,13 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Pair;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.queries.common.QueryExecutor;
 import com.despectra.android.journal.logic.queries.common.QueryExecutorImpl;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
-import com.despectra.android.journal.logic.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.utils.JSONBuilder;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
@@ -88,13 +89,13 @@ public class ApiService extends Service {
     private void createActionsImplementations() {
         mActionsImpls.put(APICodes.ACTION_LOGIN, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mServer.executePostApiQuery("auth.login", action.actionData);
             }
         });
         mActionsImpls.put(APICodes.ACTION_LOGOUT, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 JSONObject response = mServer.executeGetApiQuery("auth.logout", action.actionData);
                 deleteFile(WebApiServer.AVATAR_FILENAME);
                 return response;
@@ -102,7 +103,7 @@ public class ApiService extends Service {
         });
         mActionsImpls.put(APICodes.ACTION_GET_MIN_PROFILE, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 JSONObject response = mServer.executeGetApiQuery("profile.getMinProfile", action.actionData);
                 if (Utils.isApiJsonSuccess(response)) {
                     mServer.loadAvatar(response);
@@ -112,127 +113,127 @@ public class ApiService extends Service {
         });
         mActionsImpls.put(APICodes.ACTION_CHECK_TOKEN, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mServer.executeGetApiQuery("auth.checkToken", action.actionData);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_INFO, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mServer.getServerInfo(action.actionData.getString("host"));
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_EVENTS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return  mQueryExecutor.forEvents().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_GROUP, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forGroups().add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_GROUPS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forGroups().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_GROUPS, new ActionImpl() {
             @Override
-            public JSONObject doAction (ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction (ApiAction action) throws Exception {
                 return mQueryExecutor.forGroups().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UPDATE_GROUP, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forGroups().update(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_STUDENTS_BY_GROUP, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forStudents().getByGroup(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_STUDENT_IN_GROUP, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forStudents().addInGroup(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_STUDENTS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forStudents().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forSubjects().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_SUBJECT, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forSubjects().add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UPDATE_SUBJECT, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forSubjects().update(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_SUBJECTS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forSubjects().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_TEACHER, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_TEACHERS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_TEACHERS, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_TEACHER, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().getOne(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS_OF_TEACHER, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().getSubjectsOfTeacher(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_SET_SUBJECTS_OF_TEACHER, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().setSubjectsOfTeacher(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UNSET_SUBJECTS_OF_TEACHER, new ActionImpl() {
             @Override
-            public JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+            public JSONObject doAction(ApiAction action) throws Exception {
                 return mQueryExecutor.forTeachers().unsetSubjectsOfTeacher(action);
             }
         });
@@ -249,7 +250,7 @@ public class ApiService extends Service {
         return mBinder;
     }
 
-    public void processApiAction(final ApiServiceHelper.ApiAction action) {
+    public void processApiAction(final ApiAction action) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -324,7 +325,7 @@ public class ApiService extends Service {
                             getContentResolver().update(Contract.Marks.URI, fnlCv, Contract.Marks._ID + " = " + markId, null);
                             break;
                     }*/
-                    response.responseAction = new ApiServiceHelper.ApiAction(apiActionCode, action.clientTag, jsonResponse);
+                    response.responseAction = new ApiAction(apiActionCode, action.clientTag, jsonResponse);
                     mResponseHandler.sendMessage(Message.obtain(mResponseHandler, MSG_RESPONSE, response));
                 } catch (Exception ex) {
                     try {
@@ -332,7 +333,7 @@ public class ApiService extends Service {
                                 .addKeyValue("success", "0")
                                 .addKeyValue("error_code", "1")
                                 .addKeyValue("error_message", ex.getMessage()).create();
-                        response.responseAction = new ApiServiceHelper.ApiAction(
+                        response.responseAction = new ApiAction(
                                 action.apiCode,
                                 action.clientTag,
                                 jsonResponse
@@ -345,7 +346,7 @@ public class ApiService extends Service {
         }).start();
     }
 
-    private JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception {
+    private JSONObject doAction(ApiAction action) throws Exception {
         if (mActionsImpls.containsKey(action.apiCode)) {
             return mActionsImpls.get(action.apiCode).doAction(action);
         } else {
@@ -366,12 +367,12 @@ public class ApiService extends Service {
 
 
     private interface ActionImpl {
-        JSONObject doAction(ApiServiceHelper.ApiAction action) throws Exception;
+        JSONObject doAction(ApiAction action) throws Exception;
     }
 
     public static class Response {
-        public ApiServiceHelper.ApiAction initialAction;
-        public ApiServiceHelper.ApiAction responseAction;
+        public ApiAction initialAction;
+        public ApiAction responseAction;
     }
 
     public class ApiServiceBinder extends Binder {

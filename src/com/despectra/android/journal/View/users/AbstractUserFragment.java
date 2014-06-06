@@ -91,8 +91,10 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
         if (i == 0) {
             return new CursorLoader(getActivity(),
                     Contract.Users.URI,
-                    new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
-                            Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LEVEL},
+                    new String[]{Contract.Users.FIELD_NAME,
+                            Contract.Users.FIELD_SURNAME,
+                            Contract.Users.FIELD_MIDDLENAME,
+                            Contract.Users.FIELD_LEVEL},
                     Contract.Users._ID + " = ?",
                     new String[]{String.valueOf(mUserIds.getIdsByTable("users").getLocalId())},
                     null);

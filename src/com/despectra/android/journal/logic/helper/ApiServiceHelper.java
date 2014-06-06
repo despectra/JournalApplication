@@ -1,4 +1,4 @@
-package com.despectra.android.journal.logic;
+package com.despectra.android.journal.logic.helper;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -59,7 +59,7 @@ public class ApiServiceHelper {
             holder = new RegisteredClient(callback);
             mRegisteredClients.put(name, holder);
         }
-        client.setServiceHelperController(new BaseClientController(name));
+        client.setServiceHelperController(new BaseClientHelperController(name));
         notifyCompletedActions(name);
     }
 
@@ -225,10 +225,10 @@ public class ApiServiceHelper {
         }
     }
 
-    private class BaseClientController implements Controller {
+    private class BaseClientHelperController implements HelperController {
         private String mClientName;
 
-        public BaseClientController(String activityName) {
+        public BaseClientHelperController(String activityName) {
             mClientName = activityName;
         }
 
@@ -521,72 +521,12 @@ public class ApiServiceHelper {
         }
     }
 
-    public static class ApiAction {
-        public int apiCode;
-        public JSONObject actionData;
-        public long creationTime;
-        public String clientTag;
-        public ApiAction(int apiCode, String senderTag, JSONObject actionData) {
-            this.apiCode = apiCode;
-            this.actionData = actionData;
-            this.clientTag = senderTag;
-            creationTime = System.currentTimeMillis();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof ApiAction)) {
-                return false;
-            }
-            ApiAction action = (ApiAction) o;
-            return apiCode == action.apiCode && clientTag.equals(action.clientTag) && actionData.equals(action.actionData);
-        }
-    }
-
-    public interface Controller {
-        public int getRunningActionsCount();
-        public int getLastRunningActionCode();
-
-        public void login(String login, String passwd, int priority);
-        public void logout(String token, int priority);
-        public void checkToken(String token, int priority);
-        public void getApiInfo(String host, int priority);
-        public void getMinProfile(String token, int priority);
-        public void getEvents(String token, int offset, int count, int priority);
-        public void getAllEvents(String token, int priority);
-        public void addGroup(String token, String name, EntityIds parentIds, int priority);
-        public void getAllGroups(String token, EntityIds parentIds, int priority);
-        public void getGroups(String token, EntityIds parentIds, int offset, int count, int priority);
-        public void deleteGroups(String token, EntityIds[] ids, int priority);
-        public void updateGroup(String token, EntityIds ids, String updName, EntityIds parentIds, int priority);
-        public void getStudentsByGroup(String token, EntityIds groupIds, int priority);
-        public void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority);
-        public void deleteStudents(String token, EntityIds[] ids, int priority);
-        public void getSubjects(String token, int offset, int count, int priority);
-        public void getAllSubjects(String token, int priority);
-        public void addSubject(String token, String name, int priority);
-        public void updateSubject(String token, EntityIds ids, String updName, int priority);
-        public void deleteSubjects(String token, EntityIds[] ids, int priority);
-        public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority);
-        public void getTeachers(String token, int offset, int count, int priority);
-        public void deleteTeachers(String token, EntityIds[] ids, int priority);
-        public void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority);
-        public void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority);
-        public void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority);
-        public void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority);
-
-
-        // TEMPORARY
-        public void addMockMarks(long groupId);
-        public void updateMockMark(long markId, int mark);
-    }
-
     public interface FeedbackApiClient extends ApiClient {
         public void onProgress(Object data);
     }
 
     public interface ApiClient extends Callback {
-        public void setServiceHelperController(Controller controller);
+        public void setServiceHelperController(HelperController controller);
         public String getClientName();
     }
 
