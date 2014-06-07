@@ -172,6 +172,24 @@ public class Contract {
         public static final int URI_WITH_TEACHERS_CODE = 274;
     }
 
+    public static final class TSG extends EntityColumns {
+        public static final EntityTable HOLDER = new EntityTable("TSG");
+        public static final String TABLE = "teachers_subjects_groups";
+        public static final String _ID = "tsg_id";
+        public static final String REMOTE_ID = "tsg_remote_id";
+        public static final String ENTITY_STATUS = "tsg_entity_status";
+
+        public static final String FIELD_TEACHER_SUBJECT_ID = "tsg_teacher_subject_id";
+        public static final String FIELD_GROUP_ID = "tsg_group_id";
+        public static final String TABLE_JOIN_GROUPS = new SQLJoinBuilder(TABLE)
+                .join(Groups.TABLE).onEq(FIELD_GROUP_ID, Groups._ID).create();
+        public static final Uri URI = Uri.parse(STRING_URI + "/teachers_subjects_groups");
+        public static final Uri URI_WITH_GROUPS = Uri.parse(STRING_URI + "/teachers_subjects_groups/g");
+        public static final int URI_CODE = 300;
+        public static final int ID_URI_CODE = 301;
+        public static final int URI_WITH_GROUPS_CODE = 302;
+    }
+
     //TODO I'll complete these contracts when time comes
 /*    public static final class Marks implements BaseColumns {
         public static final EntityTable HOLDER = new EntityTable("Marks");

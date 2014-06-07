@@ -64,6 +64,12 @@ public interface HelperController {
 
     void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority);
 
+    void getGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, int priority);
+
+    void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority);
+
+    void unsetGroupsOfTeachersSubject(String token, EntityIds[] linksIds, int priority);
+
     // TEMPORARY
     void addMockMarks(long groupId);
 

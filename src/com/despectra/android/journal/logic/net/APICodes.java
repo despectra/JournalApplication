@@ -28,4 +28,7 @@ public class APICodes {
     public static final int ACTION_GET_SUBJECTS_OF_TEACHER = 21;
     public static final int ACTION_SET_SUBJECTS_OF_TEACHER = 22;
     public static final int ACTION_UNSET_SUBJECTS_OF_TEACHER = 23;
+    public static final int ACTION_GET_GROUPS_OF_TEACHERS_SUBJECT = 24;
+    public static final int ACTION_SET_GROUPS_OF_TEACHERS_SUBJECT = 25;
+    public static final int ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT = 26;
 }

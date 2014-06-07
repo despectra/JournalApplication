@@ -75,6 +75,14 @@ public class DBHelper extends SQLiteOpenHelper {
             "teachers_subjects_subject_id INTEGER NOT NULL," +
             "teachers_subjects_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
+    public static final String CREATE_TABLE_TEACHERS_SUBJECTS_GROUPS = "" +
+            "CREATE TABLE IF NOT EXISTS teachers_subjects_groups (" +
+            "tsg_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "tsg_remote_id INTEGER DEFAULT 0 NOT NULL," +
+            "tsg_teacher_subject_id INTEGER NOT NULL," +
+            "tsg_group_id INTEGER NOT NULL," +
+            "tsg_entity_status INTEGER NOT NULL);";
+
 /*    public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
             "lessons_id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -121,6 +129,7 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "subjects"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers"));
         sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers_subjects"));
+        sqLiteDatabase.execSQL(String.format(DROP_TABLE, "teachers_subjects_groups"));
 
     }
 
@@ -133,6 +142,7 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(CREATE_TABLE_SUBJECTS);
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS);
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS_SUBJECTS);
+        sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS_SUBJECTS_GROUPS);
     }
 
     public static class JoinBuilder {

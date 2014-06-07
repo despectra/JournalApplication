@@ -476,6 +476,32 @@ public class ApiServiceHelper {
         }
 
         @Override
+        public void getGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addEntityIds("teacher_subject_id", teacherSubjectIds)
+                    .create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS_OF_TEACHERS_SUBJECT, mClientName, data), priority);
+        }
+
+        @Override
+        public void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addEntityIds("teacher_subject_id", teacherSubjectIds)
+                    .addEntityIdsArray("groups_ids", groupsIds).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_SET_GROUPS_OF_TEACHERS_SUBJECT, mClientName, data), priority);
+        }
+
+        @Override
+        public void unsetGroupsOfTeachersSubject(String token, EntityIds[] linksIds, int priority) {
+            JSONObject data = new JSONBuilder()
+                    .addKeyValue("token", token)
+                    .addEntityIdsArray("links_ids", linksIds).create();
+            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT, mClientName, data), priority);
+        }
+
+        @Override
         public void addMockMarks(long groupId) {
             if (mBound) {
                 try {

@@ -1,50 +1,51 @@
-package com.despectra.android.journal.view.subjects;
+package com.despectra.android.journal.view;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.LoaderManager;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.view.*;
+import android.view.ActionMode;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
-import com.despectra.android.journal.view.EntitiesListFragment;
-import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
-import com.despectra.android.journal.view.SimpleConfirmationDialog;
 import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 04.06.14.
  */
-public class SubjectsOfTeacherFragment extends EntitiesListFragment {
+public abstract class LinksFragment extends EntitiesListFragment {
 
-    private static final String CONFIRM_DIALOG_TAG = "ConfirmUnsetSubjects";
-    private EntityIds mTeacherIds;
-    private AvailableSubjectsDialog mSubjectsSelectDialog;
-    private AvailableSubjectsDialog.DialogListener mSubjectsSelectListener = new AvailableSubjectsDialog.DialogListener() {
+    private EntityIds mLinkingEntityIds;
+    private AvailableEntitiesDialog mEntitiesSelectDialog;
+    private AvailableEntitiesDialog.DialogListener mEntitiesSelectListener = new AvailableEntitiesDialog.DialogListener() {
         @Override
-        public void onNewSubjectsPushed(EntityIds[] ids) {
-            mServiceHelperController.setSubjectsOfTeacher(mToken, mTeacherIds, ids, ApiServiceHelper.PRIORITY_LOW);
+        public void onNewEntitiesPushed(EntityIds[] ids) {
+            linkEntities(mLinkingEntityIds, ids);
         }
     };
+
+    protected abstract void linkEntities(EntityIds linkingEntityIds, EntityIds[] linkedEntitiesIds);
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
-        JoinedEntityIds allIds = JoinedEntityIds.fromBundle(args.getBundle("userId"));
-        mTeacherIds = allIds.getIdsByTable("teachers");
+        mLinkingEntityIds = getLinkingEntityIdsFromArgs(getArguments());
     }
+
+    protected abstract EntityIds getLinkingEntityIdsFromArgs(Bundle arguments);
 
     @Override
     protected String getTitle() {
@@ -53,94 +54,78 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
 
     @Override
     protected void restoreCustom() {
-        mSubjectsSelectDialog = (AvailableSubjectsDialog) getChildFragmentManager().findFragmentByTag(AvailableSubjectsDialog.FRAGMENT_TAG);
-        if (mSubjectsSelectDialog == null) {
-            mSubjectsSelectDialog = AvailableSubjectsDialog.newInstance(mTeacherIds);
+        mEntitiesSelectDialog = (AvailableEntitiesDialog) getChildFragmentManager().findFragmentByTag(getLinkDialogTag());
+        if (mEntitiesSelectDialog == null) {
+            mEntitiesSelectDialog = AvailableEntitiesDialog.newInstance(getLinkDialogTitle(), mLinkingEntityIds);
         }
-        mSubjectsSelectDialog.setListener(mSubjectsSelectListener);
+        mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
+        mEntitiesSelectDialog.setLoaderCallbacks(getLinkDialogLoaderCallbacks());
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_subj_of_teacher_menu, menu);
-    }
+    protected abstract LoaderCallbacks<Cursor> getLinkDialogLoaderCallbacks();
+
+    protected abstract String getLinkDialogTag();
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add:
-                if (mSubjectsSelectDialog == null) {
-                    mSubjectsSelectDialog = AvailableSubjectsDialog.newInstance(mTeacherIds);
-                    mSubjectsSelectDialog.setListener(mSubjectsSelectListener);
+                if (mEntitiesSelectDialog == null) {
+                    mEntitiesSelectDialog = AvailableEntitiesDialog.newInstance(getLinkDialogTitle(), mLinkingEntityIds);
+                    mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
+                    mEntitiesSelectDialog.setLoaderCallbacks(getLinkDialogLoaderCallbacks());
                 }
-                mSubjectsSelectDialog.show(getChildFragmentManager(), AvailableSubjectsDialog.FRAGMENT_TAG);
+                mEntitiesSelectDialog.show(getChildFragmentManager(), getLinkDialogTag());
                 return true;
             default:
                 return false;
         }
     }
 
+    protected abstract String getLinkDialogTitle();
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         return new CursorLoader(
                 getActivity(),
-                Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                new String[]{Contract.TeachersSubjects._ID + " AS _id",
-                        Contract.TeachersSubjects.REMOTE_ID,
-                        Contract.Subjects._ID,
-                        Contract.Subjects.REMOTE_ID,
-                        Contract.Subjects.FIELD_NAME,
-                        Contract.TeachersSubjects.ENTITY_STATUS
-                },
-                Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
-                new String[]{String.valueOf(mTeacherIds.getLocalId())},
-                Contract.Subjects.FIELD_NAME + " ASC"
-                );
+                getLoaderUri(),
+                getLoaderProjection(),
+                getLoaderSelection(),
+                new String[]{String.valueOf(mLinkingEntityIds.getLocalId())},
+                getLoaderOrderBy()
+        );
     }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        super.onLoadFinished(cursorLoader, cursor);
-    }
+    protected abstract Uri getLoaderUri();
 
-    @Override
-    protected String getEmptyListMessage() {
-        return "Этот учитель не ведет ни одного предмета. Свяжите его с предметами с помощью кнопки на панели действий";
-    }
+    protected abstract String[] getLoaderProjection();
 
-    @Override
-    public void onItemClick(View itemView, JoinedEntityIds ids) {
-        //TODO goto groups for subject of this teacher
-    }
+    protected abstract String getLoaderSelection();
 
-    @Override
-    public int getActionModeMenuRes() {
-        return R.menu.groups_fragment_cab_menu;
-    }
+    protected abstract String getLoaderOrderBy();
 
     @Override
     public boolean onActionModeItemClicked(ActionMode actionMode, MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.action_delete:
                 SimpleConfirmationDialog confirmDialog = SimpleConfirmationDialog.newInstance(
-                        "Отвязка предметов",
-                        "Внимание! Удалятся не связи с предметами, но и связанные уроки, оценки. Продолжить?");
+                        getUnlinkingConfirmTitle(),
+                        getUnlinkingConfirmMessage());
                 confirmDialog.setOnConfirmListener(getConfirmDelListener());
-                confirmDialog.show(getFragmentManager(), CONFIRM_DIALOG_TAG);
+                confirmDialog.show(getFragmentManager(), getConfirmDelDialogTag());
                 return true;
             default:
                 return false;
         }
     }
 
+    protected abstract String getUnlinkingConfirmTitle();
+
+    protected abstract String getUnlinkingConfirmMessage();
+
     @Override
     protected MultipleRemoteIdsCursorAdapter.OnItemPopupMenuListener getItemPopupMenuListener() {
         return null;
-    }
-
-    @Override
-    protected int getItemPopupMenuRes() {
-        return R.menu.fragment_subj_of_teacher_menu;
     }
 
     @Override
@@ -154,34 +139,11 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
     }
 
     @Override
-    protected MultipleRemoteIdsCursorAdapter getRemoteIdAdapter() {
-        EntityIdsColumns[] columns = new EntityIdsColumns[]{
-            new EntityIdsColumns(Contract.TeachersSubjects.TABLE,
-                    "_id",
-                    Contract.TeachersSubjects.REMOTE_ID),
-            new EntityIdsColumns(Contract.Subjects.TABLE,
-                    Contract.Subjects._ID,
-                    Contract.Subjects.REMOTE_ID)
-        };
-        return new MultipleRemoteIdsCursorAdapter(getActivity(),
-                R.layout.item_checkable_1,
-                mCursor,
-                new String[]{Contract.Subjects.FIELD_NAME},
-                new int[]{R.id.text1},
-                columns,
-                Contract.TeachersSubjects.ENTITY_STATUS,
-                R.id.checkbox1,
-                R.id.dropdown_btn1,
-                0);
-    }
-
-    @Override
     protected SimpleConfirmationDialog.OnConfirmListener getConfirmDelListener() {
         return new SimpleConfirmationDialog.OnConfirmListener() {
             @Override
             public void onConfirm() {
-                mServiceHelperController.unsetSubjectsOfTeacher(mToken, mEntitiesAdapter.getCheckedIdsOfTable("teachers_subjects"),
-                        ApiServiceHelper.PRIORITY_LOW);
+                unlinkEntities(mLinkingEntityIds, mEntitiesAdapter.getCheckedIds());
                 if (mIsInActionMode) {
                     mActionMode.finish();
                 }
@@ -189,20 +151,11 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
         };
     }
 
-    @Override
-    protected String getConfirmDelDialogTag() {
-        return CONFIRM_DIALOG_TAG;
-    }
+    protected abstract void unlinkEntities(EntityIds linkingEntityIds, JoinedEntityIds[] linkedEntitiesIds);
 
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
 
-    }
-
-    @Override
-    protected void updateEntitiesList() {
-        mServiceHelperController.getSubjects(mToken, 0, 0, ApiServiceHelper.PRIORITY_HIGH);
-        mServiceHelperController.getSubjectsOfTeacher(mToken, mTeacherIds, ApiServiceHelper.PRIORITY_LOW);
     }
 
     @Override
@@ -218,20 +171,22 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
     /**
      * Created by Dmitry on 04.06.14.
      */
-    public static class AvailableSubjectsDialog extends DialogFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    public static class AvailableEntitiesDialog extends DialogFragment implements LoaderCallbacks<Cursor> {
 
-        public static final String FRAGMENT_TAG = "AvailableSubjects";
-        private EntityIds mLocalTeacherId;
+        private EntityIds mLinkingEntityIds;
         private ListView mListView;
         private TextView mEmptyTextView;
         private MultipleRemoteIdsCursorAdapter mAdapter;
         private Cursor mCursor;
         private DialogListener mListener;
+        private LoaderCallbacks<Cursor> mLoaderCallbacks;
+        private String mTitle;
 
-        public static AvailableSubjectsDialog newInstance(EntityIds teacherIds) {
-            AvailableSubjectsDialog dialog = new AvailableSubjectsDialog();
+        public static AvailableEntitiesDialog newInstance(String  title, EntityIds teacherIds) {
+            AvailableEntitiesDialog dialog = new AvailableEntitiesDialog();
             Bundle args = new Bundle();
-            args.putBundle("teacherIds", teacherIds.toBundle());
+            args.putBundle("entityIds", teacherIds.toBundle());
+            args.putString("title", title);
             dialog.setArguments(args);
             return dialog;
         }
@@ -240,11 +195,16 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
             mListener = listener;
         }
 
+        public void setLoaderCallbacks(LoaderCallbacks<Cursor> callbacks) {
+            mLoaderCallbacks = callbacks;
+        }
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             Bundle args = getArguments();
-            mLocalTeacherId = EntityIds.fromBundle(args.getBundle("teacherIds"));
+            mLinkingEntityIds = EntityIds.fromBundle(args.getBundle("entityIds"));
+            mTitle = args.getString("title");
         }
 
         @Override
@@ -256,7 +216,7 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if (mListener != null) {
-                        mListener.onNewSubjectsPushed(mAdapter.getCheckedIdsOfTable("subjects"));
+                        mListener.onNewEntitiesPushed(mAdapter.getCheckedIdsOfTable("subjects"));
                     }
                     dialogInterface.dismiss();
                 }
@@ -265,7 +225,7 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
             mListView = (ListView) view.findViewById(R.id.entities_list_view);
             mEmptyTextView = (TextView) view.findViewById(R.id.listview_empty_message);
             dialogBuilder.setView(view);
-            dialogBuilder.setTitle("Выбор предметов учителя");
+            dialogBuilder.setTitle(mTitle);
             return dialogBuilder.create();
         }
 
@@ -283,7 +243,7 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
                     R.id.dropdown_btn1,
                     0);
             mListView.setAdapter(mAdapter);
-            getLoaderManager().initLoader(0, null, this);
+            getLoaderManager().initLoader(0, null, mLoaderCallbacks);
         }
 
         @Override
@@ -302,7 +262,7 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
                             Contract.TeachersSubjects.ENTITY_STATUS,
                             Contract.Subjects.ENTITY_STATUS
                             ),
-                    new String[]{String.valueOf(mLocalTeacherId.getLocalId())},
+                    new String[]{String.valueOf(mLinkingEntityIds.getLocalId())},
                     Contract.Subjects.FIELD_NAME + " ASC"
                     );
         }
@@ -317,7 +277,7 @@ public class SubjectsOfTeacherFragment extends EntitiesListFragment {
         }
 
         public interface DialogListener {
-            public void onNewSubjectsPushed(EntityIds[] ids);
+            public void onNewEntitiesPushed(EntityIds[] ids);
         }
     }
 }
