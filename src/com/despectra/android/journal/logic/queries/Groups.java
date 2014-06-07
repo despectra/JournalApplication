@@ -3,7 +3,6 @@ package com.despectra.android.journal.logic.queries;
 import android.content.ContentValues;
 import android.database.Cursor;
 import com.despectra.android.journal.logic.helper.ApiAction;
-import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
@@ -24,7 +23,7 @@ public class Groups extends QueryExecDelegate {
 
     public JSONObject add(ApiAction action) throws Exception {
         long localId = preAddGroup(action.actionData);
-        JSONObject jsonResponse = getApplicationServer().executeGetApiQuery("groups.addGroup", action.actionData);
+        JSONObject jsonResponse = getApplicationServer().executeGetApiQuery(action);;
         if (jsonResponse.has("group_id")) {
             //persist in cache
             getLocalStorageManager().persistTempRow(Contract.Groups.HOLDER,
@@ -38,7 +37,7 @@ public class Groups extends QueryExecDelegate {
         JSONObject request = action.actionData;
         String localParentId = request.getString("LOCAL_parent_group_id");
         request.remove("LOCAL_parent_group_id");
-        JSONObject response = getApplicationServer().executeGetApiQuery("groups.getGroups", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (response.has("groups")) {
             updateLocalGroups(response, localParentId);
         }
@@ -54,7 +53,7 @@ public class Groups extends QueryExecDelegate {
         groupData.remove("LOCAL_parent_id");
         getLocalStorageManager().markRowAsUpdating(Contract.Groups.HOLDER, localGroupId);
 
-        JSONObject response = getApplicationServer().executeGetApiQuery("groups.updateGroup", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (Utils.isApiJsonSuccess(response)) {
             ContentValues updated = new ContentValues();
             updated.put(Contract.Groups.FIELD_NAME, groupData.getString("name"));
@@ -67,7 +66,7 @@ public class Groups extends QueryExecDelegate {
     public JSONObject delete(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         preDeleteGroups(request);
-        JSONObject response = getApplicationServer().executeGetApiQuery("groups.deleteGroups", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (Utils.isApiJsonSuccess(response)) {
             getLocalStorageManager().deleteMarkedEntities(Contract.Groups.HOLDER);
         }

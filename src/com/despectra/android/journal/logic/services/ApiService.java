@@ -90,13 +90,13 @@ public class ApiService extends Service {
         mActionsImpls.put(APICodes.ACTION_LOGIN, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mServer.executePostApiQuery("auth.login", action.actionData);
+                return mServer.executePostApiQuery(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_LOGOUT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                JSONObject response = mServer.executeGetApiQuery("auth.logout", action.actionData);
+                JSONObject response = mServer.executeGetApiQuery(action);
                 deleteFile(WebApiServer.AVATAR_FILENAME);
                 return response;
             }
@@ -104,7 +104,7 @@ public class ApiService extends Service {
         mActionsImpls.put(APICodes.ACTION_GET_MIN_PROFILE, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                JSONObject response = mServer.executeGetApiQuery("profile.getMinProfile", action.actionData);
+                JSONObject response = mServer.executeGetApiQuery(action);
                 if (Utils.isApiJsonSuccess(response)) {
                     mServer.loadAvatar(response);
                 }
@@ -114,7 +114,7 @@ public class ApiService extends Service {
         mActionsImpls.put(APICodes.ACTION_CHECK_TOKEN, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mServer.executeGetApiQuery("auth.checkToken", action.actionData);
+                return mServer.executeGetApiQuery(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_INFO, new ActionImpl() {

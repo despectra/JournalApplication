@@ -3,15 +3,11 @@ package com.despectra.android.journal.logic.queries;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Message;
-import android.util.Pair;
 import com.despectra.android.journal.logic.helper.ApiAction;
-import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
-import com.despectra.android.journal.logic.services.ApiService;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,7 +30,7 @@ public class Students extends QueryExecDelegate {
         JSONObject request = action.actionData;
         String localGroupId = request.getString("LOCAL_group_id");
         request.remove("LOCAL_group_id");
-        JSONObject response = getApplicationServer().executeGetApiQuery("students.getByGroup", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalStudents(response, localGroupId);
             Uri notifyUri = Uri.parse(String.format("%s/groups/%s/students", Contract.STRING_URI, localGroupId));
@@ -55,7 +51,7 @@ public class Students extends QueryExecDelegate {
         Uri notifyUri = Uri.parse(String.format("%s/groups/%s/students", Contract.STRING_URI, localGroupId));
         getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
 
-        JSONObject response = getApplicationServer().executeGetApiQuery("students.addStudentInGroup", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (Utils.isApiJsonSuccess(response)) {
             persistStudent(localUserId, localStudentId, localSGLinkId, response);
             getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
@@ -70,7 +66,7 @@ public class Students extends QueryExecDelegate {
         Uri notifyUri = Uri.parse(String.format("%s/groups/#/students", Contract.STRING_URI));
         getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
 
-        JSONObject response = getApplicationServer().executeGetApiQuery("students.deleteStudents", request);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
 
         if (Utils.isApiJsonSuccess(response)) {
             persistStudentsDeletion();

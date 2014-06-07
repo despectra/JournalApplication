@@ -2,7 +2,6 @@ package com.despectra.android.journal.logic.queries;
 
 import android.database.Cursor;
 import com.despectra.android.journal.logic.helper.ApiAction;
-import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
@@ -19,7 +18,7 @@ public class Events extends QueryExecDelegate {
     }
 
     public JSONObject get(ApiAction action) throws Exception {
-        JSONObject response = getApplicationServer().executeGetApiQuery("events.getEvents", action.actionData);
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (response.has("events")) {
             updateLocalEvents(response);
         }
