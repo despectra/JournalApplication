@@ -28,7 +28,7 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "groups/#/students/#", Contract.Students.ID_URI_BY_GROUP_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students", Contract.Students.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students/#", Contract.Students.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students/as_users", Contract.Students.URI_AS_USERS_CODE); //TODO check URI in usages
+        mMatcher.addURI(Contract.AUTHORITY, "students/as_users", Contract.Students.URI_AS_USERS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "users", Contract.Users.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "users/#", Contract.Users.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "students_groups", Contract.StudentsGroups.URI_CODE);
@@ -36,7 +36,7 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "subjects", Contract.Subjects.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Contract.Subjects.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers", Contract.Teachers.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Contract.Teachers.URI_AS_USERS_CODE); //TODO check URI in usages
+        mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Contract.Teachers.URI_AS_USERS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects", Contract.TeachersSubjects.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/s", Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/t", Contract.TeachersSubjects.URI_WITH_TEACHERS_CODE);

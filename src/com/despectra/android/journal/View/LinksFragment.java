@@ -28,7 +28,7 @@ import org.json.JSONObject;
  */
 public abstract class LinksFragment extends EntitiesListFragment {
 
-    private EntityIds mLinkingEntityIds;
+    protected EntityIds mLinkingEntityIds;
     private AvailableEntitiesDialog mEntitiesSelectDialog;
     private AvailableEntitiesDialog.DialogListener mEntitiesSelectListener = new AvailableEntitiesDialog.DialogListener() {
         @Override
@@ -59,10 +59,15 @@ public abstract class LinksFragment extends EntitiesListFragment {
             mEntitiesSelectDialog = AvailableEntitiesDialog.newInstance(getLinkDialogTitle(), mLinkingEntityIds);
         }
         mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
-        mEntitiesSelectDialog.setLoaderCallbacks(getLinkDialogLoaderCallbacks());
+        mEntitiesSelectDialog.setCursorLoader(getLinkDialogCursorLoader());
     }
 
-    protected abstract LoaderCallbacks<Cursor> getLinkDialogLoaderCallbacks();
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    protected abstract CursorLoader getLinkDialogCursorLoader();
 
     protected abstract String getLinkDialogTag();
 
@@ -73,7 +78,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
                 if (mEntitiesSelectDialog == null) {
                     mEntitiesSelectDialog = AvailableEntitiesDialog.newInstance(getLinkDialogTitle(), mLinkingEntityIds);
                     mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
-                    mEntitiesSelectDialog.setLoaderCallbacks(getLinkDialogLoaderCallbacks());
+                    mEntitiesSelectDialog.setCursorLoader(getLinkDialogCursorLoader());
                 }
                 mEntitiesSelectDialog.show(getChildFragmentManager(), getLinkDialogTag());
                 return true;
@@ -143,7 +148,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
         return new SimpleConfirmationDialog.OnConfirmListener() {
             @Override
             public void onConfirm() {
-                unlinkEntities(mLinkingEntityIds, mEntitiesAdapter.getCheckedIds());
+                unlinkEntities(mLinkingEntityIds, mEntitiesAdapter.getCheckedIdsOfTable(getLinksEntitiesTable()));
                 if (mIsInActionMode) {
                     mActionMode.finish();
                 }
@@ -151,7 +156,9 @@ public abstract class LinksFragment extends EntitiesListFragment {
         };
     }
 
-    protected abstract void unlinkEntities(EntityIds linkingEntityIds, JoinedEntityIds[] linkedEntitiesIds);
+    protected abstract String getLinksEntitiesTable();
+
+    protected abstract void unlinkEntities(EntityIds linkingEntityIds, EntityIds[] linkedEntitiesIds);
 
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
@@ -179,7 +186,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
         private MultipleRemoteIdsCursorAdapter mAdapter;
         private Cursor mCursor;
         private DialogListener mListener;
-        private LoaderCallbacks<Cursor> mLoaderCallbacks;
+        private CursorLoader mCursorLoader;
         private String mTitle;
 
         public static AvailableEntitiesDialog newInstance(String  title, EntityIds teacherIds) {
@@ -195,8 +202,8 @@ public abstract class LinksFragment extends EntitiesListFragment {
             mListener = listener;
         }
 
-        public void setLoaderCallbacks(LoaderCallbacks<Cursor> callbacks) {
-            mLoaderCallbacks = callbacks;
+        public void setCursorLoader(CursorLoader loader) {
+            mCursorLoader = loader;
         }
 
         @Override
@@ -242,29 +249,22 @@ public abstract class LinksFragment extends EntitiesListFragment {
                     R.id.checkbox1,
                     R.id.dropdown_btn1,
                     0);
+            if (savedInstanceState != null) {
+                mAdapter.restoreCheckedItems(savedInstanceState.getBundle("selectedEntities"), false);
+            }
             mListView.setAdapter(mAdapter);
-            getLoaderManager().initLoader(0, null, mLoaderCallbacks);
+            getLoaderManager().initLoader(0, null, this);
+        }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            super.onSaveInstanceState(outState);
+            outState.putBundle("selectedEntities", mAdapter.getCheckedItems());
         }
 
         @Override
         public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-            return new CursorLoader(getActivity(),
-                    Contract.Subjects.URI,
-                    new String[]{Contract.Subjects._ID + " AS _id",
-                        Contract.Subjects.REMOTE_ID,
-                        Contract.Subjects.FIELD_NAME,
-                        Contract.Subjects.ENTITY_STATUS},
-                    String.format("%s NOT IN (SELECT %s FROM %s WHERE %s = ? AND %s = 0) AND %s = 0",
-                            "_id",
-                            Contract.TeachersSubjects.FIELD_SUBJECT_ID,
-                            Contract.TeachersSubjects.TABLE,
-                            Contract.TeachersSubjects.FIELD_TEACHER_ID,
-                            Contract.TeachersSubjects.ENTITY_STATUS,
-                            Contract.Subjects.ENTITY_STATUS
-                            ),
-                    new String[]{String.valueOf(mLinkingEntityIds.getLocalId())},
-                    Contract.Subjects.FIELD_NAME + " ASC"
-                    );
+            return mCursorLoader;
         }
 
         @Override
