@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AbsListView;
 import com.despectra.android.journal.logic.local.DBHelper;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -92,5 +93,13 @@ public class Utils {
         db.execSQL(DBHelper.CREATE_TABLE_SUBJECTS);
         db.execSQL(DBHelper.CREATE_TABLE_TEACHERS);
         db.execSQL(DBHelper.CREATE_TABLE_TEACHERS_SUBJECTS);
+    }
+
+    public static long[] getIdsFromJSONArray(JSONArray array) throws JSONException {
+        long[] ids = new long[array.length()];
+        for (int i = 0; i < array.length(); i++) {
+            ids[i] = array.getLong(i);
+        }
+        return ids;
     }
 }

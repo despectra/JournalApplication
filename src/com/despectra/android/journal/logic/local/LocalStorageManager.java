@@ -150,9 +150,9 @@ public class LocalStorageManager {
         );
     }
 
-    public void persistUpdatingRow(Contract.EntityTable table, String localId, ContentValues data) {
+    public void persistUpdatingRow(Contract.EntityTable table, long localId, ContentValues data) {
         data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
-        mResolver.update(table.URI, data, table._ID + " = ?", new String[]{localId});
+        mResolver.update(table.URI, data, table._ID + " = ?", new String[]{String.valueOf(localId)});
     }
 
     public void deleteMarkedEntities(Contract.EntityTable table) {
@@ -163,9 +163,15 @@ public class LocalStorageManager {
         );
     }
 
-    public void deleteEntityByLocalId(Contract.EntityTable localTable, long localId) {
+    public void deleteEntityByLocalId(Contract.EntityTable table, long localId) {
         String[] args = new String[]{String.valueOf(localId)};
-        mResolver.delete(localTable.URI, localTable._ID + " = ?", args);
+        mResolver.delete(table.URI, table._ID + " = ?", args);
+    }
+
+    public void deleteEntitiesByLocalIds(Contract.EntityTable table, long[] localIds) {
+        for (long id : localIds) {
+            deleteEntityByLocalId(table, id);
+        }
     }
 
     public long getRemoteIdByLocal(Contract.EntityTable table, long localId) {
@@ -198,21 +204,41 @@ public class LocalStorageManager {
         return -1;
     }
 
-    public void markRowAsIdle(Contract.EntityTable table, String localId) {
+    public void markRowAsIdle(Contract.EntityTable table, long localId) {
         markEntityRowWithStatus(table, localId, Contract.STATUS_IDLE);
     }
 
-    public void markRowAsUpdating(Contract.EntityTable table, String localId) {
+    public void markRowsAsIdle(Contract.EntityTable table, long[] localIds) {
+        markEntityRowsWithStatus(table, localIds, Contract.STATUS_IDLE);
+    }
+
+    public void markRowAsUpdating(Contract.EntityTable table, long localId) {
         markEntityRowWithStatus(table, localId, Contract.STATUS_UPDATING);
     }
 
-    public void markRowAsDeleting(Contract.EntityTable table, String localId) {
+    public void markRowsAsUpdating(Contract.EntityTable table, long[] localIds) {
+        markEntityRowsWithStatus(table, localIds, Contract.STATUS_UPDATING);
+    }
+
+    public void markRowAsDeleting(Contract.EntityTable table, long localId) {
         markEntityRowWithStatus(table, localId, Contract.STATUS_DELETING);
     }
 
-    private void markEntityRowWithStatus(Contract.EntityTable table, String localId, int status) {
+    public void markRowsAsDeleting(Contract.EntityTable table, long[] localIds) {
+        markEntityRowsWithStatus(table, localIds, Contract.STATUS_DELETING);
+    }
+
+    private void markEntityRowWithStatus(Contract.EntityTable table, long localId, int status) {
         ContentValues data = new ContentValues();
         data.put(table.ENTITY_STATUS, status);
-        mResolver.update(table.URI,  data, table._ID + " = ?", new String[]{localId});
+        mResolver.update(table.URI,  data, table._ID + " = ?", new String[]{String.valueOf(localId)});
     }
+
+    private void markEntityRowsWithStatus(Contract.EntityTable table, long[] localIds, int status) {
+        for (long id : localIds) {
+            markEntityRowWithStatus(table, id, status);
+        }
+    }
+
+
 }

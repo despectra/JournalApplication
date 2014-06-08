@@ -23,7 +23,7 @@ public class Subjects extends QueryExecDelegate {
 
     public JSONObject add(ApiAction action) throws Exception {
         long localId = preAddSubject(action.actionData);
-        JSONObject jsonResponse = getApplicationServer().executeGetApiQuery(action);;
+        JSONObject jsonResponse = getApplicationServer().executeGetApiQuery(action);
         if (jsonResponse.has("subject_id")) {
             getLocalStorageManager().persistTempRow(Contract.Subjects.HOLDER, localId, jsonResponse.getLong("subject_id"));
         }
@@ -32,7 +32,7 @@ public class Subjects extends QueryExecDelegate {
 
     public JSONObject get(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (response.has("subjects")) {
             updateLocalSubjects(response);
         }
