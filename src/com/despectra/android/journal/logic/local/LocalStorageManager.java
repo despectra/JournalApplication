@@ -6,7 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import com.despectra.android.journal.logic.helper.ApiAction;
-import com.despectra.android.journal.logic.helper.ApiServiceHelper;
+import com.despectra.android.journal.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -130,15 +130,15 @@ public class LocalStorageManager {
         return data;
     }
 
-    public long insertTempRow(Contract.EntityTable localTable, ContentValues data) {
+    public long insertTempEntity(Contract.EntityTable localTable, ContentValues data) {
         data.put(localTable.ENTITY_STATUS, Contract.STATUS_INSERTING);
         Uri result = mResolver.insert(localTable.URI, data);
         return Long.valueOf(result.getLastPathSegment());
     }
 
-    public void persistTempRow(Contract.EntityTable table,
-                               long localId,
-                               long remoteId) {
+    public void persistTempEntity(Contract.EntityTable table,
+                                  long localId,
+                                  long remoteId) {
         ContentValues data = new ContentValues();
         data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
         data.put(table.REMOTE_ID, remoteId);
@@ -150,7 +150,17 @@ public class LocalStorageManager {
         );
     }
 
-    public void persistUpdatingRow(Contract.EntityTable table, long localId, ContentValues data) {
+    public void persistTempEntities(Contract.EntityTable table, long[] localIds, long[] remoteIds) {
+        for (int i = 0; i < localIds.length; i++) {
+            persistTempEntity(table, localIds[i], remoteIds[i]);
+        }
+    }
+
+    public void persistTempEntities(Contract.EntityTable table, long[] localTempIds, JSONArray remoteIds) throws Exception {
+        persistTempEntities(table, localTempIds, Utils.getIdsFromJSONArray(remoteIds));
+    }
+
+    public void persistUpdatingEntity(Contract.EntityTable table, long localId, ContentValues data) {
         data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
         mResolver.update(table.URI, data, table._ID + " = ?", new String[]{String.valueOf(localId)});
     }
@@ -172,6 +182,10 @@ public class LocalStorageManager {
         for (long id : localIds) {
             deleteEntityByLocalId(table, id);
         }
+    }
+
+    public void deleteEntitiesByLocalIds(Contract.EntityTable table, JSONArray localIds) throws Exception {
+        deleteEntitiesByLocalIds(table, Utils.getIdsFromJSONArray(localIds));
     }
 
     public long getRemoteIdByLocal(Contract.EntityTable table, long localId) {
@@ -204,41 +218,51 @@ public class LocalStorageManager {
         return -1;
     }
 
-    public void markRowAsIdle(Contract.EntityTable table, long localId) {
-        markEntityRowWithStatus(table, localId, Contract.STATUS_IDLE);
+    public void markEntityAsIdle(Contract.EntityTable table, long localId) {
+        markEntityWithStatus(table, localId, Contract.STATUS_IDLE);
     }
 
-    public void markRowsAsIdle(Contract.EntityTable table, long[] localIds) {
-        markEntityRowsWithStatus(table, localIds, Contract.STATUS_IDLE);
+    public void markEntitiesAsIdle(Contract.EntityTable table, long[] localIds) {
+        markEntitiesWithStatus(table, localIds, Contract.STATUS_IDLE);
     }
 
-    public void markRowAsUpdating(Contract.EntityTable table, long localId) {
-        markEntityRowWithStatus(table, localId, Contract.STATUS_UPDATING);
+    public void markEntitiesAsIdle(Contract.EntityTable table, JSONArray localIds) throws Exception {
+        markEntitiesAsIdle(table, Utils.getIdsFromJSONArray(localIds));
     }
 
-    public void markRowsAsUpdating(Contract.EntityTable table, long[] localIds) {
-        markEntityRowsWithStatus(table, localIds, Contract.STATUS_UPDATING);
+    public void markEntityAsUpdating(Contract.EntityTable table, long localId) {
+        markEntityWithStatus(table, localId, Contract.STATUS_UPDATING);
     }
 
-    public void markRowAsDeleting(Contract.EntityTable table, long localId) {
-        markEntityRowWithStatus(table, localId, Contract.STATUS_DELETING);
+    public void markEntitiesAsUpdating(Contract.EntityTable table, long[] localIds) {
+        markEntitiesWithStatus(table, localIds, Contract.STATUS_UPDATING);
     }
 
-    public void markRowsAsDeleting(Contract.EntityTable table, long[] localIds) {
-        markEntityRowsWithStatus(table, localIds, Contract.STATUS_DELETING);
+    public void markEntitiesAsUpdating(Contract.EntityTable table, JSONArray localIds) throws Exception {
+        markEntitiesAsUpdating(table, Utils.getIdsFromJSONArray(localIds));
     }
 
-    private void markEntityRowWithStatus(Contract.EntityTable table, long localId, int status) {
+    public void markEntityAsDeleting(Contract.EntityTable table, long localId) {
+        markEntityWithStatus(table, localId, Contract.STATUS_DELETING);
+    }
+
+    public void markEntitiesAsDeleting(Contract.EntityTable table, long[] localIds) {
+        markEntitiesWithStatus(table, localIds, Contract.STATUS_DELETING);
+    }
+
+    public void markEntitiesAsDeleting(Contract.EntityTable table, JSONArray localIds) throws Exception {
+        markEntitiesAsDeleting(table, Utils.getIdsFromJSONArray(localIds));
+    }
+
+    private void markEntityWithStatus(Contract.EntityTable table, long localId, int status) {
         ContentValues data = new ContentValues();
         data.put(table.ENTITY_STATUS, status);
-        mResolver.update(table.URI,  data, table._ID + " = ?", new String[]{String.valueOf(localId)});
+        mResolver.update(table.URI, data, table._ID + " = ?", new String[]{String.valueOf(localId)});
     }
 
-    private void markEntityRowsWithStatus(Contract.EntityTable table, long[] localIds, int status) {
+    private void markEntitiesWithStatus(Contract.EntityTable table, long[] localIds, int status) {
         for (long id : localIds) {
-            markEntityRowWithStatus(table, id, status);
+            markEntityWithStatus(table, id, status);
         }
     }
-
-
 }

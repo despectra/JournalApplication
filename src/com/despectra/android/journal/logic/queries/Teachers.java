@@ -22,9 +22,10 @@ public class Teachers extends QueryExecDelegate {
         super(holderInterface);
     }
 
+    //####################   RETRIEVING   ########################
+
     public JSONObject get(ApiAction action) throws Exception {
-        JSONObject request = action.actionData;
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalTeachers(response);
             getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
@@ -64,196 +65,6 @@ public class Teachers extends QueryExecDelegate {
         return response;
     }
 
-    private void deleteLocalTeacher(long localUserId, long localTeacherId) {
-        getLocalStorageManager().deleteEntityByLocalId(Contract.Teachers.HOLDER, localTeacherId);
-        getLocalStorageManager().deleteEntityByLocalId(Contract.Users.HOLDER, localUserId);
-    }
-
-    public JSONObject add(ApiAction action) throws Exception {
-        JSONObject request = action.actionData;
-
-        long localUserId = preAddUser(request);
-        long localTeacherId = preAddTeacher(localUserId);
-        //notify helper about caching completed
-        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
-
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
-        if (Utils.isApiJsonSuccess(response)) {
-            persistTeacher(localUserId, localTeacherId, response);
-            getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
-        }
-        return response;
-    }
-
-    public JSONObject delete(ApiAction action) throws Exception {
-        JSONObject request = action.actionData;
-        preDeleteTeachers(request);
-        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
-
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
-        if (Utils.isApiJsonSuccess(response)) {
-            persistTeachersDeletion();
-            getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
-        }
-        return response;
-    }
-
-    public JSONObject getSubjectsOfTeacher(ApiAction action) throws Exception {
-        JSONObject request = action.actionData;
-        long localTeacherId = request.getLong("LOCAL_teacher_id");
-        request.remove("LOCAL_teacher_id");
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
-        if (Utils.isApiJsonSuccess(response)) {
-            updateLocalSubjectsLinks(localTeacherId, response);
-            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                    action,
-                    "SubjectsOfTeacherFragment");
-        }
-        return response;
-    }
-
-    public JSONObject setSubjectsOfTeacher(ApiAction action) throws Exception {
-        JSONObject request = action.actionData;
-        long localTeacherId = request.getLong("LOCAL_teacher_id");
-        JSONArray localSubjectsIds = request.getJSONArray("LOCAL_subjects_ids");
-        request.remove("LOCAL_teacher_id");
-        request.remove("LOCAL_subjects_ids");
-
-        long[] localLinksIds = preSetLocalSubjectsOfTeacher(localTeacherId, localSubjectsIds);
-        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                action,
-                "SubjectsOfTeacherFragment");
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
-        if (Utils.isApiJsonSuccess(response)) {
-            persistSetSubjectsOfTeacher(localLinksIds, response.getJSONArray("affected_links"));
-            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                    action,
-                    "SubjectsOfTeacherFragment");
-        }
-        return response;
-    }
-
-    public JSONObject unsetSubjectsOfTeacher(ApiAction action) throws Exception {
-        JSONObject request = action.actionData;
-        JSONArray localLinks = request.getJSONArray("LOCAL_links_ids");
-        request.remove("LOCAL_links_ids");
-
-        preUnsetSubjectsOfTeacher(localLinks);
-        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                action,
-                "SubjectsOfTeacherFragment");
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
-        if (Utils.isApiJsonSuccess(response)) {
-            persistUnsetSubjectsOfTeacher(localLinks);
-            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                    action,
-                    "SubjectsOfTeacherFragment");
-        }
-        return response;
-    }
-
-    private void persistUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
-        for (int i = 0; i < localLinks.length(); i++) {
-            getLocalStorageManager().deleteEntityByLocalId(Contract.TeachersSubjects.HOLDER, localLinks.getLong(i));
-        }
-    }
-
-    private void preUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
-        for (int i = 0; i < localLinks.length(); i++) {
-            getLocalStorageManager().markRowAsDeleting(Contract.TeachersSubjects.HOLDER,
-                    localLinks.getString(i));
-        }
-    }
-
-    private void persistSetSubjectsOfTeacher(long[] localTempIds, JSONArray affectedIds) throws Exception {
-        for (int i = 0; i < affectedIds.length(); i++) {
-            long localId = localTempIds[i];
-            long affectedId = affectedIds.getLong(i);
-            getLocalStorageManager().persistTempRow(Contract.TeachersSubjects.HOLDER, localId, affectedId);
-        }
-    }
-
-    private long[] preSetLocalSubjectsOfTeacher(long localTeacherId, JSONArray localSubjectsIds) throws Exception {
-        long[] tempIds = new long[localSubjectsIds.length()];
-        for (int i = 0; i < localSubjectsIds.length(); i++) {
-            ContentValues values = new ContentValues();
-            values.put(Contract.TeachersSubjects.FIELD_TEACHER_ID, localTeacherId);
-            values.put(Contract.TeachersSubjects.FIELD_SUBJECT_ID, localSubjectsIds.getString(i));
-            tempIds[i] = getLocalStorageManager().insertTempRow(Contract.TeachersSubjects.HOLDER, values);
-        }
-        return tempIds;
-    }
-
-    private void updateLocalSubjectsLinks(long teacherId, JSONObject response) throws Exception {
-        Cursor existingSubjects = getLocalStorageManager().getResolver().query(
-                Contract.TeachersSubjects.URI,
-                new String[]{Contract.TeachersSubjects._ID, Contract.TeachersSubjects.REMOTE_ID},
-                Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
-                new String[]{String.valueOf(teacherId)},
-                null
-        );
-        JSONArray subjects = response.getJSONArray("subjects");
-        for (int i = 0; i < subjects.length(); i++) {
-            JSONObject subj = subjects.getJSONObject(i);
-            subj.put("teacher_id", teacherId);
-            long remoteSubjectId = subj.getLong("subject_id");
-            long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.HOLDER, remoteSubjectId);
-            subj.put("LOCAL_subject_id", localSubjectId);
-        }
-        getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
-                existingSubjects,
-                Contract.TeachersSubjects.HOLDER,
-                subjects,
-                "id",
-                new String[]{"teacher_id", "LOCAL_subject_id"},
-                new String[]{Contract.TeachersSubjects.FIELD_TEACHER_ID, Contract.TeachersSubjects.FIELD_SUBJECT_ID});
-    }
-
-    private long preAddUser(JSONObject request) throws JSONException {
-        ContentValues tempUser = new ContentValues();
-        tempUser.put(Contract.Users.FIELD_LOGIN, request.getString("login"));
-        tempUser.put(Contract.Users.FIELD_NAME, request.getString("firstName"));
-        tempUser.put(Contract.Users.FIELD_MIDDLENAME, request.getString("middleName"));
-        tempUser.put(Contract.Users.FIELD_SURNAME, request.getString("secondName"));
-        tempUser.put(Contract.Users.FIELD_LEVEL, 4);
-        return getLocalStorageManager().insertTempRow(Contract.Users.HOLDER, tempUser);
-    }
-
-    private long preAddTeacher(long localUserId) {
-        ContentValues tempStudent = new ContentValues();
-        tempStudent.put(Contract.Teachers.FIELD_USER_ID, localUserId);
-        return getLocalStorageManager().insertTempRow(Contract.Teachers.HOLDER, tempStudent);
-    }
-
-    private void persistTeacher(long localUserId, long localTeacherId, JSONObject response) throws JSONException {
-        long remoteUserId = response.getLong("user_id");
-        long remoteStudentId = response.getLong("teacher_id");
-        getLocalStorageManager().persistTempRow(Contract.Users.HOLDER, localUserId, remoteUserId);
-        getLocalStorageManager().persistTempRow(Contract.Teachers.HOLDER, localTeacherId, remoteStudentId);
-    }
-
-    private void preDeleteTeachers(JSONObject request) throws JSONException {
-        JSONArray localTeachers = request.getJSONArray("LOCAL_teachers");
-        request.remove("LOCAL_teachers");
-        for (int i = 0; i < localTeachers.length(); i++) {
-            String localTeacherId = localTeachers.getString(i);
-            Cursor localUser = getContext().getContentResolver().query(Contract.Teachers.URI_AS_USERS,
-                    new String[]{Contract.Users._ID},
-                    Contract.Teachers._ID + " = ?",
-                    new String[]{ localTeacherId },
-                    null);
-            localUser.moveToFirst();
-            String localUserId = localUser.getString(0);
-            getLocalStorageManager().markRowAsDeleting(Contract.Users.HOLDER, localUserId);
-            getLocalStorageManager().markRowAsDeleting(Contract.Teachers.HOLDER, localTeacherId);
-        }
-    }
-
-    private void persistTeachersDeletion() {
-        getLocalStorageManager().deleteMarkedEntities(Contract.Teachers.HOLDER);
-        getLocalStorageManager().deleteMarkedEntities(Contract.Users.HOLDER);
-    }
-
     private void updateLocalTeachers(JSONObject response) throws JSONException {
         Cursor localTeachers = getLocalStorageManager().getResolver().query(
                 Contract.Teachers.URI_AS_USERS,
@@ -291,5 +102,221 @@ public class Teachers extends QueryExecDelegate {
                 new String[]{"user_id"},
                 new String[]{Contract.Teachers.FIELD_USER_ID}
         );
+    }
+
+    //##################   ADDITION   ###########################
+
+
+    public JSONObject add(ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+
+        long localUserId = Users.preAddUser(this, request, 4);
+        long localTeacherId = preAddTeacher(localUserId);
+        //notify UI loaders
+        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);
+        if (Utils.isApiJsonSuccess(response)) {
+            //commit
+            commitAddTeacher(localUserId, localTeacherId, response);
+        } else {
+            //rollback
+            rollbackAddTeacher(localUserId, localTeacherId);
+        }
+        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        return response;
+    }
+
+    private long preAddTeacher(long localUserId) {
+        ContentValues tempTeacher = new ContentValues();
+        tempTeacher.put(Contract.Teachers.FIELD_USER_ID, localUserId);
+        return getLocalStorageManager().insertTempEntity(Contract.Teachers.HOLDER, tempTeacher);
+    }
+
+    private void commitAddTeacher(long localUserId, long localTeacherId, JSONObject response) throws JSONException {
+        long remoteUserId = response.getLong("user_id");
+        long remoteTeacherId = response.getLong("teacher_id");
+        Users.commitAddUser(this, localUserId, remoteUserId);
+        getLocalStorageManager().persistTempEntity(Contract.Teachers.HOLDER, localTeacherId, remoteTeacherId);
+    }
+
+    private void rollbackAddTeacher(long localUserId, long localTeacherId) {
+        Users.rollbackAddUser(this, localUserId);
+        getLocalStorageManager().deleteEntityByLocalId(Contract.Teachers.HOLDER, localTeacherId);
+    }
+
+    //#############    DELETION    ###################
+
+    public JSONObject delete(ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        JSONArray teachersIds = request.getJSONArray("LOCAL_teachers");
+        long[] usersIds = preDeleteTeachers(request);
+        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        if (Utils.isApiJsonSuccess(response)) {
+            //commit
+            commitTeachersDeletion(usersIds, teachersIds);
+        } else {
+            //rollback
+            rollbackTeachersDeletion(usersIds, teachersIds);
+        }
+        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        return response;
+    }
+
+    private long[] preDeleteTeachers(JSONObject request) throws JSONException {
+        JSONArray localTeachers = request.getJSONArray("LOCAL_teachers");
+        request.remove("LOCAL_teachers");
+        long[] localUsersIds = new long[localTeachers.length()];
+        for (int i = 0; i < localTeachers.length(); i++) {
+            long localTeacherId = localTeachers.getLong(i);
+            Cursor localUser = getContext().getContentResolver().query(Contract.Teachers.URI_AS_USERS,
+                    new String[]{Contract.Users._ID},
+                    Contract.Teachers._ID + " = ?",
+                    new String[]{ String.valueOf(localTeacherId) },
+                    null);
+            localUser.moveToFirst();
+            long localUserId = localUser.getLong(0);
+            Users.preDeleteUser(this, localUserId);
+            getLocalStorageManager().markEntityAsDeleting(Contract.Teachers.HOLDER, localTeacherId);
+            localUsersIds[i] = localUserId;
+        }
+        return localUsersIds;
+    }
+
+    private void commitTeachersDeletion(long[] usersIds, JSONArray teachersIds) throws Exception {
+        getLocalStorageManager().deleteEntitiesByLocalIds(Contract.Teachers.HOLDER, teachersIds);
+        getLocalStorageManager().deleteEntitiesByLocalIds(Contract.Users.HOLDER, usersIds);
+    }
+
+    private void rollbackTeachersDeletion(long[] usersIds, JSONArray teachersIds) throws Exception {
+        getLocalStorageManager().markEntitiesAsIdle(Contract.Teachers.HOLDER, teachersIds);
+        getLocalStorageManager().markEntitiesAsIdle(Contract.Users.HOLDER, usersIds);
+    }
+
+    private void deleteLocalTeacher(long localUserId, long localTeacherId) {
+        getLocalStorageManager().deleteEntityByLocalId(Contract.Teachers.HOLDER, localTeacherId);
+        getLocalStorageManager().deleteEntityByLocalId(Contract.Users.HOLDER, localUserId);
+    }
+
+    /// $#######  SUBJECTS OF TEACHER SECTION
+    // ###########    RETRIEVING   ###############
+
+    public JSONObject getSubjectsOfTeacher(ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        long localTeacherId = request.getLong("LOCAL_teacher_id");
+        request.remove("LOCAL_teacher_id");
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        if (Utils.isApiJsonSuccess(response)) {
+            updateLocalSubjectsLinks(localTeacherId, response);
+            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                    action,
+                    "SubjectsOfTeacherFragment");
+        }
+        return response;
+    }
+
+    private void updateLocalSubjectsLinks(long teacherId, JSONObject response) throws Exception {
+        Cursor existingSubjects = getLocalStorageManager().getResolver().query(
+                Contract.TeachersSubjects.URI,
+                new String[]{Contract.TeachersSubjects._ID, Contract.TeachersSubjects.REMOTE_ID},
+                Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
+                new String[]{String.valueOf(teacherId)},
+                null
+        );
+        JSONArray subjects = response.getJSONArray("subjects");
+        for (int i = 0; i < subjects.length(); i++) {
+            JSONObject subj = subjects.getJSONObject(i);
+            subj.put("teacher_id", teacherId);
+            long remoteSubjectId = subj.getLong("subject_id");
+            long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.HOLDER, remoteSubjectId);
+            subj.put("LOCAL_subject_id", localSubjectId);
+        }
+        getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
+                existingSubjects,
+                Contract.TeachersSubjects.HOLDER,
+                subjects,
+                "id",
+                new String[]{"teacher_id", "LOCAL_subject_id"},
+                new String[]{Contract.TeachersSubjects.FIELD_TEACHER_ID, Contract.TeachersSubjects.FIELD_SUBJECT_ID});
+    }
+
+    // ######  SETTING  #########
+
+    public JSONObject setSubjectsOfTeacher(ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        long localTeacherId = request.getLong("LOCAL_teacher_id");
+        JSONArray localSubjectsIds = request.getJSONArray("LOCAL_subjects_ids");
+        request.remove("LOCAL_teacher_id");
+        request.remove("LOCAL_subjects_ids");
+
+        long[] localLinksIds = preSetLocalSubjectsOfTeacher(localTeacherId, localSubjectsIds);
+        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                action,
+                "SubjectsOfTeacherFragment");
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        if (Utils.isApiJsonSuccess(response)) {
+            commitSetSubjectsOfTeacher(localLinksIds, response.getJSONArray("affected_links"));
+        } else {
+            rollbackSetSubjectsOfTeacher(localLinksIds);
+        }
+        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                action,
+                "SubjectsOfTeacherFragment");
+        return response;
+    }
+
+    private long[] preSetLocalSubjectsOfTeacher(long localTeacherId, JSONArray localSubjectsIds) throws Exception {
+        long[] tempIds = new long[localSubjectsIds.length()];
+        for (int i = 0; i < localSubjectsIds.length(); i++) {
+            ContentValues values = new ContentValues();
+            values.put(Contract.TeachersSubjects.FIELD_TEACHER_ID, localTeacherId);
+            values.put(Contract.TeachersSubjects.FIELD_SUBJECT_ID, localSubjectsIds.getString(i));
+            tempIds[i] = getLocalStorageManager().insertTempEntity(Contract.TeachersSubjects.HOLDER, values);
+        }
+        return tempIds;
+    }
+
+    private void commitSetSubjectsOfTeacher(long[] localTempIds, JSONArray affectedIds) throws Exception {
+        getLocalStorageManager().persistTempEntities(Contract.TeachersSubjects.HOLDER, localTempIds, affectedIds);
+    }
+
+    private void rollbackSetSubjectsOfTeacher(long[] localLinksIds) {
+        getLocalStorageManager().deleteEntitiesByLocalIds(Contract.TeachersSubjects.HOLDER, localLinksIds);
+    }
+
+    //######   UNSETTING   #######
+
+    public JSONObject unsetSubjectsOfTeacher(ApiAction action) throws Exception {
+        JSONObject request = action.actionData;
+        JSONArray localLinks = request.getJSONArray("LOCAL_links_ids");
+        request.remove("LOCAL_links_ids");
+
+        preUnsetSubjectsOfTeacher(localLinks);
+        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                action,
+                "SubjectsOfTeacherFragment");
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        if (Utils.isApiJsonSuccess(response)) {
+            commitUnsetSubjectsOfTeacher(localLinks);
+        } else {
+            rollbackUnsetSubjectsOfTeacher(localLinks);
+        }
+        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                action,
+                "SubjectsOfTeacherFragment");
+        return response;
+    }
+
+    private void preUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
+        getLocalStorageManager().markEntitiesAsDeleting(Contract.TeachersSubjects.HOLDER, localLinks);
+    }
+
+    private void commitUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
+        getLocalStorageManager().deleteEntitiesByLocalIds(Contract.TeachersSubjects.HOLDER, localLinks);
+    }
+
+    private void rollbackUnsetSubjectsOfTeacher(JSONArray localLinks) throws Exception {
+        getLocalStorageManager().markEntitiesAsIdle(Contract.TeachersSubjects.HOLDER, localLinks);
     }
 }

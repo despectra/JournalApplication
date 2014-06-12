@@ -121,16 +121,16 @@ public class Students extends QueryExecDelegate {
         long localGroupId = request.getLong("LOCAL_group_id");
         request.remove("LOCAL_group_id");
 
-        long localUserId = Users.preAddUser(this, request);
+        long localUserId = Users.preAddUser(this, request, 2);
 
         ContentValues tempStudent = new ContentValues();
         tempStudent.put(Contract.Students.FIELD_USER_ID, localUserId);
-        long localStudentId = getLocalStorageManager().insertTempRow(Contract.Students.HOLDER, tempStudent);
+        long localStudentId = getLocalStorageManager().insertTempEntity(Contract.Students.HOLDER, tempStudent);
 
         ContentValues tempSGLink = new ContentValues();
         tempSGLink.put(Contract.StudentsGroups.FIELD_STUDENT_ID, localStudentId);
         tempSGLink.put(Contract.StudentsGroups.FIELD_GROUP_ID, localGroupId);
-        long localSGLinkId = getLocalStorageManager().insertTempRow(Contract.StudentsGroups.HOLDER, tempSGLink);
+        long localSGLinkId = getLocalStorageManager().insertTempEntity(Contract.StudentsGroups.HOLDER, tempSGLink);
         JSONObject localIds = new JSONObject();
         localIds.put("user_id", localUserId);
         localIds.put("student_id", localStudentId);
@@ -145,8 +145,8 @@ public class Students extends QueryExecDelegate {
         long remoteSGLinkId = response.getLong("student_group_link_id");
 
         Users.commitAddUser(this, localIds.getLong("user_id"), remoteUserId);
-        getLocalStorageManager().persistTempRow(Contract.Students.HOLDER, localIds.getLong("student_id"), remoteStudentId);
-        getLocalStorageManager().persistTempRow(Contract.StudentsGroups.HOLDER, localIds.getLong("sg_link_id"), remoteSGLinkId);
+        getLocalStorageManager().persistTempEntity(Contract.Students.HOLDER, localIds.getLong("student_id"), remoteStudentId);
+        getLocalStorageManager().persistTempEntity(Contract.StudentsGroups.HOLDER, localIds.getLong("sg_link_id"), remoteSGLinkId);
     }
 
     private void rollbackAddStudent(JSONObject localIds) throws Exception {
@@ -192,7 +192,7 @@ public class Students extends QueryExecDelegate {
             localUser.moveToFirst();
             long localUserId = localUser.getLong(0);
             Users.preDeleteUser(this, localUserId);
-            getLocalStorageManager().markRowAsDeleting(Contract.Students.HOLDER, localStudentId);
+            getLocalStorageManager().markEntityAsDeleting(Contract.Students.HOLDER, localStudentId);
             Cursor localSGLink = getContext().getContentResolver().query(
                     Contract.StudentsGroups.URI,
                     new String[]{Contract.StudentsGroups._ID},
@@ -201,7 +201,7 @@ public class Students extends QueryExecDelegate {
                     null);
             localSGLink.moveToFirst();
             long localSGLinkId = localSGLink.getLong(0);
-            getLocalStorageManager().markRowAsDeleting(Contract.StudentsGroups.HOLDER, localSGLinkId);
+            getLocalStorageManager().markEntityAsDeleting(Contract.StudentsGroups.HOLDER, localSGLinkId);
             localIds.put("user_id", localUserId);
             localIds.put("student_id", localStudentId);
             localIds.put("sg_link_id", localSGLinkId);
@@ -222,8 +222,8 @@ public class Students extends QueryExecDelegate {
     private void rollbackDeleteStudents(JSONArray localIds) throws Exception {
         for (int i = 0; i < localIds.length(); i++) {
             JSONObject ids = localIds.getJSONObject(i);
-            getLocalStorageManager().markRowAsIdle(Contract.StudentsGroups.HOLDER, ids.getLong("sg_link_id"));
-            getLocalStorageManager().markRowAsIdle(Contract.Students.HOLDER, ids.getLong("student_id"));
+            getLocalStorageManager().markEntityAsIdle(Contract.StudentsGroups.HOLDER, ids.getLong("sg_link_id"));
+            getLocalStorageManager().markEntityAsIdle(Contract.Students.HOLDER, ids.getLong("student_id"));
             Users.rollbackDeleteUser(this, ids.getLong("user_id"));
         }
     }

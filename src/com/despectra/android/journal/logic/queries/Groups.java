@@ -30,7 +30,7 @@ public class Groups extends QueryExecDelegate {
         JSONObject jsonResponse = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(jsonResponse)) {
             //commit
-            getLocalStorageManager().persistTempRow(Contract.Groups.HOLDER, localId, jsonResponse.getLong("group_id"));
+            getLocalStorageManager().persistTempEntity(Contract.Groups.HOLDER, localId, jsonResponse.getLong("group_id"));
         } else {
             //rollback
             getLocalStorageManager().deleteEntityByLocalId(Contract.Groups.HOLDER, localId);
@@ -45,7 +45,7 @@ public class Groups extends QueryExecDelegate {
         group.put(Contract.Groups.FIELD_NAME, jsonRequest.getString("name"));
         group.put(Contract.Groups.FIELD_PARENT_ID, localParentId);
         //write in local cache
-        return getLocalStorageManager().insertTempRow(Contract.Groups.HOLDER, group);
+        return getLocalStorageManager().insertTempEntity(Contract.Groups.HOLDER, group);
     }
 
     /*
@@ -97,14 +97,14 @@ public class Groups extends QueryExecDelegate {
         JSONObject groupData = request.getJSONObject("data");
         String localParentId = groupData.getString("LOCAL_parent_id");
         groupData.remove("LOCAL_parent_id");
-        getLocalStorageManager().markRowAsUpdating(Contract.Groups.HOLDER, localGroupId);
+        getLocalStorageManager().markEntityAsUpdating(Contract.Groups.HOLDER, localGroupId);
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);;
         if (Utils.isApiJsonSuccess(response)) {
             ContentValues updated = new ContentValues();
             updated.put(Contract.Groups.FIELD_NAME, groupData.getString("name"));
             updated.put(Contract.Groups.FIELD_PARENT_ID, localParentId);
-            getLocalStorageManager().persistUpdatingRow(Contract.Groups.HOLDER, localGroupId, updated);
+            getLocalStorageManager().persistUpdatingEntity(Contract.Groups.HOLDER, localGroupId, updated);
         } else {
             //rollback
         }
@@ -122,7 +122,7 @@ public class Groups extends QueryExecDelegate {
         if (Utils.isApiJsonSuccess(response)) {
             getLocalStorageManager().deleteEntitiesByLocalIds(Contract.Groups.HOLDER, localIds);
         } else {
-            getLocalStorageManager().markRowsAsIdle(Contract.Groups.HOLDER, localIds);
+            getLocalStorageManager().markEntitiesAsIdle(Contract.Groups.HOLDER, localIds);
         }
         return response;
     }
@@ -131,7 +131,7 @@ public class Groups extends QueryExecDelegate {
         JSONArray localIds = jsonRequest.getJSONArray("LOCAL_groups");
         jsonRequest.remove("LOCAL_groups");
         long[] ids = Utils.getIdsFromJSONArray(localIds);
-        getLocalStorageManager().markRowsAsDeleting(Contract.Groups.HOLDER, ids);
+        getLocalStorageManager().markEntitiesAsDeleting(Contract.Groups.HOLDER, ids);
         return ids;
     }
 }
