@@ -27,8 +27,8 @@ public class ApiServiceHelper {
     private ApiService mService;
     private ServiceConnection mServiceConnection;
     private ApiService.ApiServiceBinder mServiceBinder;
-    private boolean mBound;
     private Map<String, RegisteredClient> mRegisteredClients;
+    private boolean mBound;
 
     private static ApiServiceHelper sInstance;
 
@@ -63,7 +63,7 @@ public class ApiServiceHelper {
         notifyCompletedActions(name);
     }
 
-    public void unregisterClient(ApiClient client) {
+    public void unregisterClient(com.despectra.android.journal.logic.helper.ApiClient client) {
         String activityName = client.getClientName();
         RegisteredClient holder = mRegisteredClients.get(activityName);
         if (holder != null) {
@@ -99,16 +99,16 @@ public class ApiServiceHelper {
             if (runningCount > 0) {
                 actionBefore = getLastActionByTime(holder.runningActions.iterator());
                 if (!action.equals(actionBefore)) {
-                    runHighPriorityAction(senderTag, action, holder);
+                    runHighPriorityAction(action, holder);
                 }
             } else {
                 if (pendingCount > 0) {
                     actionBefore = holder.pendingActions.peekLast();
                     if (!action.equals(actionBefore)) {
-                        runHighPriorityAction(senderTag, action, holder);
+                        runHighPriorityAction(action, holder);
                     }
                 } else {
-                    runHighPriorityAction(senderTag, action, holder);
+                    runHighPriorityAction(action, holder);
                 }
             }
         } else {
@@ -126,6 +126,7 @@ public class ApiServiceHelper {
                 } else {
                     if (mBound) {
                         holder.runningActions.add(action);
+                        tryShowProgress(holder);
                         mService.processApiAction(action);
                     } else {
                         holder.pendingActions.offer(action);
@@ -135,10 +136,23 @@ public class ApiServiceHelper {
         }
     }
 
-    private void runHighPriorityAction(String senderTag, ApiAction action, RegisteredClient holder) {
+    private void runHighPriorityAction(ApiAction action, RegisteredClient holder) {
         holder.runningActions.add(action);
         if (mBound) {
+            tryShowProgress(holder);
             mService.processApiAction(action);
+        }
+    }
+
+    private void tryShowProgress(RegisteredClient client) {
+        if(client.callback instanceof ApiClientWithProgress) {
+            ((ApiClientWithProgress)client.callback).showProgress();
+        }
+    }
+
+    private void tryHideProgress(RegisteredClient client) {
+        if(client.callback instanceof ApiClientWithProgress) {
+            ((ApiClientWithProgress)client.callback).hideProgress();
         }
     }
 
@@ -190,6 +204,7 @@ public class ApiServiceHelper {
     private void launchApiQueryingProcess(String senderTag) {
         RegisteredClient holder = mRegisteredClients.get(senderTag);
         if (!holder.runningActions.isEmpty()) {
+            tryShowProgress(holder);
             for (ApiAction action : holder.runningActions) {
                 mService.processApiAction(action);
             }
@@ -197,6 +212,7 @@ public class ApiServiceHelper {
         }
         ApiAction action = holder.pendingActions.poll();
         holder.runningActions.add(action);
+        tryShowProgress(holder);
         mService.processApiAction(action);
     }
 
@@ -222,6 +238,8 @@ public class ApiServiceHelper {
 
         if (!holder.pendingActions.isEmpty()) {
             startApiQuery(senderTag, holder.pendingActions.poll(), PRIORITY_HIGH);
+        } else {
+            tryHideProgress(holder);
         }
     }
 
@@ -545,15 +563,6 @@ public class ApiServiceHelper {
         public void setCallback(Callback callback) {
             this.callback = callback;
         }
-    }
-
-    public interface FeedbackApiClient extends ApiClient {
-        public void onProgress(Object data);
-    }
-
-    public interface ApiClient extends Callback {
-        public void setServiceHelperController(HelperController controller);
-        public String getClientName();
     }
 
     public interface Callback {

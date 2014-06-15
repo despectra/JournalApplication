@@ -3,6 +3,7 @@ package com.despectra.android.journal.view;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.logic.helper.ApiClientWithProgress;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.helper.HelperController;
 import com.despectra.android.journal.utils.Utils;
@@ -11,7 +12,7 @@ import org.json.JSONObject;
 /**
  * Created by Dmitry on 07.04.14.
  */
-public abstract class AbstractApiFragment extends Fragment implements ApiServiceHelper.ApiClient, IActivityProgressBar {
+public abstract class AbstractApiFragment extends Fragment implements ApiClientWithProgress {
     protected JournalApplication mApplicationContext;
     protected HelperController mServiceHelperController;
 
@@ -63,15 +64,15 @@ public abstract class AbstractApiFragment extends Fragment implements ApiService
 
     @Override
     public void showProgress() {
-        if (getActivity() instanceof IActivityProgressBar) {
-            ((IActivityProgressBar)getActivity()).showProgress();
+        if (getActivity() instanceof ApiClientWithProgress) {
+            ((ApiClientWithProgress)getActivity()).showProgress();
         }
     }
 
     @Override
     public void hideProgress() {
-        if (getActivity() instanceof IActivityProgressBar) {
-            ((IActivityProgressBar)getActivity()).hideProgress();
+        if (getActivity() instanceof ApiClientWithProgress) {
+            ((ApiClientWithProgress)getActivity()).hideProgress();
         }
     }
 

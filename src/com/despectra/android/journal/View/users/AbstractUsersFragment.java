@@ -17,7 +17,7 @@ import com.despectra.android.journal.view.*;
  * Created by Dmitry on 13.04.14.
  */
 
-public abstract class AbstractUsersFragment extends EntitiesListFragment implements ApiServiceHelper.FeedbackApiClient {
+public abstract class AbstractUsersFragment extends EntitiesListFragment {
 
     private AddEditSimpleUserDialog mAddEditDialog;
     private View mHeaderView;
@@ -253,11 +253,4 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment impleme
     }
 
     protected abstract void performUpdatingUsersList();
-
-    @Override
-    public void onProgress(Object data) {
-        if (data.equals("cached")) {
-            getActivity().getSupportLoaderManager().restartLoader(LOADER_MAIN, null, this);
-        }
-    }
 }

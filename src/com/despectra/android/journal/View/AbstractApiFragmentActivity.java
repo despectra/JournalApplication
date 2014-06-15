@@ -8,6 +8,7 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.logic.helper.ApiClient;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.helper.HelperController;
 import com.despectra.android.journal.utils.Utils;
@@ -16,7 +17,7 @@ import org.json.JSONObject;
 /**
  * Created by Dmitry on 28.03.14.
  */
-public abstract class AbstractApiFragmentActivity extends FragmentActivity implements ApiServiceHelper.ApiClient {
+public abstract class AbstractApiFragmentActivity extends FragmentActivity implements ApiClient {
     protected JournalApplication mApplicationContext;
     protected HelperController mServiceHelperController;
     protected ProgressBar mProgressBar;
