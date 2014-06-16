@@ -19,6 +19,6 @@
         android:textColor="@drawable/list_item_text_color"
         />
 
-    <include layout="@layout/item_dropdown_button"/>
+    <include layout="@layout/item_popup_menu_btn"/>
 
 </RelativeLayout>

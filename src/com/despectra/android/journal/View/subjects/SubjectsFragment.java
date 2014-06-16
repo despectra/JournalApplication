@@ -191,7 +191,7 @@ public class SubjectsFragment extends EntitiesListFragment {
                 columns,
                 Contract.Subjects.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.dropdown_btn1,
+                R.id.item_popup_menu_btn1,
                 0);
     }
 

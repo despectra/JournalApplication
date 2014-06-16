@@ -9,7 +9,6 @@ import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import org.json.JSONObject;
 
@@ -174,7 +173,7 @@ public class StudentsFragment extends AbstractUsersFragment {
                 columns,
                 Contract.Users.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.dropdown_btn1,
+                R.id.item_popup_menu_btn1,
                 0);
     }
 

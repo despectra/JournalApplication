@@ -5,7 +5,6 @@ import android.net.Uri;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
@@ -140,7 +139,7 @@ public class TeachersFragment extends AbstractUsersFragment {
                 idsColumns,
                 Contract.Users.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.dropdown_btn1,
+                R.id.item_popup_menu_btn1,
                 0);
     }
 

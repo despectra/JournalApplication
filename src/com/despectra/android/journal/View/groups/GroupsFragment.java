@@ -187,7 +187,7 @@ public class GroupsFragment extends EntitiesListFragment {
                 columns,
                 Contract.Groups.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.dropdown_btn1,
+                R.id.item_popup_menu_btn1,
                 0);
     }
 

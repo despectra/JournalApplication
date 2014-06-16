@@ -19,7 +19,6 @@ import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
-import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import org.json.JSONObject;
 
@@ -247,7 +246,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
                     new EntityIdsColumns[]{new EntityIdsColumns("subjects", "_id", Contract.Subjects.REMOTE_ID)},
                     Contract.Subjects.ENTITY_STATUS,
                     R.id.checkbox1,
-                    R.id.dropdown_btn1,
+                    R.id.item_popup_menu_btn1,
                     0);
             if (savedInstanceState != null) {
                 mAdapter.restoreCheckedItems(savedInstanceState.getBundle("selectedEntities"), false);

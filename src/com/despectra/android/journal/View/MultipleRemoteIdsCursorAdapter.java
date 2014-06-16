@@ -20,15 +20,15 @@ import java.util.*;
  */
 public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
 
-    private int mCheckBoxId;
-    private int mPopupMenuBtnId;
     private int mEntityStatusColId;
     private EntityIdsColumns[] mIdsColumns;
     private String mEntityStatusColName;
     private Context mContext;
     private OnItemClickListener mItemClickListener;
+    private int mCheckBoxId;
     private OnItemCheckedListener mItemCheckedListener;
     private Map<Long, JoinedEntityIds> mCheckedItemIds;
+    private int mPopupMenuBtnId;
     private int mPopupMenuRes;
     private OnItemPopupMenuListener mPopupMenuListener;
 
@@ -221,10 +221,6 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
             mEntityStatusColId = c.getColumnIndexOrThrow(mEntityStatusColName);
         }
         return super.swapCursor(c);
-    }
-
-    public static class ViewHolder {
-        public boolean isAnimating;
     }
 
     public interface OnItemCheckedListener {

@@ -1,11 +1,8 @@
 package com.despectra.android.journal.view.subjects;
 
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.view.*;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
@@ -64,7 +61,7 @@ public class SubjectsOfTeacherFragment extends LinksFragment {
                 columns,
                 Contract.TeachersSubjects.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.dropdown_btn1,
+                R.id.item_popup_menu_btn1,
                 0);
     }
 
