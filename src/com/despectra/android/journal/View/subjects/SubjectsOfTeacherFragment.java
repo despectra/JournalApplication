@@ -12,6 +12,7 @@ import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.view.LinksFragment;
 import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
+import com.despectra.android.journal.view.groups.GroupsForSubjectFragment;
 
 /**
  * Created by Dmitry on 04.06.14.
@@ -25,7 +26,12 @@ public class SubjectsOfTeacherFragment extends LinksFragment {
 
     @Override
     public void onItemClick(View itemView, JoinedEntityIds ids) {
-        //TODO
+        //TODO TEST
+        Bundle args = new Bundle();
+        args.putBundle("teacher_subject_id", ids.getIdsByTable("teacher_subject").toBundle());
+
+        //pas it to parent fragment
+
     }
 
     @Override

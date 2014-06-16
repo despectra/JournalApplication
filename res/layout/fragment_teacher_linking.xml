@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+    <RelativeLayout
+        android:id="@+id/linking_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/user_drawer_item_background"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:visibility="visible"
+        android:padding="10dp">
+
+        <ImageButton
+            android:id="@+id/linking_header_done_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/abc_ic_cab_done_holo_dark"
+            android:background="@android:color/transparent"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:paddingRight="10dp"
+                />
+
+        <TextView
+            android:id="@+id/linking_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/linking_header_done_btn"
+            android:layout_centerHorizontal="true"
+            android:textColor="@android:color/white"
+            android:textSize="28sp"
+            android:fontFamily="sans-serif"
+            android:text="Link me!"
+                />
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/fragment_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/linking_header">
+
+    </FrameLayout>
+
+</RelativeLayout>

@@ -22,6 +22,7 @@ public class TeacherFragment extends PagerContainerFragment {
                 fragment.setArguments(getArguments());
                 return fragment;
             case 1:
+                //TODO create other fragment
                 fragment = new SubjectsOfTeacherFragment();
                 fragment.setArguments(getArguments());
                 return fragment;
