@@ -81,7 +81,7 @@ public class DBHelper extends SQLiteOpenHelper {
             "tsg_remote_id INTEGER DEFAULT 0 NOT NULL," +
             "tsg_teacher_subject_id INTEGER NOT NULL," +
             "tsg_group_id INTEGER NOT NULL," +
-            "tsg_entity_status INTEGER NOT NULL);";
+            "tsg_entity_status INTEGER NOT NULL)";
 
 /*    public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +

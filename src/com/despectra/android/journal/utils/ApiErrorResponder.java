@@ -2,6 +2,7 @@ package com.despectra.android.journal.utils;
 
 import android.content.Context;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.widget.Toast;
 import com.despectra.android.journal.view.SimpleInfoDialog;
 import org.json.JSONException;

@@ -117,13 +117,13 @@ public class Subjects extends QueryExecDelegate {
     // ###########  RETRIEVING  #########
     public JSONObject getGroupsOfTeachersSubject(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
-        long localTeacherSubjectId = request.getLong("LOCAL_ts_link");
-        request.remove("LOCAL_ts_link");
+        long localTeacherSubjectId = request.getLong("LOCAL_teacher_subject_id");
+        request.remove("LOCAL_teacher_subject_id");
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalGroupsLinks(localTeacherSubjectId, response);
-            getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS, action, "GroupsOfTeachersSubjectFragment");
+            getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS, action, "GroupsForSubjectFragment");
         }
         return response;
     }
@@ -132,7 +132,7 @@ public class Subjects extends QueryExecDelegate {
         Cursor localLinks = getLocalStorageManager().getResolver().query(
                 Contract.TSG.URI,
                 new String[]{Contract.TSG._ID, Contract.TSG.REMOTE_ID},
-                Contract.TSG.FIELD_GROUP_ID + " = ?",
+                Contract.TSG.FIELD_TEACHER_SUBJECT_ID + " = ?",
                 new String[]{String.valueOf(localTeacherSubjectId)},
                 null);
         JSONArray remoteLinks = response.getJSONArray("groups");
@@ -157,20 +157,26 @@ public class Subjects extends QueryExecDelegate {
 
     public JSONObject setGroupsOfTeachersSubject(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
-        long localTeacherSubjectId = request.getLong("LOCAL_ts_link_id");
+        long localTeacherSubjectId = request.getLong("LOCAL_teacher_subject_id");
         JSONArray localGroupsIds = request.getJSONArray("LOCAL_groups_ids");
-        request.remove("LOCAL_ts_link_id");
+        request.remove("LOCAL_teacher_subject_id");
         request.remove("LOCAL_groups_ids");
 
         long[] localLinksIds = preSetGroupsForSubject(localTeacherSubjectId, localGroupsIds);
+        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
+                action,
+                "GroupsForSubjectFragment");
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //commit
-            commitSetGroupsOfSubject(localLinksIds, response.getJSONArray("groups"));
+            commitSetGroupsOfSubject(localLinksIds, response.getJSONArray("affected_links"));
         } else {
             // rollback
             getLocalStorageManager().deleteEntitiesByLocalIds(Contract.TSG.HOLDER, localLinksIds);
         }
+        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
+                action,
+                "GroupsForSubjectFragment");
         return response;
     }
 
@@ -199,13 +205,13 @@ public class Subjects extends QueryExecDelegate {
         preUnsetGroupsOfSubject(localLinks);
         getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
                 action,
-                "GroupsOfTeachersSubjectFragment");
+                "GroupsForSubjectFragment");
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             commitUnsetGroupsOfSubject(localLinks);
             getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
                     action,
-                    "GroupsOfTeachersSubjectFragment");
+                    "GroupsForSubjectFragment");
         } else {
             //rollback
             getLocalStorageManager().markEntitiesAsIdle(Contract.TSG.HOLDER, localLinks);

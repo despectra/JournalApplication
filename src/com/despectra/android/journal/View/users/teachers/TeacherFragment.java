@@ -23,7 +23,7 @@ public class TeacherFragment extends PagerContainerFragment {
                 return fragment;
             case 1:
                 //TODO create other fragment
-                fragment = new SubjectsOfTeacherFragment();
+                fragment = new TeacherLinkingFragment();
                 fragment.setArguments(getArguments());
                 return fragment;
             case 2:

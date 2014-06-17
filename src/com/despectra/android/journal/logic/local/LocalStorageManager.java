@@ -112,6 +112,7 @@ public class LocalStorageManager {
     public Map.Entry<Long, Long> insertNewEntity(Contract.EntityTable table, JSONObject jsonDataRow, long insertingId, String[] from, String[] to) throws JSONException {
         ContentValues data = getContentValuesFromJson(jsonDataRow, from, to);
         data.put(table.REMOTE_ID, insertingId);
+        data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
         Uri result = mResolver.insert(table.URI, data);
         long localInsertedId = Long.valueOf(result.getLastPathSegment());
         return new AbstractMap.SimpleEntry<Long, Long>(insertingId, localInsertedId);

@@ -72,8 +72,9 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(getFragmentLayoutRes(), container, false);
         mEntitiesListView = (ListView) v.findViewById(R.id.entities_list_view);
-        mEmptyListNotificator = (TextView) v.findViewById(R.id.listview_empty_message);
+        mEmptyListNotificator = (TextView)View.inflate(getActivity(), R.layout.empty_list_notification, null);
         mEmptyListNotificator.setText(getEmptyListMessage());
+        mEntitiesListView.setEmptyView(mEmptyListNotificator);
         setHasOptionsMenu(true);
         return v;
     }

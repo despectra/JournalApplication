@@ -16,9 +16,8 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.model.EntityIds;
-import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import org.json.JSONObject;
 
@@ -31,17 +30,30 @@ public abstract class LinksFragment extends EntitiesListFragment {
     private AvailableEntitiesDialog mEntitiesSelectDialog;
     private AvailableEntitiesDialog.DialogListener mEntitiesSelectListener = new AvailableEntitiesDialog.DialogListener() {
         @Override
-        public void onNewEntitiesPushed(EntityIds[] ids) {
-            linkEntities(mLinkingEntityIds, ids);
+        public void onNewEntitiesPushed(MultipleRemoteIdsCursorAdapter adapter) {
+            linkEntities(mLinkingEntityIds, adapter);
         }
     };
 
-    protected abstract void linkEntities(EntityIds linkingEntityIds, EntityIds[] linkedEntitiesIds);
+    private OnItemClickedListener mItemClickedListener;
+
+    protected abstract void linkEntities(EntityIds linkingEntityIds, MultipleRemoteIdsCursorAdapter adapterWithCheckedIds);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mLinkingEntityIds = getLinkingEntityIdsFromArgs(getArguments());
+    }
+
+    public void setOnItemClickedListener(OnItemClickedListener listener) {
+        mItemClickedListener = listener;
+    }
+
+    @Override
+    public void onItemClick(View itemView, JoinedEntityIds ids) {
+        if (mItemClickedListener != null) {
+            mItemClickedListener.onItemClicked(itemView, ids);
+        }
     }
 
     protected abstract EntityIds getLinkingEntityIdsFromArgs(Bundle arguments);
@@ -57,6 +69,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
         if (mEntitiesSelectDialog == null) {
             mEntitiesSelectDialog = AvailableEntitiesDialog.newInstance(getLinkDialogTitle(), mLinkingEntityIds);
         }
+        mEntitiesSelectDialog.setListAdapter(getLinkDialogAdapter());
         mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
         mEntitiesSelectDialog.setCursorLoader(getLinkDialogCursorLoader());
     }
@@ -76,9 +89,10 @@ public abstract class LinksFragment extends EntitiesListFragment {
             case R.id.action_add:
                 if (mEntitiesSelectDialog == null) {
                     mEntitiesSelectDialog = AvailableEntitiesDialog.newInstance(getLinkDialogTitle(), mLinkingEntityIds);
-                    mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
-                    mEntitiesSelectDialog.setCursorLoader(getLinkDialogCursorLoader());
                 }
+                mEntitiesSelectDialog.setListener(mEntitiesSelectListener);
+                mEntitiesSelectDialog.setListAdapter(getLinkDialogAdapter());
+                mEntitiesSelectDialog.setCursorLoader(getLinkDialogCursorLoader());
                 mEntitiesSelectDialog.show(getChildFragmentManager(), getLinkDialogTag());
                 return true;
             default:
@@ -159,6 +173,8 @@ public abstract class LinksFragment extends EntitiesListFragment {
 
     protected abstract void unlinkEntities(EntityIds linkingEntityIds, EntityIds[] linkedEntitiesIds);
 
+    protected abstract MultipleRemoteIdsCursorAdapter getLinkDialogAdapter();
+
     @Override
     protected void notifyAboutRunningActions(int runningCount) {
 
@@ -174,11 +190,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
         ApiErrorResponder.respondDialog(getChildFragmentManager(), (JSONObject)response);
     }
 
-    /**
-     * Created by Dmitry on 04.06.14.
-     */
     public static class AvailableEntitiesDialog extends DialogFragment implements LoaderCallbacks<Cursor> {
-
         private EntityIds mLinkingEntityIds;
         private ListView mListView;
         private TextView mEmptyTextView;
@@ -186,6 +198,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
         private Cursor mCursor;
         private DialogListener mListener;
         private CursorLoader mCursorLoader;
+
         private String mTitle;
 
         public static AvailableEntitiesDialog newInstance(String  title, EntityIds teacherIds) {
@@ -205,6 +218,10 @@ public abstract class LinksFragment extends EntitiesListFragment {
             mCursorLoader = loader;
         }
 
+        public void setListAdapter(MultipleRemoteIdsCursorAdapter adapter) {
+            mAdapter = adapter;
+        }
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -222,7 +239,7 @@ public abstract class LinksFragment extends EntitiesListFragment {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if (mListener != null) {
-                        mListener.onNewEntitiesPushed(mAdapter.getCheckedIdsOfTable("subjects"));
+                        mListener.onNewEntitiesPushed(mAdapter);
                     }
                     dialogInterface.dismiss();
                 }
@@ -238,16 +255,6 @@ public abstract class LinksFragment extends EntitiesListFragment {
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            mAdapter = new MultipleRemoteIdsCursorAdapter(getActivity(),
-                    R.layout.item_checkable_1,
-                    mCursor,
-                    new String[]{Contract.Subjects.FIELD_NAME},
-                    new int[]{R.id.text1},
-                    new EntityIdsColumns[]{new EntityIdsColumns("subjects", "_id", Contract.Subjects.REMOTE_ID)},
-                    Contract.Subjects.ENTITY_STATUS,
-                    R.id.checkbox1,
-                    R.id.item_popup_menu_btn1,
-                    0);
             if (savedInstanceState != null) {
                 mAdapter.restoreCheckedItems(savedInstanceState.getBundle("selectedEntities"), false);
             }
@@ -276,7 +283,11 @@ public abstract class LinksFragment extends EntitiesListFragment {
         }
 
         public interface DialogListener {
-            public void onNewEntitiesPushed(EntityIds[] ids);
+            public void onNewEntitiesPushed(MultipleRemoteIdsCursorAdapter adapter);
         }
+    }
+
+    public interface OnItemClickedListener {
+        public void onItemClicked(View clickedItemView, JoinedEntityIds ids);
     }
 }

@@ -3,9 +3,13 @@ package com.despectra.android.journal.view.groups;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.CursorLoader;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
+import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.Contract.*;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
@@ -17,9 +21,21 @@ import com.despectra.android.journal.view.MultipleRemoteIdsCursorAdapter;
  * Created by Андрей on 16.06.14.
  */
 public class GroupsForSubjectFragment extends LinksFragment {
+    public static final String TAG = "GroupsForSubjectFragment";
+
     @Override
-    protected void linkEntities(EntityIds linkingEntityIds, EntityIds[] linkedEntitiesIds) {
-        mServiceHelperController.setGroupsOfTeachersSubject(mToken, linkingEntityIds, linkedEntitiesIds, ApiServiceHelper.PRIORITY_HIGH);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        MenuItem item = menu.add(0, R.id.action_add, 0, "Привязать классы");
+        item.setIcon(R.drawable.ic_action_new);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+    }
+
+    @Override
+    protected void linkEntities(EntityIds linkingEntityIds, MultipleRemoteIdsCursorAdapter adapterWithCheckedIds) {
+        mServiceHelperController.setGroupsOfTeachersSubject(mToken,
+                linkingEntityIds,
+                adapterWithCheckedIds.getCheckedIdsOfTable(Groups.TABLE),
+                ApiServiceHelper.PRIORITY_HIGH);
     }
 
     @Override
@@ -100,6 +116,20 @@ public class GroupsForSubjectFragment extends LinksFragment {
     @Override
     protected void unlinkEntities(EntityIds linkingEntityIds, EntityIds[] linkedEntitiesIds) {
         mServiceHelperController.unsetGroupsOfTeachersSubject(mToken, linkedEntitiesIds, ApiServiceHelper.PRIORITY_HIGH);
+    }
+
+    @Override
+    protected MultipleRemoteIdsCursorAdapter getLinkDialogAdapter() {
+        return new MultipleRemoteIdsCursorAdapter(getActivity(),
+                R.layout.item_checkable_1,
+                mCursor,
+                new String[]{Groups.FIELD_NAME},
+                new int[]{R.id.text1},
+                new EntityIdsColumns[]{new EntityIdsColumns(Groups.TABLE, "_id", Groups.REMOTE_ID)},
+                Groups.ENTITY_STATUS,
+                R.id.checkbox1,
+                R.id.item_popup_menu_btn1,
+                0);
     }
 
     @Override
