@@ -6,4 +6,5 @@
     android:layout_alignParentLeft="true"
     android:layout_centerVertical="true"
     android:focusable="false"
-    android:padding="8dp"/>
+    android:padding="8dp"
+    android:paddingRight="15dp"/>

@@ -126,7 +126,7 @@ public class GroupsFragment extends EntitiesListFragment {
     }
 
     @Override
-    public void onItemClick(View itemView, JoinedEntityIds ids) {
+    public void onItemClick(View itemView, int position, JoinedEntityIds ids) {
         String groupName = ((TextView)itemView.findViewById(R.id.text1)).getText().toString();
         Intent intent = new Intent(getActivity(), GroupActivity.class);
         intent.putExtra(GroupActivity.EXTRA_KEY_GROUP_IDS, ids.getIdsByTable(Contract.Groups.TABLE).toBundle());

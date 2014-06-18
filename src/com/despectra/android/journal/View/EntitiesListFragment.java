@@ -184,7 +184,7 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     protected abstract String getEmptyListMessage();
 
     @Override
-    public abstract void onItemClick(View itemView, JoinedEntityIds ids);
+    public abstract void onItemClick(View itemView, int position, JoinedEntityIds ids);
 
     public abstract int getActionModeMenuRes();
 

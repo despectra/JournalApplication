@@ -138,7 +138,7 @@ public class GroupsForSubjectFragment extends LinksFragment {
     }
 
     @Override
-    public void onItemClick(View itemView, JoinedEntityIds ids) {
+    public void onItemClick(View itemView, int position, JoinedEntityIds ids) {
         //TODO
     }
 
@@ -180,4 +180,6 @@ public class GroupsForSubjectFragment extends LinksFragment {
         mServiceHelperController.getAllGroups(mToken, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_HIGH);
         mServiceHelperController.getGroupsOfTeachersSubject(mToken, mLinkingEntityIds, ApiServiceHelper.PRIORITY_LOW);
     }
+
+
 }

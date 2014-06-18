@@ -2,6 +2,13 @@ package com.despectra.android.journal.view;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.NinePatchDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.Shape;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -139,13 +146,13 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
                 popupBtn.setEnabled(false);
                 switch (status) {
                     case Contract.STATUS_INSERTING:
-                        view.setBackgroundColor(mContext.getResources().getColor(R.color.item_inserting));
+                        view.setBackgroundResource(R.drawable.list_item_inserting_bg);
                         break;
                     case Contract.STATUS_UPDATING:
-                        view.setBackgroundColor(mContext.getResources().getColor(R.color.item_updating));
+                        view.setBackgroundResource(R.drawable.list_item_updating_bg);
                         break;
                     case Contract.STATUS_DELETING:
-                        view.setBackgroundColor(mContext.getResources().getColor(R.color.item_deleting));
+                        view.setBackgroundResource(R.drawable.list_item_deleting_bg);
                         break;
                 }
             } else {
@@ -165,7 +172,7 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
                 @Override
                 public void onClick(View view) {
                     if (mItemClickListener != null) {
-                        mItemClickListener.onItemClick(view, ids);
+                        mItemClickListener.onItemClick(view, position, ids);
                     }
                 }
             });
@@ -228,7 +235,7 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
     }
 
     public interface OnItemClickListener {
-        public void onItemClick(View itemView, JoinedEntityIds ids);
+        public void onItemClick(View itemView, int position, JoinedEntityIds ids);
     }
 
     public interface OnItemPopupMenuListener {

@@ -6,11 +6,12 @@
     <RelativeLayout
         android:id="@+id/linking_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:background="@drawable/user_drawer_item_background"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:visibility="visible"
+        android:visibility="gone"
+        android:alpha="0"
         android:padding="10dp">
 
         <ImageButton
@@ -29,9 +30,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/linking_header_done_btn"
-            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:textColor="@android:color/white"
-            android:textSize="28sp"
+            android:textAppearance="?android:textAppearanceListItem"
             android:fontFamily="sans-serif"
             android:text="Link me!"
                 />
@@ -43,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/linking_header">
+        android:layout_alignParentTop="true">
 
     </FrameLayout>
 

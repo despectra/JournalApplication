@@ -189,7 +189,7 @@ public abstract class AbstractUsersFragment extends EntitiesListFragment {
     protected abstract String getUsersCountStringBeginning();
 
     @Override
-    public void onItemClick(View itemView, JoinedEntityIds ids) {
+    public void onItemClick(View itemView, int position, JoinedEntityIds ids) {
         performOnUserClick(ids);
     }
 

@@ -50,9 +50,9 @@ public abstract class LinksFragment extends EntitiesListFragment {
     }
 
     @Override
-    public void onItemClick(View itemView, JoinedEntityIds ids) {
+    public void onItemClick(View itemView, int position, JoinedEntityIds ids) {
         if (mItemClickedListener != null) {
-            mItemClickedListener.onItemClicked(itemView, ids);
+            mItemClickedListener.onItemClicked(mEntitiesListView, position, itemView, ids);
         }
     }
 
@@ -288,6 +288,6 @@ public abstract class LinksFragment extends EntitiesListFragment {
     }
 
     public interface OnItemClickedListener {
-        public void onItemClicked(View clickedItemView, JoinedEntityIds ids);
+        public void onItemClicked(ListView listView, int position, View clickedItemView, JoinedEntityIds ids);
     }
 }

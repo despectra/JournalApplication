@@ -135,7 +135,7 @@ public class SubjectsFragment extends EntitiesListFragment {
 
 
     @Override
-    public void onItemClick(View itemView, JoinedEntityIds ids) {
+    public void onItemClick(View itemView, int position, JoinedEntityIds ids) {
         //TODO view subject
     }
 
