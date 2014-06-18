@@ -42,6 +42,7 @@ public abstract class AbstractApiFragment extends Fragment implements ApiClientW
     @Override
     public void onPause() {
         super.onPause();
+        hideProgress();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONPAUSE);
     }
 

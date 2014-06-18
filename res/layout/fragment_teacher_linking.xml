@@ -3,6 +3,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/fragment_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true">
+    </FrameLayout>
     <RelativeLayout
         android:id="@+id/linking_header"
         android:layout_width="match_parent"
@@ -23,7 +30,7 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:paddingRight="10dp"
-                />
+            />
 
         <TextView
             android:id="@+id/linking_header_text"
@@ -35,17 +42,7 @@
             android:textAppearance="?android:textAppearanceListItem"
             android:fontFamily="sans-serif"
             android:text="Link me!"
-                />
-
+            />
     </RelativeLayout>
-
-    <FrameLayout
-        android:id="@+id/fragment_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true">
-
-    </FrameLayout>
 
 </RelativeLayout>

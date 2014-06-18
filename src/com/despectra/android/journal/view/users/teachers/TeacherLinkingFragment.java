@@ -3,9 +3,11 @@ package com.despectra.android.journal.view.users.teachers;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.*;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.model.JoinedEntityIds;
@@ -29,6 +31,11 @@ public class TeacherLinkingFragment extends Fragment {
     private TextView mLinkingTextView;
     private ImageButton mLinkingDoneBtn;
     private FrameLayout mFragmentLayout;
+    private ListView mSubjectsView;
+    private View mLastClickedSubjView;
+
+    private boolean mOpening;
+    private boolean mClosing;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -49,6 +56,8 @@ public class TeacherLinkingFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mOpening = false;
+        mClosing = false;
         if (savedInstanceState == null) {
             SubjectsOfTeacherFragment fragment = new SubjectsOfTeacherFragment();
             fragment.setArguments(getArguments());
@@ -68,15 +77,22 @@ public class TeacherLinkingFragment extends Fragment {
     }
 
     private void openGroupsList(ListView listView, int position, final View clickedSubjectView, final JoinedEntityIds ids) {
-        //TODO transition animation
-        listView.setEnabled(false);
+        if (mOpening) {
+            return;
+        }
+        mOpening = true;
+        getChildFragmentManager().findFragmentByTag(SubjectsOfTeacherFragment.TAG).setHasOptionsMenu(false);
+
+        mSubjectsView = listView;
+        mLastClickedSubjView = clickedSubjectView;
+        mSubjectsView.setEnabled(false);
         TextView itemTextView = (TextView) clickedSubjectView.findViewById(R.id.text1);
         mLinkingHeader.setVisibility(View.VISIBLE);
         mLinkingHeader.setY(clickedSubjectView.getY());
         mLinkingTextView.setText(itemTextView.getText());
         mLinkingHeader.animate().alpha(1).setDuration(300).start();
         mLinkingHeader.animate().y(0).setDuration(300).start();
-        clickedSubjectView.animate().alpha(0).setDuration(300).withEndAction(new Runnable() {
+        mLastClickedSubjView.animate().alpha(0).setDuration(300).withEndAction(new Runnable() {
             @Override
             public void run() {
                 moveFragmentLayout(true);
@@ -87,35 +103,79 @@ public class TeacherLinkingFragment extends Fragment {
                 GroupsForSubjectFragment fragment = new GroupsForSubjectFragment();
                 fragment.setArguments(args);
                 getChildFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_layout, fragment, GroupsForSubjectFragment.TAG)
+                        .add(R.id.fragment_layout, fragment, GroupsForSubjectFragment.TAG)
                         .addToBackStack(GroupsForSubjectFragment.TAG)
                         .commit();
+                mOpening = false;
             }
         }).start();
         boolean wasClicked = false;
-        for (int i = 0; i < listView.getChildCount(); i++) {
-            View view = listView.getChildAt(i);
+        int moveUpTo = getView().getMeasuredHeight() - mLastClickedSubjView.getTop() + mLastClickedSubjView.getMeasuredHeight();
+        int moveDownTo = -mLastClickedSubjView.getTop();
+        for (int i = 0; i < mSubjectsView.getChildCount(); i++) {
+            final View view = mSubjectsView.getChildAt(i);
+            Runnable switchOffTrState = new Runnable() {
+                @Override
+                public void run() {
+                    view.setHasTransientState(false);
+                }
+            };
+            view.setHasTransientState(true);
             if (wasClicked) {
-                view.animate().yBy(getView().getMeasuredHeight() - clickedSubjectView.getTop() + clickedSubjectView.getMeasuredHeight())
-                        .setDuration(300).start();
+                view.setTag(moveUpTo);
+                view.animate().yBy(moveUpTo).setDuration(300).withEndAction(switchOffTrState).start();
             } else {
-                view.animate().yBy(-clickedSubjectView.getTop()).setDuration(300).start();
+                view.setTag(moveDownTo);
+                view.animate().yBy(moveDownTo).setDuration(300).withEndAction(switchOffTrState).start();
             }
-            wasClicked = wasClicked || (view == clickedSubjectView);
+            wasClicked = wasClicked || (view == mLastClickedSubjView);
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void closeGroupsList() {
+        if (mClosing) {
+            return;
+        }
+        mClosing = true;
+        mFragmentLayout.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                mFragmentLayout.getViewTreeObserver().removeOnPreDrawListener(this);
+                mLastClickedSubjView.setVisibility(View.VISIBLE);
+                mLastClickedSubjView.animate().alpha(1).setDuration(300).start();
+                mLinkingHeader.animate().alpha(0).yBy(-(Integer) mLastClickedSubjView.getTag()).setDuration(300).withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        mLinkingHeader.setVisibility(View.GONE);
+                        mSubjectsView.setEnabled(true);
+                        getChildFragmentManager().findFragmentByTag(SubjectsOfTeacherFragment.TAG).setHasOptionsMenu(true);
+                        mClosing = false;
+                    }
+                }).start();
+                for (int i = 0; i < mSubjectsView.getChildCount(); i++) {
+                    final View view = mSubjectsView.getChildAt(i);
+                    Runnable switchOffTrState = new Runnable() {
+                        @Override
+                        public void run() {
+                            view.setHasTransientState(false);
+                        }
+                    };
+                    view.setHasTransientState(true);
+                    view.animate().yBy(-(Integer) view.getTag()).setDuration(300).withEndAction(switchOffTrState).start();
+                }
+                getChildFragmentManager().popBackStack();
+                return true;
+            }
+        });
         moveFragmentLayout(false);
-        mLinkingHeader.setAlpha(0);
-        mLinkingHeader.setVisibility(View.GONE);
-        getChildFragmentManager().popBackStack();
     }
 
     private void moveFragmentLayout(boolean toBottom) {
         int _60dp = Utils.dpToPx(getActivity(), 60);
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mFragmentLayout.getLayoutParams();
+        /*RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mFragmentLayout.getLayoutParams();
         params.topMargin = toBottom ? params.topMargin + _60dp : params.topMargin - _60dp;
-        mFragmentLayout.setLayoutParams(params);
+        mFragmentLayout.setLayoutParams(params);*/
+        mFragmentLayout.setPadding(0, toBottom ? _60dp : 0, 0, 0);
     }
 }

@@ -26,7 +26,7 @@ public class GroupsForSubjectFragment extends LinksFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         MenuItem item = menu.add(0, R.id.action_add, 0, "Привязать классы");
-        item.setIcon(R.drawable.ic_action_new);
+        item.setIcon(R.drawable.ic_action_add_group);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
     }
 
@@ -53,7 +53,7 @@ public class GroupsForSubjectFragment extends LinksFragment {
                         Groups.FIELD_NAME},
                 String.format("%s NOT IN (SELECT %s FROM %s WHERE %s = ? AND %s = 0) AND %s = 0",
                         "_id",
-                        TSG._ID,
+                        TSG.FIELD_GROUP_ID,
                         TSG.TABLE,
                         TSG.FIELD_TEACHER_SUBJECT_ID,
                         TSG.ENTITY_STATUS,
@@ -180,6 +180,4 @@ public class GroupsForSubjectFragment extends LinksFragment {
         mServiceHelperController.getAllGroups(mToken, new EntityIds(0, 0), ApiServiceHelper.PRIORITY_HIGH);
         mServiceHelperController.getGroupsOfTeachersSubject(mToken, mLinkingEntityIds, ApiServiceHelper.PRIORITY_LOW);
     }
-
-
 }
