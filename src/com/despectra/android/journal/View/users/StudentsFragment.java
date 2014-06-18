@@ -154,17 +154,6 @@ public class StudentsFragment extends AbstractUsersFragment {
             new EntityIdsColumns(Contract.Users.TABLE, Contract.Users._ID, Contract.Users.REMOTE_ID),
             new EntityIdsColumns(Contract.Students.TABLE, "_id", Contract.Students.REMOTE_ID)
         };
-        /*return new RemoteIdCursorAdapter(getActivity(),
-                R.layout.item_student_1,
-                mCursor,
-                new String[]{Contract.Users.FIELD_SURNAME, Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN},
-                new int[]{R.id.surname_view, R.id.name_view, R.id.middlename_view, R.id.login_view},
-                BaseColumns._ID,
-                Contract.Students.Remote.REMOTE_ID,
-                Contract.Users.ENTITY_STATUS,
-                R.id.checkbox1,
-                R.id.dropdown_btn1,
-                0);*/
         return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_student_1,
                 mCursor,

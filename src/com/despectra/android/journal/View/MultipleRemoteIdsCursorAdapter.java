@@ -25,16 +25,11 @@ import java.util.*;
 /**
  * Created by Dmitry on 10.04.14.
  */
-public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
+public class MultipleRemoteIdsCursorAdapter extends RemoteIdsCursorAdapter {
 
-    private int mEntityStatusColId;
-    private EntityIdsColumns[] mIdsColumns;
-    private String mEntityStatusColName;
-    private Context mContext;
     private OnItemClickListener mItemClickListener;
     private int mCheckBoxId;
     private OnItemCheckedListener mItemCheckedListener;
-    private Map<Long, JoinedEntityIds> mCheckedItemIds;
     private int mPopupMenuBtnId;
     private int mPopupMenuRes;
     private OnItemPopupMenuListener mPopupMenuListener;
@@ -49,13 +44,9 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
                                           int checkBoxId,
                                           int popupMenuBtn,
                                           int flags) {
-        super(context, layout, c, from, to, flags);
-        mContext = context;
-        mIdsColumns = idsColumns;
-        mEntityStatusColName = entityStatusColumn;
+        super(context, layout, c, idsColumns, entityStatusColumn, from, to, flags);
         mCheckBoxId = checkBoxId;
         mPopupMenuBtnId = popupMenuBtn;
-        mCheckedItemIds = new HashMap<Long, JoinedEntityIds>();
     }
 
     public void setOnItemCheckedListener(OnItemCheckedListener listener) {
@@ -72,57 +63,6 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
         notifyDataSetChanged();
     }
 
-    public void setCheckedNone() {
-        mCheckedItemIds.clear();
-        notifyDataSetChanged();
-    }
-
-    public Bundle getCheckedItems() {
-        Bundle bundle = new Bundle();
-        for (Long key : mCheckedItemIds.keySet()) {
-            bundle.putBundle(key.toString(), mCheckedItemIds.get(key).toBundle());
-        }
-        return bundle;
-    }
-
-    public JoinedEntityIds[] getCheckedIds() {
-        JoinedEntityIds[] ids = new JoinedEntityIds[mCheckedItemIds.size()];
-        int i = 0;
-        for (Long key : mCheckedItemIds.keySet()) {
-            ids[i++] = mCheckedItemIds.get(key);
-        }
-        return ids;
-    }
-
-    public EntityIds[] getCheckedIdsOfTable(String table) {
-        EntityIds[] ids = new EntityIds[mCheckedItemIds.size()];
-        int i = 0;
-        for (Long key : mCheckedItemIds.keySet()) {
-            ids[i++] = mCheckedItemIds.get(key).getIdsByTable(table);
-        }
-        return ids;
-    }
-
-    public void restoreCheckedItems(Bundle checkedItems, boolean notifyAdapter) {
-        for (String key : checkedItems.keySet()) {
-            Long newKey = Long.valueOf(key);
-            JoinedEntityIds newValue = JoinedEntityIds.fromBundle(checkedItems.getBundle(key));
-            mCheckedItemIds.put(newKey, newValue);
-        }
-        if (notifyAdapter) {
-            notifyDataSetChanged();
-        }
-    }
-
-    @Override
-    public boolean hasStableIds() {
-        return true;
-    }
-
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        super.bindView(view, context, cursor);
-    }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
@@ -217,17 +157,6 @@ public class MultipleRemoteIdsCursorAdapter extends SimpleCursorAdapter {
             }
         });
         menu.show();
-    }
-
-    @Override
-    public Cursor swapCursor(Cursor c) {
-        if (c != null) {
-            for (EntityIdsColumns column : mIdsColumns) {
-                column.updateColumnsIndexes(c);
-            }
-            mEntityStatusColId = c.getColumnIndexOrThrow(mEntityStatusColName);
-        }
-        return super.swapCursor(c);
     }
 
     public interface OnItemCheckedListener {

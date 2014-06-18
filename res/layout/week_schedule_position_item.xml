@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:background="@drawable/schedule_time_background"
+    android:gravity="center"
+    android:textAppearance="?android:textAppearanceLarge"
+    android:fontFamily="sans-serif"
+    android:textSize="36sp"
+    android:textStyle="bold"
+    android:textColor="@color/gray_af"
+    android:text="1">
+
+</TextView>

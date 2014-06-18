@@ -1,9 +1,7 @@
 package com.despectra.android.journal.view.users.teachers;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,7 +93,7 @@ public class TeacherLinkingFragment extends Fragment {
         mLastClickedSubjView.animate().alpha(0).setDuration(300).withEndAction(new Runnable() {
             @Override
             public void run() {
-                moveFragmentLayout(true);
+                resizeFragmentLayoutBounds(true);
                 clickedSubjectView.setVisibility(View.GONE);
 
                 Bundle args = new Bundle();
@@ -168,14 +166,10 @@ public class TeacherLinkingFragment extends Fragment {
                 return true;
             }
         });
-        moveFragmentLayout(false);
+        resizeFragmentLayoutBounds(false);
     }
 
-    private void moveFragmentLayout(boolean toBottom) {
-        int _60dp = Utils.dpToPx(getActivity(), 60);
-        /*RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mFragmentLayout.getLayoutParams();
-        params.topMargin = toBottom ? params.topMargin + _60dp : params.topMargin - _60dp;
-        mFragmentLayout.setLayoutParams(params);*/
-        mFragmentLayout.setPadding(0, toBottom ? _60dp : 0, 0, 0);
+    private void resizeFragmentLayoutBounds(boolean toBottom) {
+        mFragmentLayout.setPadding(0, toBottom ?  Utils.dpToPx(getActivity(), 60) : 0, 0, 0);
     }
 }
