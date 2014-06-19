@@ -104,18 +104,6 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_SELECTED_DRAWER_ITEM, mSelectedDrawerItem);

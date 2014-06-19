@@ -50,18 +50,6 @@ public class PreferencesActivity extends AbstractApiActionBarActivity implements
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_CHEKING_STATE, mIsChecking);

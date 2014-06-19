@@ -36,13 +36,6 @@ public class ApiService extends Service {
     public static final String AVATAR_FILENAME = "user_avatar";
     private static final String TAG = "BACKGROUND_SERVICE";
 
-    private static final ArrayDeque<String> API_ACTIONS = new ArrayDeque<String>(Arrays.asList(
-            ACTION_LOGIN,
-            ACTION_LOGOUT,
-            ACTION_CHECK_TOKEN,
-            ACTION_GET_PROFILE,
-            ACTION_GET_AVATAR));
-
     private final Map<Integer, ActionImpl> mActionsImpls = new HashMap<Integer, ActionImpl>();
 
     public static final int MSG_RESPONSE = 0;
@@ -52,7 +45,6 @@ public class ApiService extends Service {
     private QueryExecutor mQueryExecutor;
     private ApiServiceBinder mBinder;
     private ApiServiceHelper mServiceHelper;
-    private LocalStorageManager mUpdater;
     private Handler mResponseHandler;
 
     public ApiService() {
@@ -81,7 +73,6 @@ public class ApiService extends Service {
                 }
             }
         };
-        mUpdater = new LocalStorageManager(getApplicationContext());
         mQueryExecutor = new QueryExecutorImpl(this, mServer, mResponseHandler);
         createActionsImplementations();
     }
@@ -126,133 +117,133 @@ public class ApiService extends Service {
         mActionsImpls.put(APICodes.ACTION_GET_EVENTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return  mQueryExecutor.forEvents().get(action);
+                return  mQueryExecutor.forEvents(action.extras).get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forGroups().add(action);
+                return mQueryExecutor.forGroups(action.extras).add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_GROUPS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forGroups().get(action);
+                return mQueryExecutor.forGroups(action.extras).get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_GROUPS, new ActionImpl() {
             @Override
             public JSONObject doAction (ApiAction action) throws Exception {
-                return mQueryExecutor.forGroups().delete(action);
+                return mQueryExecutor.forGroups(action.extras).delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UPDATE_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forGroups().update(action);
+                return mQueryExecutor.forGroups(action.extras).update(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_STUDENTS_BY_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forStudents().getByGroup(action);
+                return mQueryExecutor.forStudents(action.extras).getByGroup(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_STUDENT_IN_GROUP, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forStudents().addInGroup(action);
+                return mQueryExecutor.forStudents(action.extras).addInGroup(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_STUDENTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forStudents().delete(action);
+                return mQueryExecutor.forStudents(action.extras).delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().get(action);
+                return mQueryExecutor.forSubjects(action.extras).get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().add(action);
+                return mQueryExecutor.forSubjects(action.extras).add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UPDATE_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().update(action);
+                return mQueryExecutor.forSubjects(action.extras).update(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_SUBJECTS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().delete(action);
+                return mQueryExecutor.forSubjects(action.extras).delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_ADD_TEACHER, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().add(action);
+                return mQueryExecutor.forTeachers(action.extras).add(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_TEACHERS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().get(action);
+                return mQueryExecutor.forTeachers(action.extras).get(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_DELETE_TEACHERS, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().delete(action);
+                return mQueryExecutor.forTeachers(action.extras).delete(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_TEACHER, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().getOne(action);
+                return mQueryExecutor.forTeachers(action.extras).getOne(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS_OF_TEACHER, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().getSubjectsOfTeacher(action);
+                return mQueryExecutor.forTeachers(action.extras).getSubjectsOfTeacher(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_SET_SUBJECTS_OF_TEACHER, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().setSubjectsOfTeacher(action);
+                return mQueryExecutor.forTeachers(action.extras).setSubjectsOfTeacher(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UNSET_SUBJECTS_OF_TEACHER, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forTeachers().unsetSubjectsOfTeacher(action);
+                return mQueryExecutor.forTeachers(action.extras).unsetSubjectsOfTeacher(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_GET_GROUPS_OF_TEACHERS_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().getGroupsOfTeachersSubject(action);
+                return mQueryExecutor.forSubjects(action.extras).getGroupsOfTeachersSubject(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_SET_GROUPS_OF_TEACHERS_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().setGroupsOfTeachersSubject(action);
+                return mQueryExecutor.forSubjects(action.extras).setGroupsOfTeachersSubject(action);
             }
         });
         mActionsImpls.put(APICodes.ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT, new ActionImpl() {
             @Override
             public JSONObject doAction(ApiAction action) throws Exception {
-                return mQueryExecutor.forSubjects().unsetGroupsOfTeachersSubject(action);
+                return mQueryExecutor.forSubjects(action.extras).unsetGroupsOfTeachersSubject(action);
             }
         });
     }

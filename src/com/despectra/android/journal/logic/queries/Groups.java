@@ -12,13 +12,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Map;
+
 /**
 * Created by Dmitry on 02.06.14.
 */
 public class Groups extends QueryExecDelegate {
 
-    public Groups(DelegatingInterface holderInterface) {
-        super(holderInterface);
+    public Groups(DelegatingInterface holderInterface, Map<String, Object> configs) {
+        super(holderInterface, configs);
     }
 
     /*

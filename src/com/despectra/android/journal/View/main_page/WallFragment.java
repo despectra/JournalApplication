@@ -79,19 +79,12 @@ public class WallFragment extends AbstractApiFragment implements LoaderManager.L
     @Override
     public void onResume() {
         super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
         if (mLoadWall) {
             updateWall();
             mWallLoading = true;
             mLoadWall = false;
         }
         updateWallState();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override

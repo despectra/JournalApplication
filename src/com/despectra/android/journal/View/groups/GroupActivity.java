@@ -68,18 +68,6 @@ public class GroupActivity extends AbstractApiActionBarActivity implements Botto
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
-    }
-
-    @Override
     protected boolean showUpButton() {
         return true;
     }

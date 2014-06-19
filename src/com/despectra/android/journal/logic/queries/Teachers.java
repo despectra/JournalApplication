@@ -18,8 +18,8 @@ import java.util.Map;
 * Created by Dmitry on 02.06.14.
 */
 public class Teachers extends QueryExecDelegate {
-    public Teachers(DelegatingInterface holderInterface) {
-        super(holderInterface);
+    public Teachers(DelegatingInterface holderInterface, Map<String, Object> configs) {
+        super(holderInterface, configs);
     }
 
     //####################   RETRIEVING   ########################

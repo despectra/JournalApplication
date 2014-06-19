@@ -10,7 +10,7 @@ import android.text.TextUtils;
 import android.util.SparseArray;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.utils.SQLJoinBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
+import com.despectra.android.journal.logic.local.Contract.*;
 
 /**
  * Created by Dmitry on 01.04.14.
@@ -20,66 +20,71 @@ public class MainProvider extends ContentProvider {
     private static final UriMatcher mMatcher;
     static {
         mMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        mMatcher.addURI(Contract.AUTHORITY, "events", Contract.Events.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "events/#", Contract.Events.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups", Contract.Groups.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups/#", Contract.Groups.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups/#/students", Contract.Students.URI_BY_GROUP_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "groups/#/students/#", Contract.Students.ID_URI_BY_GROUP_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students", Contract.Students.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students/#", Contract.Students.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students/as_users", Contract.Students.URI_AS_USERS_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "users", Contract.Users.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "users/#", Contract.Users.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students_groups", Contract.StudentsGroups.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "students_groups/#", Contract.StudentsGroups.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "subjects", Contract.Subjects.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Contract.Subjects.ID_URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers", Contract.Teachers.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Contract.Teachers.URI_AS_USERS_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects", Contract.TeachersSubjects.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/s", Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/t", Contract.TeachersSubjects.URI_WITH_TEACHERS_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups", Contract.TSG.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/g", Contract.TSG.URI_WITH_GROUPS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "events", Events.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "events/#", Events.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "groups", Groups.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "groups/#", Groups.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "groups/#/students", Students.URI_BY_GROUP_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "groups/#/students/#", Students.ID_URI_BY_GROUP_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students", Students.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students/#", Students.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students/as_users", Students.URI_AS_USERS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "users", Users.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "users/#", Users.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students_groups", StudentsGroups.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "students_groups/#", StudentsGroups.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects", Subjects.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Subjects.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers", Teachers.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Teachers.URI_AS_USERS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects", TeachersSubjects.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/s", TeachersSubjects.URI_WITH_SUBJECTS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/t", TeachersSubjects.URI_WITH_TEACHERS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups", TSG.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/g", TSG.URI_WITH_GROUPS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "schedule", Schedule.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "schedule/full", Schedule.URI_FULL_CODE);
 
-        /*mMatcher.addURI(Contract.AUTHORITY, "marks", Contract.Marks.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "marks/group", Contract.Marks.URI_BY_GROUP_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "lessons", Contract.Lessons.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Contract.Lessons.ID_URI_CODE);*/
+        /*mMatcher.addURI(Contract.AUTHORITY, "marks", Marks.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "marks/group", Marks.URI_BY_GROUP_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "lessons", Lessons.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Lessons.ID_URI_CODE);*/
     }
 
     private static final SparseArray<String> mReadTables;
     static {
         mReadTables = new SparseArray<String>();
 
-        mReadTables.append(Contract.Events.URI_CODE, Contract.Events.TABLE);
-        mReadTables.append(Contract.Events.ID_URI_CODE, Contract.Events.TABLE);
-        mReadTables.append(Contract.Groups.URI_CODE, Contract.Groups.TABLE);
-        mReadTables.append(Contract.Groups.ID_URI_CODE, Contract.Groups.TABLE);
-        mReadTables.append(Contract.Students.URI_CODE, Contract.Students.TABLE);
-        mReadTables.append(Contract.Students.ID_URI_CODE, Contract.Students.TABLE);
-        mReadTables.append(Contract.Students.URI_BY_GROUP_CODE, new SQLJoinBuilder(Contract.Students.TABLE)
-                .join(Contract.Users.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
-                .join(Contract.StudentsGroups.TABLE).onEq(Contract.StudentsGroups.FIELD_STUDENT_ID, Contract.Students._ID)
+        mReadTables.append(Events.URI_CODE, Events.TABLE);
+        mReadTables.append(Events.ID_URI_CODE, Events.TABLE);
+        mReadTables.append(Groups.URI_CODE, Groups.TABLE);
+        mReadTables.append(Groups.ID_URI_CODE, Groups.TABLE);
+        mReadTables.append(Students.URI_CODE, Students.TABLE);
+        mReadTables.append(Students.ID_URI_CODE, Students.TABLE);
+        mReadTables.append(Students.URI_BY_GROUP_CODE, new SQLJoinBuilder(Students.TABLE)
+                .join(Users.TABLE).onEq(Users._ID, Students.FIELD_USER_ID)
+                .join(StudentsGroups.TABLE).onEq(StudentsGroups.FIELD_STUDENT_ID, Students._ID)
                 .create());
-        mReadTables.append(Contract.Students.URI_AS_USERS_CODE, new SQLJoinBuilder(Contract.Users.TABLE)
-                .join(Contract.Students.TABLE).onEq(Contract.Users._ID, Contract.Students.FIELD_USER_ID)
+        mReadTables.append(Students.URI_AS_USERS_CODE, new SQLJoinBuilder(Users.TABLE)
+                .join(Students.TABLE).onEq(Users._ID, Students.FIELD_USER_ID)
                 .create());
-        mReadTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE);
-        mReadTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE);
-        mReadTables.append(Contract.StudentsGroups.URI_CODE, Contract.StudentsGroups.TABLE);
-        mReadTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE);
-        mReadTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
-        mReadTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
-        mReadTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE);
-        mReadTables.append(Contract.Teachers.URI_AS_USERS_CODE, Contract.Teachers.TABLE_JOIN_USERS);
-        mReadTables.append(Contract.TeachersSubjects.URI_CODE, Contract.TeachersSubjects.TABLE_JOIN_SUBJECTS);
-        mReadTables.append(Contract.TeachersSubjects.URI_WITH_SUBJECTS_CODE, Contract.TeachersSubjects.TABLE_JOIN_SUBJECTS);
-        mReadTables.append(Contract.TSG.URI_CODE, Contract.TSG.TABLE);
-        mReadTables.append(Contract.TSG.URI_WITH_GROUPS_CODE, Contract.TSG.TABLE_JOIN_GROUPS);
-        /*mReadTables.append(Contract.Marks.URI_BY_GROUP_CODE, Contract.Marks.TABLE_BY_GROUP);
-        mReadTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);*/
+        mReadTables.append(Users.URI_CODE, Users.TABLE);
+        mReadTables.append(Users.ID_URI_CODE, Users.TABLE);
+        mReadTables.append(StudentsGroups.URI_CODE, StudentsGroups.TABLE);
+        mReadTables.append(StudentsGroups.ID_URI_CODE, StudentsGroups.TABLE);
+        mReadTables.append(Subjects.URI_CODE, Subjects.TABLE);
+        mReadTables.append(Subjects.ID_URI_CODE, Subjects.TABLE);
+        mReadTables.append(Teachers.URI_CODE, Teachers.TABLE);
+        mReadTables.append(Teachers.URI_AS_USERS_CODE, Teachers.TABLE_JOIN_USERS);
+        mReadTables.append(TeachersSubjects.URI_CODE, TeachersSubjects.TABLE_JOIN_SUBJECTS);
+        mReadTables.append(TeachersSubjects.URI_WITH_SUBJECTS_CODE, TeachersSubjects.TABLE_JOIN_SUBJECTS);
+        mReadTables.append(TSG.URI_CODE, TSG.TABLE);
+        mReadTables.append(TSG.URI_WITH_GROUPS_CODE, TSG.TABLE_JOIN_GROUPS);
+        mReadTables.append(Schedule.URI_CODE, Schedule.TABLE);
+        mReadTables.append(Schedule.URI_FULL_CODE, Schedule.TABLE_JOIN_FULL);
+
+        /*mReadTables.append(Marks.URI_BY_GROUP_CODE, Marks.TABLE_BY_GROUP);
+        mReadTables.append(Lessons.URI_CODE, Lessons.TABLE);*/
 
     }
 
@@ -87,42 +92,44 @@ public class MainProvider extends ContentProvider {
     static {
         mWriteTables = new SparseArray<String>();
 
-        mWriteTables.append(Contract.Events.URI_CODE, Contract.Events.TABLE);
-        mWriteTables.append(Contract.Events.ID_URI_CODE, Contract.Events.TABLE);
-        mWriteTables.append(Contract.Groups.URI_CODE, Contract.Groups.TABLE);
-        mWriteTables.append(Contract.Groups.ID_URI_CODE, Contract.Groups.TABLE);
-        mWriteTables.append(Contract.Students.URI_CODE, Contract.Students.TABLE);
-        mWriteTables.append(Contract.Students.ID_URI_CODE, Contract.Students.TABLE);
-        mWriteTables.append(Contract.Users.URI_CODE, Contract.Users.TABLE);
-        mWriteTables.append(Contract.Users.ID_URI_CODE, Contract.Users.TABLE);
-        mWriteTables.append(Contract.StudentsGroups.URI_CODE, Contract.StudentsGroups.TABLE);
-        mWriteTables.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups.TABLE);
-        mWriteTables.append(Contract.Subjects.URI_CODE, Contract.Subjects.TABLE);
-        mWriteTables.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects.TABLE);
-        mWriteTables.append(Contract.Teachers.URI_CODE, Contract.Teachers.TABLE);
-        mWriteTables.append(Contract.TeachersSubjects.URI_CODE, Contract.TeachersSubjects.TABLE);
-        mWriteTables.append(Contract.TSG.URI_CODE, Contract.TSG.TABLE);
+        mWriteTables.append(Events.URI_CODE, Events.TABLE);
+        mWriteTables.append(Events.ID_URI_CODE, Events.TABLE);
+        mWriteTables.append(Groups.URI_CODE, Groups.TABLE);
+        mWriteTables.append(Groups.ID_URI_CODE, Groups.TABLE);
+        mWriteTables.append(Students.URI_CODE, Students.TABLE);
+        mWriteTables.append(Students.ID_URI_CODE, Students.TABLE);
+        mWriteTables.append(Users.URI_CODE, Users.TABLE);
+        mWriteTables.append(Users.ID_URI_CODE, Users.TABLE);
+        mWriteTables.append(StudentsGroups.URI_CODE, StudentsGroups.TABLE);
+        mWriteTables.append(StudentsGroups.ID_URI_CODE, StudentsGroups.TABLE);
+        mWriteTables.append(Subjects.URI_CODE, Subjects.TABLE);
+        mWriteTables.append(Subjects.ID_URI_CODE, Subjects.TABLE);
+        mWriteTables.append(Teachers.URI_CODE, Teachers.TABLE);
+        mWriteTables.append(TeachersSubjects.URI_CODE, TeachersSubjects.TABLE);
+        mWriteTables.append(TSG.URI_CODE, TSG.TABLE);
+        mWriteTables.append(Schedule.URI_CODE, Schedule.TABLE);
 
-       /* mWriteTables.append(Contract.Marks.URI_CODE, Contract.Marks.TABLE);
-        mWriteTables.append(Contract.Marks.ID_URI_CODE, Contract.Marks.TABLE);
-        mWriteTables.append(Contract.Lessons.URI_CODE, Contract.Lessons.TABLE);*/
+       /* mWriteTables.append(Marks.URI_CODE, Marks.TABLE);
+        mWriteTables.append(Marks.ID_URI_CODE, Marks.TABLE);
+        mWriteTables.append(Lessons.URI_CODE, Lessons.TABLE);*/
     }
 
     private static final SparseArray<String> mPrimaryColumns;
     static {
         mPrimaryColumns = new SparseArray<String>();
-        mPrimaryColumns.append(Contract.Events.ID_URI_CODE, Contract.Events._ID);
-        mPrimaryColumns.append(Contract.Groups.ID_URI_CODE, Contract.Groups._ID);
-        mPrimaryColumns.append(Contract.Students.ID_URI_CODE, Contract.Students._ID);
-        mPrimaryColumns.append(Contract.Users.ID_URI_CODE, Contract.Users._ID);
-        mPrimaryColumns.append(Contract.StudentsGroups.ID_URI_CODE, Contract.StudentsGroups._ID);
-        mPrimaryColumns.append(Contract.Subjects.ID_URI_CODE, Contract.Subjects._ID);
-        mPrimaryColumns.append(Contract.Teachers.ID_URI_CODE, Contract.Teachers._ID);
-        mPrimaryColumns.append(Contract.TeachersSubjects.ID_URI_CODE, Contract.TeachersSubjects._ID);
-        mPrimaryColumns.append(Contract.TSG.ID_URI_CODE, Contract.TSG._ID);
+        mPrimaryColumns.append(Events.ID_URI_CODE, Events._ID);
+        mPrimaryColumns.append(Groups.ID_URI_CODE, Groups._ID);
+        mPrimaryColumns.append(Students.ID_URI_CODE, Students._ID);
+        mPrimaryColumns.append(Users.ID_URI_CODE, Users._ID);
+        mPrimaryColumns.append(StudentsGroups.ID_URI_CODE, StudentsGroups._ID);
+        mPrimaryColumns.append(Subjects.ID_URI_CODE, Subjects._ID);
+        mPrimaryColumns.append(Teachers.ID_URI_CODE, Teachers._ID);
+        mPrimaryColumns.append(TeachersSubjects.ID_URI_CODE, TeachersSubjects._ID);
+        mPrimaryColumns.append(TSG.ID_URI_CODE, TSG._ID);
+        mPrimaryColumns.append(Schedule.ID_URI_CODE, Schedule._ID);
         
-        /*mPrimaryColumns.append(Contract.Marks.ID_URI_CODE, Contract.Marks._ID);
-        mPrimaryColumns.append(Contract.Lessons.ID_URI_CODE, Contract.Lessons._ID);*/
+        /*mPrimaryColumns.append(Marks.ID_URI_CODE, Marks._ID);
+        mPrimaryColumns.append(Lessons.ID_URI_CODE, Lessons._ID);*/
 
     }
 
@@ -214,31 +221,31 @@ public class MainProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         switch (mMatcher.match(uri)) {
-            case Contract.Events.URI_CODE:
-                return Contract.Events.CONTENT_TYPE;
-            case Contract.Events.ID_URI_CODE:
-                return Contract.Events.CONTENT_ITEM_TYPE;
+            case Events.URI_CODE:
+                return Events.CONTENT_TYPE;
+            case Events.ID_URI_CODE:
+                return Events.CONTENT_ITEM_TYPE;
 
-            case Contract.Groups.URI_CODE:
-                return Contract.Groups.CONTENT_TYPE;
-            case Contract.Groups.ID_URI_CODE:
-                return Contract.Groups.CONTENT_ITEM_TYPE;
+            case Groups.URI_CODE:
+                return Groups.CONTENT_TYPE;
+            case Groups.ID_URI_CODE:
+                return Groups.CONTENT_ITEM_TYPE;
 
-            case Contract.Students.ID_URI_CODE:
-            case Contract.Students.ID_URI_BY_GROUP_CODE:
-                return Contract.Students.CONTENT_ITEM_TYPE;
-            case Contract.Students.URI_BY_GROUP_CODE:
-                return Contract.Students.CONTENT_TYPE;
+            case Students.ID_URI_CODE:
+            case Students.ID_URI_BY_GROUP_CODE:
+                return Students.CONTENT_ITEM_TYPE;
+            case Students.URI_BY_GROUP_CODE:
+                return Students.CONTENT_TYPE;
 
-            case Contract.Users.URI_CODE:
-                return Contract.Users.CONTENT_TYPE;
-            case Contract.Users.ID_URI_CODE:
-                return Contract.Users.CONTENT_ITEM_TYPE;
+            case Users.URI_CODE:
+                return Users.CONTENT_TYPE;
+            case Users.ID_URI_CODE:
+                return Users.CONTENT_ITEM_TYPE;
 
-            case Contract.StudentsGroups.URI_CODE:
-                return Contract.StudentsGroups.CONTENT_TYPE;
-            case Contract.StudentsGroups.ID_URI_CODE:
-                return Contract.StudentsGroups.CONTENT_ITEM_TYPE;
+            case StudentsGroups.URI_CODE:
+                return StudentsGroups.CONTENT_TYPE;
+            case StudentsGroups.ID_URI_CODE:
+                return StudentsGroups.CONTENT_ITEM_TYPE;
         }
         return null;
     }

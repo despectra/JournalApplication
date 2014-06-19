@@ -1,77 +1,141 @@
 package com.despectra.android.journal.logic.helper;
 
+import android.content.Context;
+import com.despectra.android.journal.JournalApplication;
+import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.model.EntityIds;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Dmitry on 06.06.14.
  */
-public interface HelperController {
-    int getRunningActionsCount();
+public abstract class HelperController {
 
-    int getLastRunningActionCode();
+    public static class Configurator {
+        private HelperController mController;
 
-    void login(String login, String passwd, int priority);
+        public Configurator(HelperController controller) {
+            mController = controller;
+        }
 
-    void logout(String token, int priority);
+        public Configurator setLocalStorageManagerCallbacks(LocalStorageManager.Callbacks callbacks) {
+            if (mController.mExtras == null) {
+                mController.mExtras = new HashMap<String, Object>();
+            }
+            mController.addExtra("LSM_CALLBACKS", callbacks);
+            return this;
+        }
 
-    void checkToken(String token, int priority);
+        public HelperController done() {
+            return mController;
+        }
+    }
 
-    void getApiInfo(String host, int priority);
+    private String mClientName;
+    private ApiServiceHelper mHelper;
+    private Map<String, Object> mExtras;
 
-    void getMinProfile(String token, int priority);
+    public HelperController(Context appContext, String clientName) {
+        mClientName = clientName;
+        mHelper = ((JournalApplication)appContext).getApiServiceHelper();
+    }
 
-    void getEvents(String token, int offset, int count, int priority);
+    public Configurator configure() {
+        return new Configurator(this);
+    }
 
-    void getAllEvents(String token, int priority);
+    private void addExtra(String key, Object value) {
+        mExtras.put(key, value);
+    }
 
-    void addGroup(String token, String name, EntityIds parentIds, int priority);
+    public int getRunningActionsCount() {
+        ApiServiceHelper.RegisteredClient holder = mHelper.getRegisteredClients().get(mClientName);
+        return holder.runningActions.size();
+    }
 
-    void getAllGroups(String token, EntityIds parentIds, int priority);
+    public int getLastRunningActionCode() {
+        if (getRunningActionsCount() == 1) {
+            return mHelper.getRegisteredClients().get(mClientName).runningActions.get(0).apiCode;
+        }
+        return -1;
+    }
 
-    void getGroups(String token, EntityIds parentIds, int offset, int count, int priority);
+    protected void runAction(int actionCode, JSONObject actionData, int priority) {
+        ApiAction action = new ApiAction(actionCode, mClientName, actionData);
+        if (mExtras != null) {
+            action.setExtras(mExtras);
+        }
+        mHelper.startApiQuery(mClientName, action, priority);
+        if (mExtras != null) {
+            mExtras.clear();
+        }
+    }
 
-    void deleteGroups(String token, EntityIds[] ids, int priority);
+    public abstract void login(String login, String passwd, int priority);
 
-    void updateGroup(String token, EntityIds ids, String updName, EntityIds parentIds, int priority);
+    public abstract void logout(String token, int priority);
 
-    void getStudentsByGroup(String token, EntityIds groupIds, int priority);
+    public abstract void checkToken(String token, int priority);
 
-    void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority);
+    public abstract void getApiInfo(String host, int priority);
 
-    void deleteStudents(String token, EntityIds[] ids, int priority);
+    public abstract void getMinProfile(String token, int priority);
 
-    void getSubjects(String token, int offset, int count, int priority);
+    public abstract void getEvents(String token, int offset, int count, int priority);
 
-    void getAllSubjects(String token, int priority);
+    public abstract void getAllEvents(String token, int priority);
 
-    void addSubject(String token, String name, int priority);
+    public abstract void addGroup(String token, String name, EntityIds parentIds, int priority);
 
-    void updateSubject(String token, EntityIds ids, String updName, int priority);
+    public abstract void getAllGroups(String token, EntityIds parentIds, int priority);
 
-    void deleteSubjects(String token, EntityIds[] ids, int priority);
+    public abstract void getGroups(String token, EntityIds parentIds, int offset, int count, int priority);
 
-    void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority);
+    public abstract void deleteGroups(String token, EntityIds[] ids, int priority);
 
-    void getTeachers(String token, int offset, int count, int priority);
+    public abstract void updateGroup(String token, EntityIds ids, String updName, EntityIds parentIds, int priority);
 
-    void deleteTeachers(String token, EntityIds[] ids, int priority);
+    public abstract void getStudentsByGroup(String token, EntityIds groupIds, int priority);
 
-    void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority);
+    public abstract void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority);
 
-    void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority);
+    public abstract void deleteStudents(String token, EntityIds[] ids, int priority);
 
-    void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority);
+    public abstract void getSubjects(String token, int offset, int count, int priority);
 
-    void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority);
+    public abstract void getAllSubjects(String token, int priority);
 
-    void getGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, int priority);
+    public abstract void addSubject(String token, String name, int priority);
 
-    void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority);
+    public abstract void updateSubject(String token, EntityIds ids, String updName, int priority);
 
-    void unsetGroupsOfTeachersSubject(String token, EntityIds[] linksIds, int priority);
+    public abstract void deleteSubjects(String token, EntityIds[] ids, int priority);
+
+    public abstract void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority);
+
+    public abstract void getTeachers(String token, int offset, int count, int priority);
+
+    public abstract void deleteTeachers(String token, EntityIds[] ids, int priority);
+
+    public abstract void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority);
+
+    public abstract void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority);
+
+    public abstract void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority);
+
+    public abstract void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority);
+
+    public abstract void getGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, int priority);
+
+    public abstract void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority);
+
+    public abstract void unsetGroupsOfTeachersSubject(String token, EntityIds[] linksIds, int priority);
 
     // TEMPORARY
-    void addMockMarks(long groupId);
+    public abstract void addMockMarks(long groupId);
 
-    void updateMockMark(long markId, int mark);
+    public abstract void updateMockMark(long markId, int mark);
 }

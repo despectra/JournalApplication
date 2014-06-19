@@ -42,16 +42,6 @@ public class ScheduleRowAdapter extends PseudoGridAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (position % COLS_COUNT == 0) {
-
-        } else {
-
-        }
-        return super.getView(position, convertView, parent);
-    }
-
-    @Override
     protected boolean isDataColumn(int column) {
         return column >= 1 && column <= 7;
     }

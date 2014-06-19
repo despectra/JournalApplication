@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.logic.helper.ApiClientWithProgress;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.BasicClientHelperController;
 import com.despectra.android.journal.logic.helper.HelperController;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
@@ -37,6 +38,8 @@ public abstract class AbstractApiFragment extends Fragment implements ApiClientW
     public void onResume() {
         super.onResume();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONRESUME);
+        mApplicationContext.getApiServiceHelper().registerClient(this,
+                new BasicClientHelperController(getActivity().getApplicationContext(), getClientName()));
     }
 
     @Override
@@ -44,6 +47,7 @@ public abstract class AbstractApiFragment extends Fragment implements ApiClientW
         super.onPause();
         hideProgress();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONPAUSE);
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override

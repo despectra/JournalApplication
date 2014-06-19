@@ -71,17 +71,10 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
     @Override
     public void onResume() {
         super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
         if (!mIsUpdating) {
             mIsUpdating = true;
             updateUserInfo();
         }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     protected abstract void updateUserInfo();

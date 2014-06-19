@@ -12,6 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.logic.helper.BasicClientHelperController;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
@@ -129,7 +130,6 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
     @Override
     public void onResume() {
         super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
         if (mLoadEntities) {
             mLoadEntities = false;
             updateEntitiesList();
@@ -138,13 +138,6 @@ public abstract class EntitiesListFragment extends AbstractApiFragment implement
             notifyAboutRunningActions(runningCount);
         }
     }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
-    }
-
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

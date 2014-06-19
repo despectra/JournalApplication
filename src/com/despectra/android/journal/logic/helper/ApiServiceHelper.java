@@ -49,40 +49,40 @@ public class ApiServiceHelper {
         mAppContext = context;
     }
 
-    public void registerClient(ApiClient client, Callback callback) {
+    public void registerClient(ApiClient client, HelperController controller) {
         String name = client.getClientName();
         RegisteredClient holder;
         if (mRegisteredClients.containsKey(name)) {
             holder = mRegisteredClients.get(name);
-            holder.setCallback(callback);
+            holder.setClient(client);
         } else {
-            holder = new RegisteredClient(callback);
+            holder = new RegisteredClient(client);
             mRegisteredClients.put(name, holder);
         }
-        client.setServiceHelperController(new BaseClientHelperController(name));
+        client.setServiceHelperController(controller);
         notifyCompletedActions(name);
     }
 
-    public void unregisterClient(com.despectra.android.journal.logic.helper.ApiClient client) {
-        String activityName = client.getClientName();
-        RegisteredClient holder = mRegisteredClients.get(activityName);
+    public void unregisterClient(ApiClient client) {
+        String clientName = client.getClientName();
+        RegisteredClient holder = mRegisteredClients.get(clientName);
         if (holder != null) {
-            holder.setCallback(null);
+            holder.setClient(null);
         }
     }
 
     private void notifyCompletedActions(String clientName) {
         int activityState = ((JournalApplication) mAppContext).getActivityState(clientName);
         if (activityState == JournalApplication.ONRESUME) {
-            RegisteredClient holder = mRegisteredClients.get(clientName);
-            Queue<ApiAction> completedActions = holder.completedActions;
+            RegisteredClient clientHolder = mRegisteredClients.get(clientName);
+            Queue<ApiAction> completedActions = clientHolder.completedActions;
             if (completedActions != null && completedActions.size() > 0) {
-                Callback callback = holder.callback;
-                if (callback != null) {
+                ApiClient client = clientHolder.client;
+                if (client != null) {
                     while (!completedActions.isEmpty()) {
                         ApiAction action = completedActions.poll();
-                        int remaining = holder.pendingActions.size() + holder.runningActions.size();
-                        callback.onResponse(action.apiCode, remaining, action.actionData);
+                        int remaining = clientHolder.pendingActions.size() + clientHolder.runningActions.size();
+                        client.onResponse(action.apiCode, remaining, action.actionData);
                     }
                 }
             }
@@ -145,14 +145,14 @@ public class ApiServiceHelper {
     }
 
     private void tryShowProgress(RegisteredClient client) {
-        if(client.callback instanceof ApiClientWithProgress) {
-            ((ApiClientWithProgress)client.callback).showProgress();
+        if(client.client instanceof ApiClientWithProgress) {
+            ((ApiClientWithProgress)client.client).showProgress();
         }
     }
 
     private void tryHideProgress(RegisteredClient client) {
-        if(client.callback instanceof ApiClientWithProgress) {
-            ((ApiClientWithProgress)client.callback).hideProgress();
+        if(client.client instanceof ApiClientWithProgress) {
+            ((ApiClientWithProgress)client.client).hideProgress();
         }
     }
 
@@ -169,7 +169,7 @@ public class ApiServiceHelper {
         return newest;
     }
 
-    private synchronized void startApiQuery(String senderTag, ApiAction action, int priority) {
+    protected synchronized void startApiQuery(String senderTag, ApiAction action, int priority) {
         if (!mBound) {
             bindService(senderTag);
         }
@@ -220,8 +220,8 @@ public class ApiServiceHelper {
         int activityState = ((JournalApplication) mAppContext).getActivityState(clientName);
         if (activityState == JournalApplication.ONRESUME) {
             RegisteredClient holder = mRegisteredClients.get(clientName);
-            if (holder.callback != null && holder.callback instanceof FeedbackApiClient) {
-                ((FeedbackApiClient) holder.callback).onProgress(data);
+            if (holder.client != null && holder.client instanceof FeedbackApiClient) {
+                ((FeedbackApiClient) holder.client).onProgress(data);
             }
         }
     }
@@ -243,325 +243,26 @@ public class ApiServiceHelper {
         }
     }
 
-    private class BaseClientHelperController implements HelperController {
-        private String mClientName;
-
-        public BaseClientHelperController(String activityName) {
-            mClientName = activityName;
-        }
-
-        @Override
-        public int getRunningActionsCount() {
-            RegisteredClient holder = mRegisteredClients.get(mClientName);
-            return holder.runningActions.size();
-        }
-
-        @Override
-        public int getLastRunningActionCode() {
-            if (getRunningActionsCount() == 1) {
-                return mRegisteredClients.get(mClientName).runningActions.get(0).apiCode;
-            }
-            return -1;
-        }
-
-        @Override
-        public void login(String login, String passwd, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("login", login)
-                    .addKeyValue("passwd", Utils.md5(passwd)).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGIN, mClientName, data), priority);
-        }
-
-        @Override
-        public void logout(String token, int priority) {
-            JSONObject data = new JSONBuilder().addKeyValue("token", token).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_LOGOUT, mClientName, data), priority);
-        }
-
-        @Override
-        public void checkToken(String token, int priority) {
-            JSONObject data = new JSONBuilder().addKeyValue("token", token).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_CHECK_TOKEN, mClientName, data), priority);
-        }
-
-        @Override
-        public void getApiInfo(String host, int priority) {
-            JSONObject data = new JSONBuilder().addKeyValue("host", host).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_INFO, mClientName, data), priority);
-        }
-
-        @Override
-        public void getMinProfile(String token, int priority) {
-            JSONObject data = new JSONBuilder().addKeyValue("token", token).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_MIN_PROFILE, mClientName, data), priority);
-        }
-
-        @Override
-        public void getEvents(String token, int offset, int count, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addKeyValue("count", count)
-                    .addKeyValue("offset", offset).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_EVENTS, mClientName, data), priority);
-        }
-
-        @Override
-        public void getAllEvents(String token, int priority) {
-            getEvents(token, 0, 0, priority);
-        }
-
-        @Override
-        public void addGroup(String token, String name, EntityIds parentIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addKeyValue("name", name)
-                .addKeyValue("LOCAL_parent_id", parentIds.getLocalId())
-                .addKeyValue("parent_id", parentIds.getRemoteId()).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_GROUP, mClientName, data), priority);
-        }
-
-        @Override
-        public void getAllGroups(String token, EntityIds parentIds, int priority) {
-            getGroups(token, parentIds, 0, 0, priority);
-        }
-
-        @Override
-        public void getGroups(String token, EntityIds parentIds, int offset, int count, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addEntityIds("parent_group_id", parentIds)
-                .addKeyValue("offset", offset)
-                .addKeyValue("count", count).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS, mClientName, data), priority);
-        }
-
-        @Override
-        public void deleteGroups(String token, EntityIds[] ids, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIdsArray("groups", ids).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_GROUPS, mClientName, data), priority);
-        }
-
-        @Override
-        public void updateGroup(String token, EntityIds ids, String updName,
-                                EntityIds parentIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addEntityIds("id", ids)
-                .addKeyValue("data", new JSONBuilder()
-                        .addKeyValue("name", updName)
-                        .addEntityIds("parent_id", parentIds)
-                        .create())
-                .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_GROUP, mClientName, data), priority);
-        }
-
-        @Override
-        public void getStudentsByGroup(String token, EntityIds groupIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addEntityIds("group_id", groupIds)
-                .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_STUDENTS_BY_GROUP, mClientName, data), priority);
-        }
-
-        @Override
-        public void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addEntityIds("group_id", groupIds)
-                .addKeyValue("name", name)
-                .addKeyValue("middlename", middlename)
-                .addKeyValue("surname", surname)
-                .addKeyValue("login", login).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_STUDENT_IN_GROUP, mClientName, data), priority);
-        }
-
-        @Override
-        public void deleteStudents(String token, EntityIds[] ids, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIdsArray("students", ids)
-                    .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_STUDENTS, mClientName, data), priority);
-        }
-
-        @Override
-        public void getSubjects(String token, int offset, int count, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addKeyValue("offset", offset)
-                .addKeyValue("count", count).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_SUBJECTS, mClientName, data), priority);
-        }
-
-        @Override
-        public void getAllSubjects(String token, int priority) {
-            getSubjects(token, 0, 0, priority);
-        }
-
-        @Override
-        public void addSubject(String token, String name, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addKeyValue("name", name).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_SUBJECT, mClientName, data), priority);
-        }
-
-        @Override
-        public void updateSubject(String token, EntityIds ids, String updName, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addEntityIds("id", ids)
-                .addKeyValue("data", new JSONBuilder()
-                        .addKeyValue("name", updName).create()).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UPDATE_SUBJECT, mClientName, data), priority);
-        }
-
-        @Override
-        public void deleteSubjects(String token, EntityIds[] ids, int priority) {
-            JSONObject data = new JSONBuilder()
-                .addKeyValue("token", token)
-                .addEntityIdsArray("subjects", ids)
-                .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_SUBJECTS, mClientName, data), priority);
-        }
-
-        @Override
-        public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addKeyValue("firstName", firstName)
-                    .addKeyValue("middleName", middleName)
-                    .addKeyValue("secondName", secondName)
-                    .addKeyValue("login", login).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_ADD_TEACHER, mClientName, data), priority);
-        }
-
-        @Override
-        public void getTeachers(String token, int offset, int count, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addKeyValue("offset", offset)
-                    .addKeyValue("count", count).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_TEACHERS, mClientName, data), priority);
-        }
-
-        @Override
-        public void deleteTeachers(String token, EntityIds[] ids, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIdsArray("teachers", ids)
-                    .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_DELETE_TEACHERS, mClientName, data), priority);
-        }
-
-        @Override
-        public void getTeacher(String token, EntityIds userIds, EntityIds teacherIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addKeyValue("user_id", userIds.getLocalId())
-                    .addEntityIds("teacher_id", teacherIds)
-                    .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_TEACHER, mClientName, data), priority);
-        }
-
-        @Override
-        public void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIds("teacher_id", teacherIds)
-                    .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_SUBJECTS_OF_TEACHER, mClientName, data), priority);
-        }
-
-        @Override
-        public void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIds("teacher_id", teacherIds)
-                    .addEntityIdsArray("subjects_ids", subjectsIds).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_SET_SUBJECTS_OF_TEACHER, mClientName, data), priority);
-        }
-
-        @Override
-        public void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIdsArray("links_ids", linksIds).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UNSET_SUBJECTS_OF_TEACHER, mClientName, data), priority);
-        }
-
-        @Override
-        public void getGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIds("teacher_subject_id", teacherSubjectIds)
-                    .create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_GET_GROUPS_OF_TEACHERS_SUBJECT, mClientName, data), priority);
-        }
-
-        @Override
-        public void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIds("teacher_subject_id", teacherSubjectIds)
-                    .addEntityIdsArray("groups_ids", groupsIds).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_SET_GROUPS_OF_TEACHERS_SUBJECT, mClientName, data), priority);
-        }
-
-        @Override
-        public void unsetGroupsOfTeachersSubject(String token, EntityIds[] linksIds, int priority) {
-            JSONObject data = new JSONBuilder()
-                    .addKeyValue("token", token)
-                    .addEntityIdsArray("links_ids", linksIds).create();
-            startApiQuery(mClientName, new ApiAction(APICodes.ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT, mClientName, data), priority);
-        }
-
-        @Override
-        public void addMockMarks(long groupId) {
-            if (mBound) {
-                try {
-                    mService.processApiAction(new ApiAction(100500, mClientName, new JSONObject(String.format("{\"group\":\"%d\"}", groupId))));
-                } catch (JSONException e) {
-
-                }
-            }
-        }
-
-        @Override
-        public void updateMockMark(long markId, int mark) {
-            if (mBound) {
-                try {
-                    JSONObject json = new JSONObject();
-                    json.put("markId", markId);
-                    json.put("mark", mark);
-                    mService.processApiAction(new ApiAction(100599, mClientName, json));
-                } catch (JSONException e) {
-
-                }
-            }
-        }
-
-
+    public Map<String, RegisteredClient> getRegisteredClients() {
+        return mRegisteredClients;
     }
 
-    private class RegisteredClient {
+
+    public static class RegisteredClient {
         public Deque<ApiAction> pendingActions;
         public List<ApiAction> runningActions;
         public Deque<ApiAction> completedActions;
-        public Callback callback;
+        public ApiClient client;
 
-        public RegisteredClient(Callback callback) {
-            this.callback = callback;
+        public RegisteredClient(ApiClient client) {
+            setClient(client);
             pendingActions = new LinkedList<ApiAction>();
             runningActions = new ArrayList<ApiAction>();
             completedActions = new LinkedList<ApiAction>();
         }
 
-        public void setCallback(Callback callback) {
-            this.callback = callback;
+        public void setClient(ApiClient client) {
+            this.client = client;
         }
     }
 

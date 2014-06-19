@@ -9,12 +9,14 @@ import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Map;
+
 /**
  * Created by Dmitry on 02.06.14.
  */
 public class Events extends QueryExecDelegate {
-    public Events(DelegatingInterface holderInterface) {
-        super(holderInterface);
+    public Events(DelegatingInterface holderInterface, Map<String, Object> configs) {
+        super(holderInterface, configs);
     }
 
     public JSONObject get(ApiAction action) throws Exception {

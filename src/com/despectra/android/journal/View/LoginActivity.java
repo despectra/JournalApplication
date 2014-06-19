@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
+import com.despectra.android.journal.logic.helper.BasicClientHelperController;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.utils.ApiErrorResponder;
@@ -54,18 +55,6 @@ public class LoginActivity extends AbstractApiFragmentActivity implements TextVi
         } else {
             initUi(savedInstanceState);
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mApplicationContext.getApiServiceHelper().registerClient(this, this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override

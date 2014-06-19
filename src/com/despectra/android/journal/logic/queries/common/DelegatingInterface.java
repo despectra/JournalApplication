@@ -11,6 +11,5 @@ import com.despectra.android.journal.logic.net.ApplicationServer;
 public interface DelegatingInterface {
     public Context getContext();
     public ApplicationServer getApplicationServer();
-    public LocalStorageManager getLocalStorageManager();
     public Handler getResponseHandler();
 }

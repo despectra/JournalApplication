@@ -11,6 +11,7 @@ import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.helper.ApiClientWithProgress;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
+import com.despectra.android.journal.logic.helper.BasicClientHelperController;
 import com.despectra.android.journal.logic.helper.HelperController;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
@@ -82,12 +83,15 @@ public abstract class AbstractApiActionBarActivity extends ActionBarActivity imp
     protected void onResume() {
         super.onResume();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONRESUME);
+        mApplicationContext.getApiServiceHelper().registerClient(this,
+                new BasicClientHelperController(getApplicationContext(), getClientName()));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONPAUSE);
+        mApplicationContext.getApiServiceHelper().unregisterClient(this);
     }
 
     @Override

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 26;
+    public static final int VERSION = 27;
 
     public static final String CREATE_TABLE_EVENTS = "" +
             "CREATE TABLE IF NOT EXISTS events (" +
@@ -81,7 +81,16 @@ public class DBHelper extends SQLiteOpenHelper {
             "tsg_remote_id INTEGER DEFAULT 0 NOT NULL," +
             "tsg_teacher_subject_id INTEGER NOT NULL," +
             "tsg_group_id INTEGER NOT NULL," +
-            "tsg_entity_status INTEGER NOT NULL)";
+            "tsg_entity_status INTEGER DEFAULT 0 NOT NULL)";
+
+    public static final String CREATE_TABLE_SCHEDULE = "" +
+            "CREATE TABLE IF NOT EXISTS schedule (" +
+            "schedule_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "schedule_remote_id INTEGER DEFAULT 0 NOT NULL," +
+            "schedule_day INTEGER NOT NULL," +
+            "schedule_lesson_number INTEGER NOT NULL," +
+            "schedule_teacher_subject_group_id INTEGER NOT NULL," +
+            "schedule_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
 /*    public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
@@ -115,8 +124,9 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         if (newVersion - oldVersion == 1) {
-            dropSchema(sqLiteDatabase);
-            buildSchema(sqLiteDatabase);
+            /*dropSchema(sqLiteDatabase);
+            buildSchema(sqLiteDatabase);*/
+            sqLiteDatabase.execSQL(CREATE_TABLE_SCHEDULE);
         }
     }
 
@@ -143,10 +153,6 @@ public class DBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS);
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS_SUBJECTS);
         sqLiteDatabase.execSQL(CREATE_TABLE_TEACHERS_SUBJECTS_GROUPS);
+        sqLiteDatabase.execSQL(CREATE_TABLE_SCHEDULE);
     }
-
-    public static class JoinBuilder {
-
-    }
-
 }

@@ -190,6 +190,32 @@ public class Contract {
         public static final int URI_WITH_GROUPS_CODE = 302;
     }
 
+    public static final class Schedule extends EntityColumns {
+        public static final EntityTable HOLDER = new EntityTable("Schedule");
+        public static final String TABLE = "schedule";
+        public static final String _ID = TABLE + "_id";
+        public static final String REMOTE_ID = TABLE + "_remote_id";
+        public static final String ENTITY_STATUS = TABLE + "_entity_status";
+
+        public static final String FIELD_DAY = TABLE + "_day";
+        public static final String FIELD_LESSON_NUMBER = TABLE + "_lesson_number";
+        public static final String FIELD_TSG_ID = TABLE + "_teacher_subject_group_id";
+        public static final String TABLE_JOIN_FULL = new SQLJoinBuilder(TABLE)
+                .join(TSG.TABLE).onEq(FIELD_TSG_ID, TSG._ID)
+                .join(Groups.TABLE).onEq(TSG.FIELD_GROUP_ID, Groups._ID)
+                .join(TeachersSubjects.TABLE).onEq(TSG.FIELD_TEACHER_SUBJECT_ID, TeachersSubjects._ID)
+                .join(Teachers.TABLE).onEq(TeachersSubjects.FIELD_TEACHER_ID, Teachers._ID)
+                .join(Users.TABLE).onEq(Teachers.FIELD_USER_ID, Users._ID)
+                .join(Subjects.TABLE).onEq(TeachersSubjects.FIELD_SUBJECT_ID, Subjects._ID)
+                .create();
+        public static final Uri URI = Uri.parse(STRING_URI + "/" + TABLE);
+        public static final Uri URI_FULL = Uri.parse(STRING_URI + "/" + TABLE + "/full");
+
+        public static final int URI_CODE = 350;
+        public static final int ID_URI_CODE = 351;
+        public static final int URI_FULL_CODE = 352;
+    }
+
     //TODO I'll complete these contracts when time comes
 /*    public static final class Marks implements BaseColumns {
         public static final EntityTable HOLDER = new EntityTable("Marks");

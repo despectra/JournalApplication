@@ -20,10 +20,8 @@ import java.util.Map;
 */
 public class Students extends QueryExecDelegate {
 
-
-
-    public Students(DelegatingInterface holderInterface) {
-        super(holderInterface);
+    public Students(DelegatingInterface holderInterface, Map<String, Object> configs) {
+        super(holderInterface, configs);
     }
 
     /*

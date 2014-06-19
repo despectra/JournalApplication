@@ -25,6 +25,7 @@ public class LocalStorageManager {
 
     private Context mContext;
     private ContentResolver mResolver;
+    private Callbacks mCallbacks;
 
     public LocalStorageManager(Context context) {
         mContext = context;
@@ -33,6 +34,10 @@ public class LocalStorageManager {
 
     public ContentResolver getResolver() {
         return mResolver;
+    }
+
+    public void setCallbacks(Callbacks callbacks) {
+        mCallbacks = callbacks;
     }
 
     public void notifyUri(Uri uri) {
@@ -84,6 +89,9 @@ public class LocalStorageManager {
             long remoteId = row.getValue();
             if (receivedRows.containsKey(remoteId)) {
                 updateSingleEntity(table, localId, receivedRows.get(remoteId), jsonCols, entityTableCols);
+                if (mCallbacks != null) {
+                    mCallbacks.onUpdated(localId);
+                }
                 affectedRows.put(remoteId, localId);
                 existingRowsIt.remove();
                 receivedRows.remove(remoteId);
@@ -95,6 +103,9 @@ public class LocalStorageManager {
         while(jsonRowsIt.hasNext()) {
             Map.Entry<Long, JSONObject> row = (Map.Entry<Long, JSONObject>)jsonRowsIt.next();
             Map.Entry<Long, Long> insertedIds = insertNewEntity(table, row.getValue(), row.getKey(), jsonCols, entityTableCols);
+            if (mCallbacks != null) {
+                mCallbacks.onInserted(insertedIds.getValue());
+            }
             affectedRows.put(insertedIds.getKey(), insertedIds.getValue());
             jsonRowsIt.remove();
         }
@@ -104,6 +115,9 @@ public class LocalStorageManager {
             for (Map.Entry<Long, Long> row : existingRows.entrySet()) {
                 long localId = row.getKey();
                 deleteEntityByLocalId(table, localId);
+                if (mCallbacks != null) {
+                    mCallbacks.onDeleted(localId);
+                }
             }
         }
         return affectedRows;
@@ -265,5 +279,11 @@ public class LocalStorageManager {
         for (long id : localIds) {
             markEntityWithStatus(table, id, status);
         }
+    }
+
+    public interface Callbacks {
+        public void onInserted(long localId);
+        public void onUpdated(long localId);
+        public void onDeleted(long localId);
     }
 }
