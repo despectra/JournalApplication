@@ -1,5 +1,6 @@
 package com.despectra.android.journal.logic.helper;
 
+import com.despectra.android.journal.utils.Utils;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -14,12 +15,14 @@ public class ApiAction {
     public String clientTag;
     public JSONObject actionData;
     public Map<String, Object> extras;
+    public String hash;
 
     public ApiAction(int apiCode, String senderTag, JSONObject actionData) {
         this.apiCode = apiCode;
         this.actionData = actionData;
         this.clientTag = senderTag;
         creationTime = System.currentTimeMillis();
+        hash = Utils.md5(String.format("%d%s%s", apiCode, senderTag, actionData.toString()));
     }
 
     public ApiAction(int code, String senderTag, JSONObject actionData, Map<String, Object> extras) {

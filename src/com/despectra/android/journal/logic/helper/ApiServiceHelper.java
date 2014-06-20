@@ -94,9 +94,19 @@ public class ApiServiceHelper {
         int pendingCount = holder.pendingActions.size();
         int runningCount = holder.runningActions.size();
 
-        ApiAction actionBefore;
         if (priority == PRIORITY_HIGH) {
             if (runningCount > 0) {
+                if(isActiongRepeatingInCollection(action, holder.runningActions)) {
+                    return;
+                }
+            }
+            if (pendingCount > 0) {
+                if(isActiongRepeatingInCollection(action, holder.pendingActions)) {
+                    return;
+                }
+            }
+            runHighPriorityAction(action, holder);
+            /*if (runningCount > 0) {
                 actionBefore = getLastActionByTime(holder.runningActions.iterator());
                 if (!action.equals(actionBefore)) {
                     runHighPriorityAction(action, holder);
@@ -110,19 +120,19 @@ public class ApiServiceHelper {
                 } else {
                     runHighPriorityAction(action, holder);
                 }
-            }
+            }*/
         } else {
             if (pendingCount > 0) {
-                actionBefore = holder.pendingActions.peekLast();
-                if (!action.equals(actionBefore)) {
-                    holder.pendingActions.offer(action);
+                if (isActiongRepeatingInCollection(action, holder.pendingActions)) {
+                    return;
                 }
+                holder.pendingActions.offer(action);
             } else {
                 if (runningCount >= 1) {
-                    actionBefore = getLastActionByTime(holder.runningActions.iterator());
-                    if (!action.equals(actionBefore)) {
-                        holder.pendingActions.offer(action);
+                    if (isActiongRepeatingInCollection(action, holder.runningActions)) {
+                        return;
                     }
+                    holder.pendingActions.offer(action);
                 } else {
                     if (mBound) {
                         holder.runningActions.add(action);
@@ -134,6 +144,15 @@ public class ApiServiceHelper {
                 }
             }
         }
+    }
+
+    private boolean isActiongRepeatingInCollection(ApiAction action, Iterable<ApiAction> collection) {
+        for (ApiAction oneAction : collection) {
+            if (action.hash.equals(oneAction.hash)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void runHighPriorityAction(ApiAction action, RegisteredClient holder) {
