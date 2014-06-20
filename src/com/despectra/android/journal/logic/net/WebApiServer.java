@@ -42,12 +42,8 @@ public class WebApiServer implements ApplicationServer {
     private String mHost;
     private String mFullApiPath;
 
-    private final Map<Integer, String> METHODS_MAP = new HashMap<Integer, String>();
-
-    private WebApiServer(Context context, String host) {
-        setHost(host);
-        setContext(context);
-        mClient = AndroidHttpClient.newInstance(System.getProperty("http.agent"));
+    public static final Map<Integer, String> METHODS_MAP = new HashMap<Integer, String>();
+    static {
         METHODS_MAP.put(APICodes.ACTION_LOGIN, "auth.login");
         METHODS_MAP.put(APICodes.ACTION_LOGOUT, "auth.logout");
         METHODS_MAP.put(APICodes.ACTION_GET_MIN_PROFILE, "profile.getMinProfile");
@@ -76,6 +72,13 @@ public class WebApiServer implements ApplicationServer {
         METHODS_MAP.put(APICodes.ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT, "subjects.unsetGroupsOfTeachersSubject");
         METHODS_MAP.put(APICodes.ACTION_GET_SUBJECTS_OF_ALL_TEACHERS, "teachers.getSubjectsOfAllTeachers");
         METHODS_MAP.put(APICodes.ACTION_GET_GROUPS_OF_ALL_TS, "subjects.getGroupsOfAllTeachersSubjects");
+        METHODS_MAP.put(APICodes.ACTION_GET_WEEK_SCHEDULE_FOR_GROUP, "schedule.getWeekScheduleForGroup");
+    }
+
+    private WebApiServer(Context context, String host) {
+        setHost(host);
+        setContext(context);
+        mClient = AndroidHttpClient.newInstance(System.getProperty("http.agent"));
     }
 
     public synchronized static WebApiServer instantiate(Context context, String host) {

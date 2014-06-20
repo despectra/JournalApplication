@@ -132,7 +132,7 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
 
             background.addState(new int[]{android.R.attr.state_pressed},
                     getContext().getResources().getDrawable(R.drawable.mark_item_background));
-            background.addState(new int[]{android.R.attr.stateNotNeeded},
+            background.addState(new int[]{},
                     new LayerDrawable(
                         new Drawable[]{
                             new ColorDrawable(item.color),
@@ -140,11 +140,13 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
                         }
                     ));
         } else {
-            background.addState(new int[]{android.R.attr.state_pressed},
+            background = (StateListDrawable) getContext().getResources().getDrawable(R.drawable.schedule_item_background_selector);
+            /*background.addState(new int[]{android.R.attr.state_pressed},
                     getContext().getResources().getDrawable(R.drawable.mark_item_background));
-            background.addState(new int[]{android.R.attr.stateNotNeeded},
-                    getContext().getResources().getDrawable(R.drawable.border_left_bottom));
+            background.addState(new int[]{android.R.attr.state_empty},
+                    getContext().getResources().getDrawable(R.drawable.border_left_bottom));*/
         }
+        cell.setBackground(background);
         cell.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -163,9 +165,8 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
     public void swapCursor(Cursor c) {
         mDayColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_DAY);
         mLessonNumColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_LESSON_NUMBER);
-        mLocalIdColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule._ID);
+        mLocalIdColumnIndex = c.getColumnIndexOrThrow("_id");
         mRemoteIdColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.REMOTE_ID);
-        mGroupColumnIndex = c.getColumnIndexOrThrow(Contract.Groups.FIELD_NAME);
         mTeacherColumnIndex = c.getColumnIndexOrThrow("teacher");
         mSubjectColumnIndex = c.getColumnIndexOrThrow(Contract.Subjects.FIELD_NAME);
         mColorColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_COLOR);

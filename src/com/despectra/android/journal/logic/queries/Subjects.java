@@ -156,7 +156,9 @@ public class Subjects extends QueryExecDelegate {
         JSONArray remoteLinks = response.getJSONArray("groups");
         for (int i = 0; i < remoteLinks.length(); i++) {
             JSONObject element = remoteLinks.getJSONObject(i);
-            element.put("teacher_subject_id", localTeacherSubjectId);
+            element.put("teacher_subject_id", forAllTS
+                    ? getLocalStorageManager().getLocalIdByRemote(Contract.TeachersSubjects.HOLDER, element.getLong("teacher_subject_id"))
+                    : localTeacherSubjectId);
             long remoteGroupId = element.getLong("group_id");
             long localGroupId = getLocalStorageManager().getLocalIdByRemote(Contract.Groups.HOLDER, remoteGroupId);
             element.put("LOCAL_group_id", localGroupId);

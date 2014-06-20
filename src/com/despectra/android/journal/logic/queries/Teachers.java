@@ -242,7 +242,9 @@ public class Teachers extends QueryExecDelegate {
         JSONArray subjects = response.getJSONArray("subjects");
         for (int i = 0; i < subjects.length(); i++) {
             JSONObject subj = subjects.getJSONObject(i);
-            subj.put("teacher_id", teacherId);
+            subj.put("teacher_id", forAllTeachers
+                    ? getLocalStorageManager().getLocalIdByRemote(Contract.Teachers.HOLDER, subj.getLong("teacher_id"))
+                    : teacherId);
             long remoteSubjectId = subj.getLong("subject_id");
             long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.HOLDER, remoteSubjectId);
             subj.put("LOCAL_subject_id", localSubjectId);

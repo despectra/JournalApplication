@@ -12,10 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.helper.BasicClientHelperController;
 import com.despectra.android.journal.model.JoinedEntityIds;
-import com.despectra.android.journal.utils.Utils;
-import org.json.JSONObject;
 
 /**
  * Created by Dmitry on 08.04.14.

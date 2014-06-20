@@ -39,9 +39,9 @@ public class Utils {
         v.setLayoutParams(lp);
     }
 
-    public static int getRandomHoloColor() {
+    public static int getRandomHoloColor(Context context) {
         Random r = new Random(System.currentTimeMillis());
-        return HOLO_COLORS[r.nextInt(HOLO_COLORS.length)];
+        return context.getResources().getColor(HOLO_COLORS[r.nextInt(HOLO_COLORS.length)]);
     }
 
     public static boolean isOnline(Context context) {

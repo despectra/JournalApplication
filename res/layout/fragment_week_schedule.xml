@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="horizontal"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-    <ListView
-        android:id="@+id/groups_list_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="4">
-    </ListView>
-
-    <com.despectra.android.journal.view.schedule.WeekScheduleView
-        android:id="@+id/week_schedule_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
-
-    </com.despectra.android.journal.view.schedule.WeekScheduleView>
-</LinearLayout>
+<com.despectra.android.journal.view.schedule.WeekScheduleView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/week_schedule_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="1"/>

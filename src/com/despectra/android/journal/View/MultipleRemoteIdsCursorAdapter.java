@@ -2,34 +2,21 @@ package com.despectra.android.journal.view;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.NinePatchDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.Shape;
-import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
-
-import java.util.*;
 
 /**
  * Created by Dmitry on 10.04.14.
  */
 public class MultipleRemoteIdsCursorAdapter extends RemoteIdsCursorAdapter {
 
-    private OnItemClickListener mItemClickListener;
     private int mCheckBoxId;
-    private OnItemCheckedListener mItemCheckedListener;
     private int mPopupMenuBtnId;
     private int mPopupMenuRes;
     private OnItemPopupMenuListener mPopupMenuListener;
@@ -127,14 +114,7 @@ public class MultipleRemoteIdsCursorAdapter extends RemoteIdsCursorAdapter {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
                     view.setActivated(checked);
-                    if (checked) {
-                        mCheckedItemIds.put(localId, ids);
-                    } else {
-                        mCheckedItemIds.remove(localId);
-                    }
-                    if (mItemCheckedListener != null) {
-                        mItemCheckedListener.onItemChecked(ids, mCheckedItemIds.size(), checked);
-                    }
+                    setItemChecking(position, ids, checked);
                 }
             });
         }
@@ -157,14 +137,6 @@ public class MultipleRemoteIdsCursorAdapter extends RemoteIdsCursorAdapter {
             }
         });
         menu.show();
-    }
-
-    public interface OnItemCheckedListener {
-        public void onItemChecked(JoinedEntityIds ids, int checkedCount, boolean checked);
-    }
-
-    public interface OnItemClickListener {
-        public void onItemClick(View itemView, int position, JoinedEntityIds ids);
     }
 
     public interface OnItemPopupMenuListener {

@@ -41,4 +41,13 @@ public class EntityIds {
     public long getRemoteId() {
         return remoteId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof EntityIds)) {
+            return false;
+        }
+        EntityIds that = (EntityIds) o;
+        return that.localId == localId && that.remoteId == remoteId;
+    }
 }

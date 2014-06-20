@@ -46,7 +46,7 @@ public class Schedule extends QueryExecDelegate {
         for (int i = 0; i < scheduleItems.length(); i++) {
             JSONObject item = scheduleItems.getJSONObject(i);
             item.put("tsg", getLocalStorageManager().getLocalIdByRemote(TSG.HOLDER, item.getLong("tsg")));
-            item.put("color", Utils.getRandomHoloColor());
+            item.put("color", Utils.getRandomHoloColor(getContext()));
         }
         getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
                 localSchedule,

@@ -71,4 +71,13 @@ public class JoinedEntityIds {
         }
         return new JoinedEntityIds(tables, localIds, remoteIds);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof JoinedEntityIds)) {
+            return false;
+        }
+        JoinedEntityIds that = (JoinedEntityIds) o;
+        return mIds.equals(that);
+    }
 }
