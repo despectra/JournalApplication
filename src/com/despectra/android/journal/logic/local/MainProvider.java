@@ -44,6 +44,7 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/g", TSG.URI_WITH_GROUPS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule", Schedule.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule/full", Schedule.URI_FULL_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "schedule/tsg", Schedule.URI_TSG_CODE);
 
         /*mMatcher.addURI(Contract.AUTHORITY, "marks", Marks.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "marks/group", Marks.URI_BY_GROUP_CODE);
@@ -82,6 +83,7 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(TSG.URI_WITH_GROUPS_CODE, TSG.TABLE_JOIN_GROUPS);
         mReadTables.append(Schedule.URI_CODE, Schedule.TABLE);
         mReadTables.append(Schedule.URI_FULL_CODE, Schedule.TABLE_JOIN_FULL);
+        mReadTables.append(Schedule.URI_TSG_CODE, Schedule.TABLE_JOIN_TSG);
 
         /*mReadTables.append(Marks.URI_BY_GROUP_CODE, Marks.TABLE_BY_GROUP);
         mReadTables.append(Lessons.URI_CODE, Lessons.TABLE);*/

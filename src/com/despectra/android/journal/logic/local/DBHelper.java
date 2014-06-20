@@ -90,6 +90,7 @@ public class DBHelper extends SQLiteOpenHelper {
             "schedule_day INTEGER NOT NULL," +
             "schedule_lesson_number INTEGER NOT NULL," +
             "schedule_teacher_subject_group_id INTEGER NOT NULL," +
+            "schedule_color INTEGER NOT NULL," +
             "schedule_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
 /*    public static final String CREATE_TABLE_LESSONS = "" +

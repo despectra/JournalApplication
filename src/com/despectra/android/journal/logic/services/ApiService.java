@@ -246,6 +246,24 @@ public class ApiService extends Service {
                 return mQueryExecutor.forSubjects(action.extras).unsetGroupsOfTeachersSubject(action);
             }
         });
+        mActionsImpls.put(APICodes.ACTION_GET_WEEK_SCHEDULE_FOR_GROUP, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiAction action) throws Exception {
+                return mQueryExecutor.forSchedule(action.extras).getWeekScheduleForGroup(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_GET_SUBJECTS_OF_ALL_TEACHERS, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiAction action) throws Exception {
+                return mQueryExecutor.forTeachers(action.extras).getSubjectsOfAllTeachers(action);
+            }
+        });
+        mActionsImpls.put(APICodes.ACTION_GET_GROUPS_OF_ALL_TS, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiAction action) throws Exception {
+                return mQueryExecutor.forSubjects(action.extras).getGroupsOfAllTeachersSubjects(action);
+            }
+        });
     }
 
     @Override

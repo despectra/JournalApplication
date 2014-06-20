@@ -1,12 +1,20 @@
 package com.despectra.android.journal.view.schedule;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import com.despectra.android.journal.R;
+import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.model.WeekSchedule;
+import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.utils.Utils;
 
 /**
  * Created by Dmitry on 13.03.14.
@@ -15,17 +23,18 @@ public class WeekScheduleView extends LinearLayout {
 
     public static final String TAG = "VIEW_Schedule";
 
-    public static final String[] DAYS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+    public static final String[] DAYS = {"Пн.", "Вт.", "Ср.", "Чт.", "Пт.", "Сб.", "Вс."};
 
     private OnEventSelectedListener mEventSelectedListener;
     private GridView mHeaderView;
     private ListView mDataView;
     private ScheduleRowAdapter mScheduleAdapter;
-    private WeekSchedule mSchedule;
     private String[] mTimeIntervals;
     private View mItemView;
     private int mHeaderHeight;
     private int mItemWidth;
+    private Cursor mCursor;
+    private ArrayAdapter<String> mHeaderAdapter;
 
     public WeekScheduleView(Context context) {
         super(context);
@@ -46,7 +55,11 @@ public class WeekScheduleView extends LinearLayout {
         mEventSelectedListener = listener;
     }
 
-    public void setSchedule(WeekSchedule schedule, String[] timeIntervals) {
+    public void updateSchedule(Cursor cursor) {
+        mScheduleAdapter.swapCursor(cursor);
+    }
+
+    /*public void setSchedule(WeekSchedule schedule, String[] timeIntervals) {
         mSchedule = schedule;
         mTimeIntervals = timeIntervals;
         if (mScheduleAdapter != null) {
@@ -63,38 +76,51 @@ public class WeekScheduleView extends LinearLayout {
             });
             mDataView.setAdapter(mScheduleAdapter);
         }
-    }
+    }*/
 
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.schedule_view, this, true);
         mHeaderView = (GridView) findViewById(R.id.schedule_top_header);
         mDataView = (ListView) findViewById(R.id.schedule_container);
-
+        mScheduleAdapter = new ScheduleRowAdapter(getContext(), 10);
+        mDataView.setAdapter(mScheduleAdapter);
         initHeader(context);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mScheduleAdapter.recalculateColumnsWidths(getMeasuredWidth());
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
 
-        mHeaderHeight = (w+h) / 38;
-        mItemWidth = (w - 2 * mHeaderHeight) / 7;
-        mScheduleAdapter.setLeftHeaderWidth(mHeaderHeight);
-        mScheduleAdapter.setItemWidth(mItemWidth);
-        mHeaderView.setColumnWidth(mItemWidth);
+        mHeaderHeight = 50;
+       /* mItemWidth = (w - 2 * mHeaderHeight) / 7;
+        mScheduleAdapter.setLeftColumnWidth(mHeaderHeight);
+        mScheduleAdapter.setRightColumnWidth(mHeaderHeight);
+        mScheduleAdapter.setDataItemWidth(mItemWidth);
+        mHeaderView.setColumnWidth(mItemWidth);*/
 
         LinearLayout.LayoutParams headerViewParams = (LayoutParams) mHeaderView.getLayoutParams();
-        headerViewParams.width = w - 2 * mHeaderHeight;
+        headerViewParams.width = w - 2 * mHeaderHeight + 1;
         headerViewParams.height = mHeaderHeight;
-        headerViewParams.weight = 0;
-        headerViewParams.rightMargin = mHeaderHeight;
-        mHeaderView.setLayoutParams(headerViewParams);
+        headerViewParams.rightMargin = mHeaderHeight - 1;
+        mHeaderView.setAdapter(mHeaderAdapter);
     }
 
     private void initHeader(Context context) {
         mHeaderView.setEnabled(false);
-        ArrayAdapter<String> headerAdapter = new ArrayAdapter<String>(context, R.layout.small_header_item, DAYS);
-        mHeaderView.setAdapter(headerAdapter);
+        mHeaderAdapter = new ArrayAdapter<String>(context, R.layout.small_header_item, DAYS) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                Utils.setViewHeight(v, mHeaderHeight);
+                return v;
+            }
+        };
     }
 
     public interface OnEventSelectedListener {

@@ -2,29 +2,35 @@ package com.despectra.android.journal.view;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Matrix;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.FixedColumnsMatrix;
 
 /**
  * Created by Dmitry on 18.06.14.
  */
-public abstract class PseudoGridAdapter extends RemoteIdsCursorAdapter {
+public abstract class PseudoGridAdapter<T> extends BaseAdapter {
 
+    private Context mContext;
     private int mColumnsCount;
     private int mDataColumnsCount;
     private int[] mColumnsWidths;
+    protected FixedColumnsMatrix<T> mData;
 
-
-    public PseudoGridAdapter(Context context, Cursor c, EntityIdsColumns[] idsColumns, String entityStatusColumn,
-                             int cellLayout, int columnsCount, int dataColsCount, int[] colsWidths, String[] from, int[] to) {
-        super(context, cellLayout, c, idsColumns, entityStatusColumn, from, to, 0);
+    public PseudoGridAdapter(Context context, int columnsCount, int dataColsCount, int[] colsWidths) {
+        //super(context, cellLayout, c, idsColumns, entityStatusColumn, from, to, 0);
+        super();
+        mContext = context;
         mColumnsCount = columnsCount;
         mDataColumnsCount = dataColsCount;
         mColumnsWidths = colsWidths;
+        mData = new FixedColumnsMatrix<T>(mDataColumnsCount);
     }
 
     public Context getContext() {
@@ -36,14 +42,19 @@ public abstract class PseudoGridAdapter extends RemoteIdsCursorAdapter {
         return i;
     }
 
-    /*protected void setColumnsWidths(int[] widths, boolean notifyChanged) {
+    @Override
+    public Object getItem(int i) {
+        return i;
+    }
+
+    protected void setColumnsWidths(int[] widths, boolean notifyChanged) {
         mColumnsWidths = widths;
         if (notifyChanged) {
             notifyDataSetChanged();
         }
     }
 
-    public void setColumnWidthAtPos(int position, int width) {
+    /*public void setColumnWidthAtPos(int position, int width) {
         mColumnsWidths[position] = width;
         notifyDataSetChanged();
     }
@@ -60,14 +71,8 @@ public abstract class PseudoGridAdapter extends RemoteIdsCursorAdapter {
         return true;
     }
 
-
-    public View newRowView(Cursor cursor, ViewGroup parent) {
-        LinearLayout row = new LinearLayout(getContext()) {
-            @Override
-            public boolean onTouchEvent(MotionEvent ev) {
-                return false;
-            }
-        };
+    public View newRowView(ViewGroup parent) {
+        LinearLayout row = new LinearLayout(getContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setLayoutParams(
                 new AbsListView.LayoutParams(
@@ -75,58 +80,73 @@ public abstract class PseudoGridAdapter extends RemoteIdsCursorAdapter {
                         AbsListView.LayoutParams.WRAP_CONTENT
                 )
         );
-        int cellWidth = -1;
+
         for (int column = 0; column < mColumnsCount; column++) {
-            if (mColumnsWidths[column] == 0) {
-                if (cellWidth == -1) {
+            boolean isDataCol = isDataColumn(column);
+            int cellWidth;
+            if (isDataCol) {
+                if (mColumnsWidths[column] == 0) {
                     cellWidth = parent.getWidth() / mColumnsCount - 1;
+                } else {
+                    cellWidth = mColumnsWidths[column];
                 }
             } else {
                 cellWidth = mColumnsWidths[column];
             }
+
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     cellWidth,
-                    ViewGroup.LayoutParams.MATCH_PARENT);
+                    LinearLayout.LayoutParams.MATCH_PARENT);
 
-            row.addView(isDataColumn(column) ? super.newView(getContext(), cursor, parent) : newNonDataColumn(column), params);
+            row.addView(isDataCol ? newDataColumn(row) : newNonDataColumn(column), column, params);
         }
         return row;
     }
 
 
-    public void bindRowView(int position, View view, Cursor cursor) {
+    public void bindRowView(int position, View view) {
         if (!(view instanceof LinearLayout)) {
             return;
         }
         LinearLayout row = (LinearLayout)view;
         for (int i = 0; i < row.getChildCount(); i++) {
             if (isDataColumn(i)) {
-                bindDataColumn(position, row.getChildAt(i), cursor);
-                cursor.moveToNext();
+                bindDataColumn(position, i, row.getChildAt(i));
             } else {
-                bindNonDataColumn(position, i, row.getChildAt(i), cursor);
+                bindNonDataColumn(position, i, row.getChildAt(i));
             }
         }
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Cursor cursor = getCursor();
-        if (!cursor.moveToPosition(position * mDataColumnsCount)) {
-            throw new IllegalStateException("couldn't move cursor to position " + position);
-        }
         View v;
         if (convertView == null) {
-            v = newRowView(cursor, parent);
+            v = newRowView(parent);
         } else {
             v = convertView;
         }
-        bindRowView(position, v, cursor);
+        bindRowView(position, v);
         return v;
     }
 
+    public void swapCursor(Cursor c) {
+        mData.clearAll();
+        c.moveToFirst();
+        for (int i = 0; i < c.getCount(); i++) {
+            c.moveToPosition(i);
+            convertCursorItemToMatrixRow(c);
+        }
+        notifyDataSetChanged();
+        if (!c.isClosed()) {
+            c.close();
+        }
+    }
+
+    protected abstract void convertCursorItemToMatrixRow(Cursor cursor);
     protected abstract boolean isDataColumn(int column);
     protected abstract View newNonDataColumn(int column);
-    protected abstract void bindNonDataColumn(int row, int column, View cell, Cursor cursor);
-    protected abstract void bindDataColumn(int row, View cell, Cursor cursor);
+    protected abstract View newDataColumn(ViewGroup parent);
+    protected abstract void bindNonDataColumn(int row, int column, View cell);
+    protected abstract void bindDataColumn(int row, int column, View cell);
 }

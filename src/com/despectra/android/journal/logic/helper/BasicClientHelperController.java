@@ -237,6 +237,13 @@ public class BasicClientHelperController extends HelperController {
     }
 
     @Override
+    public void getSubjectsOfAllTeachers(String token, int priority) {
+        JSONObject data = new JSONBuilder()
+                .addKeyValue("token", token).create();
+        runAction(APICodes.ACTION_GET_SUBJECTS_OF_ALL_TEACHERS, data, priority);
+    }
+
+    @Override
     public void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority) {
         JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
@@ -263,6 +270,14 @@ public class BasicClientHelperController extends HelperController {
     }
 
     @Override
+    public void getGroupsOfAllTeachersSubjects(String token, int priority) {
+        JSONObject data = new JSONBuilder()
+                .addKeyValue("token", token)
+                .create();
+        runAction(APICodes.ACTION_GET_GROUPS_OF_ALL_TS, data, priority);
+    }
+
+    @Override
     public void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority) {
         JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
@@ -277,6 +292,14 @@ public class BasicClientHelperController extends HelperController {
                 .addKeyValue("token", token)
                 .addEntityIdsArray("links_ids", linksIds).create();
         runAction(APICodes.ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT, data, priority);
+    }
+
+    @Override
+    public void getWeekScheduleForGroup(String token, EntityIds groupIds, int priority) {
+        JSONObject data = new JSONBuilder()
+                .addKeyValue("token", token)
+                .addEntityIds("group_id", groupIds).create();
+        runAction(APICodes.ACTION_GET_WEEK_SCHEDULE_FOR_GROUP, data, priority);
     }
 
     @Override

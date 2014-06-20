@@ -202,26 +202,41 @@ public class Teachers extends QueryExecDelegate {
     /// $#######  SUBJECTS OF TEACHER SECTION
     // ###########    RETRIEVING   ###############
 
+    public JSONObject getSubjectsOfAllTeachers(ApiAction action) throws Exception {
+        return getSubjectsOfTeacherImpl(action, true);
+    }
+
     public JSONObject getSubjectsOfTeacher(ApiAction action) throws Exception {
+        return getSubjectsOfTeacherImpl(action, false);
+    }
+
+    private JSONObject getSubjectsOfTeacherImpl(ApiAction action, boolean forAllTeachers) throws Exception {
         JSONObject request = action.actionData;
-        long localTeacherId = request.getLong("LOCAL_teacher_id");
-        request.remove("LOCAL_teacher_id");
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        long localTeacherId = 0;
+        if (!forAllTeachers) {
+            localTeacherId = request.getLong("LOCAL_teacher_id");
+            request.remove("LOCAL_teacher_id");
+        }
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
-            updateLocalSubjectsLinks(localTeacherId, response);
-            getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                    action,
-                    "SubjectsOfTeacherFragment");
+            updateLocalSubjectsLinks(forAllTeachers, localTeacherId, response);
+            if (!forAllTeachers) {
+                getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
+                        action,
+                        "SubjectsOfTeacherFragment");
+            }
         }
         return response;
     }
 
-    private void updateLocalSubjectsLinks(long teacherId, JSONObject response) throws Exception {
+    private void updateLocalSubjectsLinks(boolean forAllTeachers, long teacherId, JSONObject response) throws Exception {
+        String selection = forAllTeachers ? null : Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?";
+        String[] selectionArgs = forAllTeachers ? null : new String[]{String.valueOf(teacherId)};
         Cursor existingSubjects = getLocalStorageManager().getResolver().query(
                 Contract.TeachersSubjects.URI,
                 new String[]{Contract.TeachersSubjects._ID, Contract.TeachersSubjects.REMOTE_ID},
-                Contract.TeachersSubjects.FIELD_TEACHER_ID + " = ?",
-                new String[]{String.valueOf(teacherId)},
+                selection,
+                selectionArgs,
                 null
         );
         JSONArray subjects = response.getJSONArray("subjects");

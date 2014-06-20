@@ -124,15 +124,21 @@ public abstract class HelperController {
 
     public abstract void getSubjectsOfTeacher(String token, EntityIds teacherIds, int priority);
 
+    public abstract void getSubjectsOfAllTeachers(String token, int priority);
+
     public abstract void setSubjectsOfTeacher(String token, EntityIds teacherIds, EntityIds[] subjectsIds, int priority);
 
     public abstract void unsetSubjectsOfTeacher(String token, EntityIds[] linksIds, int priority);
 
     public abstract void getGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, int priority);
 
+    public abstract void getGroupsOfAllTeachersSubjects(String token, int priority);
+
     public abstract void setGroupsOfTeachersSubject(String token, EntityIds teacherSubjectIds, EntityIds[] groupsIds, int priority);
 
     public abstract void unsetGroupsOfTeachersSubject(String token, EntityIds[] linksIds, int priority);
+
+    public abstract void getWeekScheduleForGroup(String token, EntityIds groupIds, int priority);
 
     // TEMPORARY
     public abstract void addMockMarks(long groupId);

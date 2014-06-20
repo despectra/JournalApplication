@@ -74,6 +74,8 @@ public class WebApiServer implements ApplicationServer {
         METHODS_MAP.put(APICodes.ACTION_GET_GROUPS_OF_TEACHERS_SUBJECT, "subjects.getGroupsOfTeachersSubject");
         METHODS_MAP.put(APICodes.ACTION_SET_GROUPS_OF_TEACHERS_SUBJECT, "subjects.setGroupsOfTeachersSubject");
         METHODS_MAP.put(APICodes.ACTION_UNSET_GROUPS_OF_TEACHERS_SUBJECT, "subjects.unsetGroupsOfTeachersSubject");
+        METHODS_MAP.put(APICodes.ACTION_GET_SUBJECTS_OF_ALL_TEACHERS, "teachers.getSubjectsOfAllTeachers");
+        METHODS_MAP.put(APICodes.ACTION_GET_GROUPS_OF_ALL_TS, "subjects.getGroupsOfAllTeachersSubjects");
     }
 
     public synchronized static WebApiServer instantiate(Context context, String host) {

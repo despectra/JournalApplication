@@ -200,8 +200,10 @@ public class Contract {
         public static final String FIELD_DAY = TABLE + "_day";
         public static final String FIELD_LESSON_NUMBER = TABLE + "_lesson_number";
         public static final String FIELD_TSG_ID = TABLE + "_teacher_subject_group_id";
-        public static final String TABLE_JOIN_FULL = new SQLJoinBuilder(TABLE)
-                .join(TSG.TABLE).onEq(FIELD_TSG_ID, TSG._ID)
+        public static final String FIELD_COLOR = TABLE + "_color";
+        public static final String TABLE_JOIN_TSG = new SQLJoinBuilder(TABLE)
+                .join(TSG.TABLE).onEq(FIELD_TSG_ID, TSG._ID).create();
+        public static final String TABLE_JOIN_FULL = new SQLJoinBuilder(TABLE_JOIN_TSG)
                 .join(Groups.TABLE).onEq(TSG.FIELD_GROUP_ID, Groups._ID)
                 .join(TeachersSubjects.TABLE).onEq(TSG.FIELD_TEACHER_SUBJECT_ID, TeachersSubjects._ID)
                 .join(Teachers.TABLE).onEq(TeachersSubjects.FIELD_TEACHER_ID, Teachers._ID)
@@ -209,11 +211,13 @@ public class Contract {
                 .join(Subjects.TABLE).onEq(TeachersSubjects.FIELD_SUBJECT_ID, Subjects._ID)
                 .create();
         public static final Uri URI = Uri.parse(STRING_URI + "/" + TABLE);
-        public static final Uri URI_FULL = Uri.parse(STRING_URI + "/" + TABLE + "/full");
+        public static final Uri URI_TSG = Uri.parse(STRING_URI + "/" + TABLE + "/tsg");
 
+        public static final Uri URI_FULL = Uri.parse(STRING_URI + "/" + TABLE + "/full");
         public static final int URI_CODE = 350;
         public static final int ID_URI_CODE = 351;
         public static final int URI_FULL_CODE = 352;
+        public static final int URI_TSG_CODE = 353;
     }
 
     //TODO I'll complete these contracts when time comes

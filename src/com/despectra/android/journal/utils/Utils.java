@@ -9,6 +9,7 @@ import android.net.NetworkInfo;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AbsListView;
 import com.despectra.android.journal.logic.local.DBHelper;
@@ -18,11 +19,31 @@ import org.json.JSONObject;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 
 /**
  * Created by Dmitry on 25.03.14.
  */
 public class Utils {
+    public static int[] HOLO_COLORS = {android.R.color.holo_blue_bright,
+            android.R.color.holo_green_light,
+            android.R.color.holo_green_dark,
+    android.R.color.holo_blue_dark,
+    android.R.color.holo_orange_light,
+    android.R.color.holo_purple,
+    android.R.color.holo_red_light};
+
+    public static void setViewWidth(View v, int width) {
+        ViewGroup.LayoutParams lp = v.getLayoutParams();
+        lp.width = width;
+        v.setLayoutParams(lp);
+    }
+
+    public static int getRandomHoloColor() {
+        Random r = new Random(System.currentTimeMillis());
+        return HOLO_COLORS[r.nextInt(HOLO_COLORS.length)];
+    }
+
     public static boolean isOnline(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -106,5 +127,11 @@ public class Utils {
 
     public static int dpToPx(Context context, int dp) {
         return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
+    }
+
+    public static void setViewHeight(View v, int height) {
+        ViewGroup.LayoutParams lp = v.getLayoutParams();
+        lp.height = height;
+        v.setLayoutParams(lp);
     }
 }

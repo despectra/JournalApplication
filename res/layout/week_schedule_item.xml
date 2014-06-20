@@ -18,19 +18,17 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:textAppearanceMedium"
         android:textColor="@color/gray250"
-        android:text="Информатика и ИКТ"
         android:fontFamily="sans-serif"
         android:ellipsize="end"
         android:singleLine="true"
         />
 
     <TextView
-        android:id="@+id/schedule_item_group"
+        android:id="@+id/schedule_item_teacher"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:textAppearanceSmall"
         android:textColor="@color/gray250"
-        android:text="Класс 9 'A'"
         android:ellipsize="end"
         android:singleLine="true"
         android:paddingTop="30dp"

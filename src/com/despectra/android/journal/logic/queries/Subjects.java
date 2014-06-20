@@ -117,25 +117,41 @@ public class Subjects extends QueryExecDelegate {
     //GROUPS OF TEACHER'S SUBJECT SECTION
     //
     // ###########  RETRIEVING  #########
+
+    public JSONObject getGroupsOfAllTeachersSubjects(ApiAction action) throws Exception {
+        return getGroupsOfTeachersSubjectImpl(action, true);
+    }
+
     public JSONObject getGroupsOfTeachersSubject(ApiAction action) throws Exception {
+        return getGroupsOfTeachersSubjectImpl(action, false);
+    }
+
+    private JSONObject getGroupsOfTeachersSubjectImpl(ApiAction action, boolean forAllTS) throws Exception {
         JSONObject request = action.actionData;
-        long localTeacherSubjectId = request.getLong("LOCAL_teacher_subject_id");
-        request.remove("LOCAL_teacher_subject_id");
+        long localTeacherSubjectId = 0;
+        if (!forAllTS) {
+            localTeacherSubjectId = request.getLong("LOCAL_teacher_subject_id");
+            request.remove("LOCAL_teacher_subject_id");
+        }
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
-            updateLocalGroupsLinks(localTeacherSubjectId, response);
-            getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS, action, "GroupsForSubjectFragment");
+            updateLocalGroupsLinks(localTeacherSubjectId, response, forAllTS);
+            if (!forAllTS) {
+                getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS, action, "GroupsForSubjectFragment");
+            }
         }
         return response;
     }
 
-    private void updateLocalGroupsLinks(long localTeacherSubjectId, JSONObject response) throws Exception {
+    private void updateLocalGroupsLinks(long localTeacherSubjectId, JSONObject response, boolean forAllTS) throws Exception {
+        String selection = forAllTS ? null : Contract.TSG.FIELD_TEACHER_SUBJECT_ID + " = ?";
+        String[] selectionArgs = forAllTS ? null : new String[]{String.valueOf(localTeacherSubjectId)};
         Cursor localLinks = getLocalStorageManager().getResolver().query(
                 Contract.TSG.URI,
                 new String[]{Contract.TSG._ID, Contract.TSG.REMOTE_ID},
-                Contract.TSG.FIELD_TEACHER_SUBJECT_ID + " = ?",
-                new String[]{String.valueOf(localTeacherSubjectId)},
+                selection,
+                selectionArgs,
                 null);
         JSONArray remoteLinks = response.getJSONArray("groups");
         for (int i = 0; i < remoteLinks.length(); i++) {
