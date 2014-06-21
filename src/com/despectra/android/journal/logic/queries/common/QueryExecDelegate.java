@@ -2,7 +2,6 @@ package com.despectra.android.journal.logic.queries.common;
 
 import android.content.Context;
 import android.os.Handler;
-import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.net.ApplicationServer;
 
@@ -19,7 +18,7 @@ public abstract class QueryExecDelegate implements DelegatingInterface {
         mHolderInterface = holderInterface;
         mLSManager = new LocalStorageManager(mHolderInterface.getContext());
         if (configs != null && configs.containsKey("LSM_CALLBACKS")) {
-            mLSManager.setCallbacks((LocalStorageManager.Callbacks) configs.get("LSM_CALLBACKS"));
+            mLSManager.setCallbacks((LocalStorageManager.PostCallbacks) configs.get("LSM_CALLBACKS"));
         }
     }
 

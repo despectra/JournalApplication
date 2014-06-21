@@ -25,7 +25,7 @@ public class LocalStorageManager {
 
     private Context mContext;
     private ContentResolver mResolver;
-    private Callbacks mCallbacks;
+    private PostCallbacks mPostCallbacks;
 
     public LocalStorageManager(Context context) {
         mContext = context;
@@ -36,8 +36,8 @@ public class LocalStorageManager {
         return mResolver;
     }
 
-    public void setCallbacks(Callbacks callbacks) {
-        mCallbacks = callbacks;
+    public void setCallbacks(PostCallbacks callbacks) {
+        mPostCallbacks = callbacks;
     }
 
     public void notifyUri(Uri uri) {
@@ -58,12 +58,13 @@ public class LocalStorageManager {
     }
 
     public Map<Long, Long> updateEntityWithJSONArray(int updatingMode,
-                                            Cursor existingIds,
-                                            Contract.EntityTable table,
-                                            JSONArray json,
-                                            String jsonIdCol,
-                                            String[] jsonCols,
-                                            String[] entityTableCols) throws JSONException {
+                                Cursor existingIds,
+                                Contract.EntityTable table,
+                                JSONArray json,
+                                String jsonIdCol,
+                                String[] jsonCols,
+                                String[] entityTableCols,
+                                PreCallbacks checkingCallbacks) throws JSONException {
         Map<Long, Long> existingRows = new HashMap<Long, Long>();
         Map<Long, JSONObject> receivedRows = new HashMap<Long, JSONObject>();
         Map<Long, Long> affectedRows = new HashMap<Long, Long>();
@@ -88,9 +89,9 @@ public class LocalStorageManager {
             long localId = row.getKey();
             long remoteId = row.getValue();
             if (receivedRows.containsKey(remoteId)) {
-                updateSingleEntity(table, localId, receivedRows.get(remoteId), jsonCols, entityTableCols);
-                if (mCallbacks != null) {
-                    mCallbacks.onUpdated(localId);
+                updateSingleEntity(table, localId, receivedRows.get(remoteId), jsonCols, entityTableCols, checkingCallbacks);
+                if (mPostCallbacks != null) {
+                    mPostCallbacks.onUpdated(localId);
                 }
                 affectedRows.put(remoteId, localId);
                 existingRowsIt.remove();
@@ -103,8 +104,8 @@ public class LocalStorageManager {
         while(jsonRowsIt.hasNext()) {
             Map.Entry<Long, JSONObject> row = (Map.Entry<Long, JSONObject>)jsonRowsIt.next();
             Map.Entry<Long, Long> insertedIds = insertNewEntity(table, row.getValue(), row.getKey(), jsonCols, entityTableCols);
-            if (mCallbacks != null) {
-                mCallbacks.onInserted(insertedIds.getValue());
+            if (mPostCallbacks != null) {
+                mPostCallbacks.onInserted(insertedIds.getValue());
             }
             affectedRows.put(insertedIds.getKey(), insertedIds.getValue());
             jsonRowsIt.remove();
@@ -115,12 +116,22 @@ public class LocalStorageManager {
             for (Map.Entry<Long, Long> row : existingRows.entrySet()) {
                 long localId = row.getKey();
                 deleteEntityByLocalId(table, localId);
-                if (mCallbacks != null) {
-                    mCallbacks.onDeleted(localId);
+                if (mPostCallbacks != null) {
+                    mPostCallbacks.onDeleted(localId);
                 }
             }
         }
         return affectedRows;
+    }
+
+    public Map<Long, Long> updateEntityWithJSONArray(int updatingMode,
+                                            Cursor existingIds,
+                                            Contract.EntityTable table,
+                                            JSONArray json,
+                                            String jsonIdCol,
+                                            String[] jsonCols,
+                                            String[] entityTableCols) throws JSONException {
+        return updateEntityWithJSONArray(updatingMode, existingIds, table, json, jsonIdCol, jsonCols, entityTableCols, null);
     }
 
     public Map.Entry<Long, Long> insertNewEntity(Contract.EntityTable table, JSONObject jsonDataRow, long insertingId, String[] from, String[] to) throws JSONException {
@@ -133,8 +144,15 @@ public class LocalStorageManager {
     }
 
     public void updateSingleEntity(Contract.EntityTable localTable, long localId, JSONObject jsonData, String[] from, String[] to) throws JSONException {
+        updateSingleEntity(localTable, localId, jsonData, from, to, null);
+    }
+
+    public void updateSingleEntity(Contract.EntityTable localTable, long localId, JSONObject jsonData,
+                                   String[] from, String[] to, PreCallbacks callback) throws JSONException {
         ContentValues data = getContentValuesFromJson(jsonData, from, to);
-        mResolver.update(localTable.URI, data, String.format("%s = %d", localTable._ID, localId), null);
+        if((callback != null && callback.onPreUpdate(data)) || callback == null) {
+            mResolver.update(localTable.URI, data, String.format("%s = %d", localTable._ID, localId), null);
+        }
     }
 
     private ContentValues getContentValuesFromJson(JSONObject json, String[] from, String[] to) throws JSONException {
@@ -281,9 +299,34 @@ public class LocalStorageManager {
         }
     }
 
-    public interface Callbacks {
+    public interface PreCallbacks {
+        public boolean onPreInsert();
+        public boolean onPreUpdate(ContentValues toUpdate);
+        public boolean onPreDelete();
+    }
+
+    public abstract static class PreCallbacksAdapter implements PreCallbacks {
+        @Override
+        public boolean onPreInsert() {
+            return true;
+        }
+
+        @Override
+        public boolean onPreUpdate(ContentValues toUpdate) {
+            return true;
+        }
+
+        @Override
+        public boolean onPreDelete() {
+            return true;
+        }
+    }
+
+    public interface PostCallbacks {
         public void onInserted(long localId);
         public void onUpdated(long localId);
         public void onDeleted(long localId);
     }
+
+    public static abstract class PostCallbacksAdapter implements PostCallbacks {}
 }

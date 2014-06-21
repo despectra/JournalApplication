@@ -48,6 +48,13 @@ public class Schedule extends QueryExecDelegate {
             item.put("tsg", getLocalStorageManager().getLocalIdByRemote(TSG.HOLDER, item.getLong("tsg")));
             item.put("color", Utils.getRandomHoloColor(getContext()));
         }
+        LocalStorageManager.PreCallbacks callback = new LocalStorageManager.PreCallbacksAdapter(){
+            @Override
+            public boolean onPreUpdate(ContentValues toUpdate) {
+                toUpdate.remove(Contract.Schedule.FIELD_COLOR);
+                return true;
+            }
+        };
         getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
                 localSchedule,
                 Contract.Schedule.HOLDER,
@@ -55,7 +62,8 @@ public class Schedule extends QueryExecDelegate {
                 "id",
                 new String[]{"tsg", "day", "lesson_number", "color"},
                 new String[]{Contract.Schedule.FIELD_TSG_ID, Contract.Schedule.FIELD_DAY,
-                        Contract.Schedule.FIELD_LESSON_NUMBER, Contract.Schedule.FIELD_COLOR}
+                        Contract.Schedule.FIELD_LESSON_NUMBER, Contract.Schedule.FIELD_COLOR},
+                callback
         );
     }
 

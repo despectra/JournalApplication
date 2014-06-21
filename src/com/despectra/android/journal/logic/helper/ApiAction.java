@@ -50,6 +50,6 @@ public class ApiAction {
             return false;
         }
         ApiAction action = (ApiAction) o;
-        return apiCode == action.apiCode && clientTag.equals(action.clientTag) && actionData.equals(action.actionData);
+        return hash.equals(action.hash);
     }
 }

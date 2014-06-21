@@ -16,9 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import android.widget.*;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
@@ -175,6 +173,7 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
 
 
     public void onGroupItemClick(View itemView, int position, JoinedEntityIds ids) {
+        getLoaderManager().restartLoader(LOADER_SCHEDULE, null, this);
         mServiceHelperController.getWeekScheduleForGroup(mToken, ids.getIdsByTable(Groups.TABLE), ApiServiceHelper.PRIORITY_LOW);
     }
 
@@ -234,8 +233,9 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.fragment_simple_entities_list, container, false);
+            View view = inflater.inflate(R.layout.fragment_simple_entities_list_frame, container, false);
             mGroupsListView = (ListView)view.findViewById(R.id.entities_list_view);
+            ((FrameLayout)view).setForeground(getActivity().getResources().getDrawable(R.drawable.left_shadow));
             return view;
         }
 

@@ -21,7 +21,7 @@ public abstract class HelperController {
             mController = controller;
         }
 
-        public Configurator setLocalStorageManagerCallbacks(LocalStorageManager.Callbacks callbacks) {
+        public Configurator setLocalStorageManagerCallbacks(LocalStorageManager.PostCallbacks callbacks) {
             if (mController.mExtras == null) {
                 mController.mExtras = new HashMap<String, Object>();
             }

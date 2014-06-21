@@ -106,21 +106,6 @@ public class ApiServiceHelper {
                 }
             }
             runHighPriorityAction(action, holder);
-            /*if (runningCount > 0) {
-                actionBefore = getLastActionByTime(holder.runningActions.iterator());
-                if (!action.equals(actionBefore)) {
-                    runHighPriorityAction(action, holder);
-                }
-            } else {
-                if (pendingCount > 0) {
-                    actionBefore = holder.pendingActions.peekLast();
-                    if (!action.equals(actionBefore)) {
-                        runHighPriorityAction(action, holder);
-                    }
-                } else {
-                    runHighPriorityAction(action, holder);
-                }
-            }*/
         } else {
             if (pendingCount > 0) {
                 if (isActiongRepeatingInCollection(action, holder.pendingActions)) {
@@ -148,7 +133,7 @@ public class ApiServiceHelper {
 
     private boolean isActiongRepeatingInCollection(ApiAction action, Iterable<ApiAction> collection) {
         for (ApiAction oneAction : collection) {
-            if (action.hash.equals(oneAction.hash)) {
+            if (action.equals(oneAction)) {
                 return true;
             }
         }
@@ -173,19 +158,6 @@ public class ApiServiceHelper {
         if(client.client instanceof ApiClientWithProgress) {
             ((ApiClientWithProgress)client.client).hideProgress();
         }
-    }
-
-    private ApiAction getLastActionByTime(Iterator<ApiAction> actionsIt) {
-        long newestTime = 0;
-        ApiAction newest = null;
-        while (actionsIt.hasNext()) {
-            ApiAction action = actionsIt.next();
-            if (action.creationTime > newestTime) {
-                newestTime = action.creationTime;
-                newest = action;
-            }
-        }
-        return newest;
     }
 
     protected synchronized void startApiQuery(String senderTag, ApiAction action, int priority) {
