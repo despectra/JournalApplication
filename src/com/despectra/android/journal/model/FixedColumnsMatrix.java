@@ -17,7 +17,6 @@ public class FixedColumnsMatrix<T> {
     }
 
     public void putCell(long row, long column, T what) {
-        check(row, column);
         if (mContainer.get(row) == null) {
             mContainer.put(row, new LongSparseArray<T>(mColumnsCount));
             if (mMaxRowIndex < row) {
@@ -34,21 +33,11 @@ public class FixedColumnsMatrix<T> {
     }
 
     public T get(long row, long column) {
-        check(row, column);
         LongSparseArray<T> rowContainer = mContainer.get(row);
         if (rowContainer != null) {
             return rowContainer.get(column);
         }
         return null;
-    }
-
-    private void check(long row, long column) throws IllegalArgumentException {
-        if (row < 0) {
-            throw new IllegalArgumentException("Wrong row index");
-        }
-        if (column < 0 || column >= mColumnsCount) {
-            throw new IllegalArgumentException("Wrong column index");
-        }
     }
 
     public long rowsCount() {

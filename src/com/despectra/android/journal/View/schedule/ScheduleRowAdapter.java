@@ -127,8 +127,8 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
 
     @Override
     protected void bindDataColumn(int row, int column, View cell) {
-        int day = column - 1;
-        int lessonNum = row + 1;
+        final int day = column;
+        final int lessonNum = row + 1;
         final WeekScheduleItem item = mData.get(lessonNum, day);
         StateListDrawable background = new StateListDrawable();
         ViewHolder vh = (ViewHolder) cell.getTag();
@@ -152,7 +152,7 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
             @Override
             public void onClick(View view) {
                 if (mListener != null) {
-                    mListener.onItemClicked(item);
+                    mListener.onItemClicked(day, lessonNum, item);
                 }
             }
         });
@@ -192,7 +192,7 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
     }
 
     public interface OnScheduleItemClickedListener {
-        public void onItemClicked(WeekScheduleItem item);
+        public void onItemClicked(int day, int lessonNum, WeekScheduleItem item);
     }
 
     public static class ViewHolder {

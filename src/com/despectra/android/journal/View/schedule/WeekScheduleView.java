@@ -59,25 +59,6 @@ public class WeekScheduleView extends LinearLayout {
         mScheduleAdapter.swapCursor(cursor);
     }
 
-    /*public void setSchedule(WeekSchedule schedule, String[] timeIntervals) {
-        mSchedule = schedule;
-        mTimeIntervals = timeIntervals;
-        if (mScheduleAdapter != null) {
-            mScheduleAdapter.setSchedule(mSchedule, mTimeIntervals);
-        } else {
-            mScheduleAdapter = new ScheduleRowAdapter(getContext(), mSchedule, mTimeIntervals);
-            mScheduleAdapter.setItemClickListener(new ScheduleRowAdapter.ScheduleItemClickListener() {
-                @Override
-                public void onClick(int day, int position) {
-                    if (mEventSelectedListener != null) {
-                        mEventSelectedListener.onEventSelected(day, position);
-                    }
-                }
-            });
-            mDataView.setAdapter(mScheduleAdapter);
-        }
-    }*/
-
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.schedule_view, this, true);
         mHeaderView = (GridView) findViewById(R.id.schedule_top_header);
@@ -98,11 +79,6 @@ public class WeekScheduleView extends LinearLayout {
         super.onSizeChanged(w, h, oldw, oldh);
 
         mHeaderHeight = 50;
-       /* mItemWidth = (w - 2 * mHeaderHeight) / 7;
-        mScheduleAdapter.setLeftColumnWidth(mHeaderHeight);
-        mScheduleAdapter.setRightColumnWidth(mHeaderHeight);
-        mScheduleAdapter.setDataItemWidth(mItemWidth);
-        mHeaderView.setColumnWidth(mItemWidth);*/
 
         LinearLayout.LayoutParams headerViewParams = (LayoutParams) mHeaderView.getLayoutParams();
         headerViewParams.width = w - 2 * mHeaderHeight + 1;
