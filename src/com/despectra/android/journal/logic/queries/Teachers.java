@@ -2,9 +2,11 @@ package com.despectra.android.journal.logic.queries;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.SystemClock;
 import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import com.despectra.android.journal.utils.Utils;
@@ -39,7 +41,7 @@ public class Teachers extends QueryExecDelegate {
         long localUserId = request.getLong("user_id");
         request.remove("user_id");
         request.remove("LOCAL_teacher_id");
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //update user data
             getLocalStorageManager().updateSingleEntity(
@@ -65,11 +67,10 @@ public class Teachers extends QueryExecDelegate {
         return response;
     }
 
-    private void updateLocalTeachers(JSONObject response) throws JSONException {
+    private void updateLocalTeachers(JSONObject response) throws Exception {
         Cursor localTeachers = getLocalStorageManager().getResolver().query(
-                Contract.Teachers.URI_AS_USERS,
-                new String[]{Contract.Teachers.REMOTE_ID, Contract.Teachers._ID,
-                        Contract.Users.REMOTE_ID, Contract.Users._ID},
+                Contract.Teachers.URI,
+                new String[]{Contract.Teachers.REMOTE_ID, Contract.Teachers._ID},
                 null,
                 null,
                 null
@@ -79,28 +80,11 @@ public class Teachers extends QueryExecDelegate {
             JSONObject teacher = remoteTeachers.getJSONObject(i);
             teacher.put("level", 4);
         }
-        Map<Long, Long> affectedUsers = getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localTeachers,
-                Contract.Users.HOLDER,
+                TableModel.get().getTable(Contract.Teachers.TABLE),
                 remoteTeachers,
-                "user_id",
-                new String[]{"name", "middlename", "surname", "login", "level"},
-                new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_SURNAME,
-                        Contract.Users.FIELD_LOGIN, Contract.Users.FIELD_LEVEL}
-        );
-        for (int i = 0; i < remoteTeachers.length(); i++) {
-            JSONObject teacher = remoteTeachers.getJSONObject(i);
-            teacher.put("user_id", affectedUsers.get(teacher.getLong("user_id")));
-        }
-        getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
-                localTeachers,
-                Contract.Teachers.HOLDER,
-                remoteTeachers,
-                "teacher_id",
-                new String[]{"user_id"},
-                new String[]{Contract.Teachers.FIELD_USER_ID}
+                null
         );
     }
 
@@ -239,23 +223,26 @@ public class Teachers extends QueryExecDelegate {
                 selectionArgs,
                 null
         );
-        JSONArray subjects = response.getJSONArray("subjects");
-        for (int i = 0; i < subjects.length(); i++) {
-            JSONObject subj = subjects.getJSONObject(i);
-            subj.put("teacher_id", forAllTeachers
-                    ? getLocalStorageManager().getLocalIdByRemote(Contract.Teachers.HOLDER, subj.getLong("teacher_id"))
+        JSONArray remoteSubjects = response.getJSONArray("subjects");
+        for (int i = 0; i < remoteSubjects.length(); i++) {
+            JSONObject item = remoteSubjects.getJSONObject(i);
+            item.put("teacher_id", forAllTeachers
+                    ? getLocalStorageManager().getLocalIdByRemote(
+                        Contract.Teachers.HOLDER,
+                        item.getLong("teacher_id"))
                     : teacherId);
-            long remoteSubjectId = subj.getLong("subject_id");
-            long localSubjectId = getLocalStorageManager().getLocalIdByRemote(Contract.Subjects.HOLDER, remoteSubjectId);
-            subj.put("LOCAL_subject_id", localSubjectId);
+            item.put("subject_id",
+                    getLocalStorageManager().getLocalIdByRemote(
+                            Contract.Subjects.HOLDER,
+                            item.getLong("subject_id")));
         }
-        getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
+
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 existingSubjects,
-                Contract.TeachersSubjects.HOLDER,
-                subjects,
-                "id",
-                new String[]{"teacher_id", "LOCAL_subject_id"},
-                new String[]{Contract.TeachersSubjects.FIELD_TEACHER_ID, Contract.TeachersSubjects.FIELD_SUBJECT_ID});
+                TableModel.get().getTable(Contract.TeachersSubjects.TABLE),
+                remoteSubjects,
+                null
+        );
     }
 
     // ######  SETTING  #########

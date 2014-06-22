@@ -4,6 +4,7 @@ import android.database.Cursor;
 import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import org.json.JSONException;
@@ -20,14 +21,14 @@ public class Events extends QueryExecDelegate {
     }
 
     public JSONObject get(ApiAction action) throws Exception {
-        JSONObject response = getApplicationServer().executeGetApiQuery(action);;
+        JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (response.has("events")) {
             updateLocalEvents(response);
         }
         return response;
     }
 
-    private void updateLocalEvents(JSONObject jsonResponse) throws JSONException {
+    private void updateLocalEvents(JSONObject jsonResponse) throws Exception {
         Cursor localEvents = getLocalStorageManager().getResolver().query(
                 Contract.Events.URI,
                 new String[]{Contract.Events._ID, Contract.Events.REMOTE_ID},
@@ -35,14 +36,11 @@ public class Events extends QueryExecDelegate {
                 null,
                 null
         );
-        getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localEvents,
-                Contract.Events.HOLDER,
+                TableModel.get().getTable(Contract.Events.TABLE),
                 jsonResponse.getJSONArray("events"),
-                "id",
-                new String[]{"text", "datetime"},
-                new String[]{Contract.Events.FIELD_TEXT, Contract.Events.FIELD_DATETIME}
+                null
         );
     }
 }

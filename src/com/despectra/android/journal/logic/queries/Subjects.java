@@ -5,6 +5,7 @@ import android.database.Cursor;
 import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import com.despectra.android.journal.utils.Utils;
@@ -56,22 +57,19 @@ public class Subjects extends QueryExecDelegate {
     }
 
     private void updateLocalSubjects(JSONObject response) throws Exception {
-        JSONArray subjects = response.getJSONArray("subjects");
-        Cursor localGroups = getLocalStorageManager().getResolver().query(
+        JSONArray remoteSubjects = response.getJSONArray("subjects");
+        Cursor localSubjects = getLocalStorageManager().getResolver().query(
                 Contract.Subjects.URI,
                 new String[]{Contract.Subjects._ID, Contract.Subjects.REMOTE_ID},
                 null,
                 null,
                 null
         );
-        getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
-                localGroups,
-                Contract.Subjects.HOLDER,
-                subjects,
-                "id",
-                new String[]{"name"},
-                new String[]{Contract.Subjects.FIELD_NAME}
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
+                localSubjects,
+                TableModel.get().getTable(Contract.Subjects.TABLE),
+                remoteSubjects,
+                null
         );
     }
 
@@ -155,21 +153,22 @@ public class Subjects extends QueryExecDelegate {
                 null);
         JSONArray remoteLinks = response.getJSONArray("groups");
         for (int i = 0; i < remoteLinks.length(); i++) {
-            JSONObject element = remoteLinks.getJSONObject(i);
-            element.put("teacher_subject_id", forAllTS
-                    ? getLocalStorageManager().getLocalIdByRemote(Contract.TeachersSubjects.HOLDER, element.getLong("teacher_subject_id"))
+            JSONObject item = remoteLinks.getJSONObject(i);
+            item.put("teacher_subject_id", forAllTS
+                    ? getLocalStorageManager().getLocalIdByRemote(
+                            Contract.TeachersSubjects.HOLDER,
+                            item.getLong("teacher_subject_id"))
                     : localTeacherSubjectId);
-            long remoteGroupId = element.getLong("group_id");
-            long localGroupId = getLocalStorageManager().getLocalIdByRemote(Contract.Groups.HOLDER, remoteGroupId);
-            element.put("LOCAL_group_id", localGroupId);
+            item.put("group_id",
+                    getLocalStorageManager().getLocalIdByRemote(
+                            Contract.Groups.HOLDER,
+                            item.getLong("group_id")));
         }
-        getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localLinks,
-                Contract.TSG.HOLDER,
+                TableModel.get().getTable(Contract.TSG.TABLE),
                 remoteLinks,
-                "id",
-                new String[]{"LOCAL_group_id", "teacher_subject_id"},
-                new String[]{Contract.TSG.FIELD_GROUP_ID, Contract.TSG.FIELD_TEACHER_SUBJECT_ID}
+                null
         );
     }
 

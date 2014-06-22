@@ -1,8 +1,10 @@
 package com.despectra.android.journal.view.groups;
 
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -96,6 +98,11 @@ public class GroupsForSubjectFragment extends LinksFragment {
     @Override
     protected String getLoaderOrderBy() {
         return Groups.FIELD_NAME + " ASC";
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        super.onLoadFinished(cursorLoader, cursor);
     }
 
     @Override

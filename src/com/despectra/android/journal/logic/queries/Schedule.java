@@ -5,6 +5,7 @@ import android.database.Cursor;
 import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import com.despectra.android.journal.utils.Utils;
@@ -23,6 +24,7 @@ public class Schedule extends QueryExecDelegate {
     }
 
     /**********************   RETRIEVING    ********************************/
+
     public JSONObject getWeekScheduleForGroup(ApiAction action) throws Exception {
         String localGroupId = action.actionData.getString("LOCAL_group_id");
         action.actionData.remove("LOCAL_group_id");
@@ -42,27 +44,28 @@ public class Schedule extends QueryExecDelegate {
                 TSG.FIELD_GROUP_ID + " = ?",
                 new String[]{localGroupId},
                 null);
-        JSONArray scheduleItems = response.getJSONArray("schedule");
-        for (int i = 0; i < scheduleItems.length(); i++) {
-            JSONObject item = scheduleItems.getJSONObject(i);
-            item.put("tsg", getLocalStorageManager().getLocalIdByRemote(TSG.HOLDER, item.getLong("tsg")));
+        JSONArray remoteSchedule = response.getJSONArray("schedule");
+        for (int i = 0; i < remoteSchedule.length(); i++) {
+            JSONObject item = remoteSchedule.getJSONObject(i);
             item.put("color", Utils.getRandomHoloColor(getContext()));
+            item.put("teacher_subject_group_id",
+                    getLocalStorageManager().getLocalIdByRemote(
+                            TSG.HOLDER,
+                            item.getLong("teacher_subject_group_id")));
         }
         LocalStorageManager.PreCallbacks callback = new LocalStorageManager.PreCallbacksAdapter(){
             @Override
-            public boolean onPreUpdate(ContentValues toUpdate) {
-                toUpdate.remove(Contract.Schedule.FIELD_COLOR);
+            public boolean onPreUpdate(EntityTable table, long localId, ContentValues toUpdate) {
+                if (table == Contract.Schedule.HOLDER) {
+                    toUpdate.remove(Contract.Schedule.FIELD_COLOR);
+                }
                 return true;
             }
         };
-        getLocalStorageManager().updateEntityWithJSONArray(LocalStorageManager.MODE_REPLACE,
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localSchedule,
-                Contract.Schedule.HOLDER,
-                response.getJSONArray("schedule"),
-                "id",
-                new String[]{"tsg", "day", "lesson_number", "color"},
-                new String[]{Contract.Schedule.FIELD_TSG_ID, Contract.Schedule.FIELD_DAY,
-                        Contract.Schedule.FIELD_LESSON_NUMBER, Contract.Schedule.FIELD_COLOR},
+                TableModel.get().getTable(Contract.Schedule.TABLE),
+                remoteSchedule,
                 callback
         );
     }

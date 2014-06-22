@@ -5,7 +5,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.logic.local.Contract.*;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import com.despectra.android.journal.utils.Utils;
@@ -40,59 +42,26 @@ public class Students extends QueryExecDelegate {
         return response;
     }
 
-    private void updateLocalStudents(JSONObject response, String localGroupId) throws JSONException {
-        Cursor localStudents = getLocalStorageManager().getResolver().query(
-                Uri.parse(Contract.STRING_URI + "/groups/" + localGroupId + "/students"),
-                new String[]{Contract.StudentsGroups._ID, Contract.StudentsGroups.REMOTE_ID,
-                        Contract.Students._ID, Contract.Students.REMOTE_ID,
-                        Contract.Users._ID, Contract.Users.REMOTE_ID},
-                Contract.StudentsGroups.FIELD_GROUP_ID + " = ?",
-                new String[]{localGroupId},
+    private void updateLocalStudents(JSONObject response, String localGroupId) throws Exception {
+        Cursor localStudentsGroups = getLocalStorageManager().getResolver().query(
+                StudentsGroups.URI,
+                new String[]{StudentsGroups._ID, StudentsGroups.REMOTE_ID},
+                StudentsGroups.FIELD_GROUP_ID + " = ?",
+                new String[]{String.valueOf(localGroupId)},
                 null
         );
-
         JSONArray remoteStudents = response.getJSONArray("students");
         for (int i = 0; i < remoteStudents.length(); i++) {
             JSONObject student = remoteStudents.getJSONObject(i);
             student.put("level", 2);
-        }
-        Map<Long, Long> insertedUsers = getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
-                localStudents,
-                Contract.Users.HOLDER,
-                remoteStudents,
-                "user_id",
-                new String[]{"name", "middlename", "surname", "login", "level"},
-                new String[]{Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_SURNAME,
-                        Contract.Users.FIELD_LOGIN, Contract.Users.FIELD_LEVEL}
-        );
-        for (int i = 0; i < remoteStudents.length(); i++) {
-            JSONObject student = remoteStudents.getJSONObject(i);
-            student.put("user_id", insertedUsers.get(student.getLong("user_id")));
-        }
-        Map<Long, Long> insertedStudents = getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
-                localStudents,
-                Contract.Students.HOLDER,
-                remoteStudents,
-                "student_id",
-                new String[]{"user_id"},
-                new String[]{Contract.Students.FIELD_USER_ID}
-        );
-        for (int i = 0; i < remoteStudents.length(); i++) {
-            JSONObject student = remoteStudents.getJSONObject(i);
-            student.put("student_id", insertedStudents.get(student.getLong("student_id")));
             student.put("group_id", localGroupId);
         }
-        getLocalStorageManager().updateEntityWithJSONArray(
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(
                 LocalStorageManager.MODE_REPLACE,
-                localStudents,
-                Contract.StudentsGroups.HOLDER,
+                localStudentsGroups,
+                TableModel.get().getTable(StudentsGroups.TABLE),
                 remoteStudents,
-                "student_group_link_id",
-                new String[]{"student_id", "group_id"},
-                new String[]{Contract.StudentsGroups.FIELD_STUDENT_ID, Contract.StudentsGroups.FIELD_GROUP_ID}
-        );
+                null);
     }
 
     /*

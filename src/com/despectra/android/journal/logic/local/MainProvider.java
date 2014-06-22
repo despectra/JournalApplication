@@ -12,6 +12,8 @@ import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.utils.SQLJoinBuilder;
 import com.despectra.android.journal.logic.local.Contract.*;
 
+import java.util.ArrayList;
+
 /**
  * Created by Dmitry on 01.04.14.
  */
@@ -250,6 +252,24 @@ public class MainProvider extends ContentProvider {
                 return StudentsGroups.CONTENT_ITEM_TYPE;
         }
         return null;
+    }
+
+    @Override
+    public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+            throws OperationApplicationException {
+        final SQLiteDatabase db = getDBHelper().getWritableDatabase();
+        db.beginTransaction();
+        try {
+            final int numOperations = operations.size();
+            final ContentProviderResult[] results = new ContentProviderResult[numOperations];
+            for (int i = 0; i < numOperations; i++) {
+                results[i] = operations.get(i).apply(this, results, i);
+            }
+            db.setTransactionSuccessful();
+            return results;
+        } finally {
+            db.endTransaction();
+        }
     }
 
     private DBHelper getDBHelper() {

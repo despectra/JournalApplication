@@ -225,3 +225,4 @@ gen
 project.properties
 JournalApplication.iml
 .gitignore
+libs/guava-17.0.jar

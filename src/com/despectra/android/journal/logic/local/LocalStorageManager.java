@@ -1,12 +1,16 @@
 package com.despectra.android.journal.logic.local;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
+import android.content.*;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.RemoteException;
+import android.util.LongSparseArray;
+import android.util.Pair;
 import com.despectra.android.journal.logic.helper.ApiAction;
+import com.despectra.android.journal.logic.local.Contract.*;
 import com.despectra.android.journal.utils.Utils;
+import com.google.common.collect.BiMap;
+import com.google.common.primitives.Longs;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,6 +59,239 @@ public class LocalStorageManager {
         if (notify) {
             notifyUri(uri);
         }
+    }
+
+    public void updateComplexEntityWithJsonResponse(int updatingMode,
+                                                    Cursor existingInitIds,
+                                                    EntityTable initTable,
+                                                    JSONArray jsonData,
+                                                    PreCallbacks preCallbacks)
+            throws JSONException,
+            OperationApplicationException,
+            RemoteException {
+        LongSparseArray<Long> existingInitRows = new LongSparseArray<Long>();
+        LongSparseArray<JSONObject> receivedRows = new LongSparseArray<JSONObject>();
+
+        int remoteIdColIndex = existingInitIds.getColumnIndex(initTable.REMOTE_ID);
+        int localIdColIndex = existingInitIds.getColumnIndex(initTable._ID);
+
+        if (existingInitIds.moveToFirst()) {
+            do {
+                existingInitRows.put(existingInitIds.getLong(localIdColIndex), existingInitIds.getLong(remoteIdColIndex));
+            } while (existingInitIds.moveToNext());
+        }
+
+        for (int i = 0; i < jsonData.length(); i++) {
+            JSONObject row = jsonData.getJSONObject(i);
+            receivedRows.put(row.getLong(initTable.DATA_FIELDS.get(initTable.REMOTE_ID)), row);
+        }
+
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        //update existing
+        LongSparseArray<Long> existingInitRowsCopy = existingInitRows.clone();
+        for (int i = 0; i < existingInitRows.size(); i++) {
+            long localId = existingInitRows.keyAt(i);
+            long remoteId = existingInitRows.valueAt(i);
+            JSONObject row = receivedRows.get(remoteId);
+            if (row != null) {
+                prepareComplexEntityToUpdating(initTable,
+                        localId,
+                        row,
+                        batch,
+                        preCallbacks);
+                existingInitRowsCopy.remove(localId);
+                receivedRows.remove(remoteId);
+            }
+        }
+        runBatch(batch);
+
+        //insert new
+        int backRefIndex = -1;
+        for (int i = 0; i < receivedRows.size(); i++) {
+            JSONObject row = receivedRows.valueAt(i);
+            backRefIndex = prepareComplexEntityToInsertion(initTable,
+                    row,
+                    batch,
+                    backRefIndex,
+                    preCallbacks);
+        }
+        runBatch(batch);
+
+        if (updatingMode == MODE_REPLACE) {
+            //delete non-existing
+            for (int i = 0; i < existingInitRowsCopy.size(); i++) {
+                long localId = existingInitRowsCopy.keyAt(i);
+                prepareComplexEntityForDeletion(initTable,
+                        new long[]{localId},
+                        new HashSet<EntityTable>(),
+                        batch,
+                        preCallbacks);
+            }
+        }
+        runBatch(batch);
+    }
+
+    private void runBatch(ArrayList<ContentProviderOperation> batch) throws OperationApplicationException, RemoteException {
+        if (!batch.isEmpty()) {
+            getResolver().applyBatch(Contract.AUTHORITY, batch);
+            batch.clear();
+        }
+    }
+
+    private int prepareComplexEntityToInsertion(EntityTable currentTable,
+                                                     JSONObject insertingDataRow,
+                                                     List<ContentProviderOperation> operations,
+                                                     int backRefIndex,
+                                                     PreCallbacks preCallbacks) throws JSONException {
+        ContentProviderOperation.Builder opBuilder = ContentProviderOperation.newInsert(currentTable.URI);
+        Pair<EntityTable, String> dependency = currentTable.BACK_DEPENDENCY;
+        boolean hasBackDependency = dependency != null;
+        if (hasBackDependency) {
+            backRefIndex = prepareComplexEntityToInsertion(dependency.first, insertingDataRow, operations, backRefIndex, preCallbacks);
+            opBuilder.withValueBackReference(dependency.second, backRefIndex);
+        }
+        backRefIndex++;
+        ContentValues values = new ContentValues();
+        for (BiMap.Entry<String, String> dataColumns : currentTable.DATA_FIELDS.entrySet()) {
+            if (hasBackDependency) {
+                if (!dependency.second.equals(dataColumns.getKey())) {
+                    values.put(dataColumns.getKey(), insertingDataRow.getString(dataColumns.getValue()));
+                }
+            } else {
+                values.put(dataColumns.getKey(), insertingDataRow.getString(dataColumns.getValue()));
+            }
+        }
+        if(preCallbacks != null) {
+            if(preCallbacks.onPreInsert(currentTable, values)) {
+                operations.add(opBuilder.withValues(values).build());
+            }
+        } else {
+            operations.add(opBuilder.withValues(values).build());
+        }
+        return backRefIndex;
+    }
+
+    private void prepareComplexEntityToUpdating(EntityTable currentTable,
+                                                long currentLocalId,
+                                                JSONObject receivedRow,
+                                                List<ContentProviderOperation> operations,
+                                                PreCallbacks preCallbacks) throws JSONException {
+        ContentProviderOperation.Builder opBuilder = ContentProviderOperation.newUpdate(currentTable.URI);
+        opBuilder.withSelection(currentTable._ID + " = ?", new String[]{String.valueOf(currentLocalId)});
+        Pair<EntityTable, String> dependency = currentTable.BACK_DEPENDENCY;
+        boolean hasBackDependency = dependency != null;
+        if (hasBackDependency) {
+            Cursor dependencyId = getResolver().query(currentTable.URI,
+                    new String[]{dependency.second},
+                    currentTable._ID + " = ?",
+                    new String[]{String.valueOf(currentLocalId)},
+                    null
+            );
+            if (dependencyId != null && dependencyId.getCount() > 0) {
+                dependencyId.moveToFirst();
+                prepareComplexEntityToUpdating(dependency.first, dependencyId.getLong(0), receivedRow, operations, preCallbacks);
+                opBuilder.withValue(dependency.second, dependencyId.getLong(0));
+            }
+        }
+        ContentValues values = new ContentValues();
+        for (BiMap.Entry<String, String> dataColumns : currentTable.DATA_FIELDS.entrySet()) {
+            if (hasBackDependency) {
+                if (!dependency.second.equals(dataColumns.getKey())) {
+                    values.put(dataColumns.getKey(), receivedRow.getString(dataColumns.getValue()));
+                }
+            } else {
+                values.put(dataColumns.getKey(), receivedRow.getString(dataColumns.getValue()));
+            }
+        }
+        if (preCallbacks != null) {
+            if (preCallbacks.onPreUpdate(currentTable, currentLocalId, values)) {
+                operations.add(opBuilder.withValues(values).build());
+            }
+        } else {
+            operations.add(opBuilder.withValues(values).build());
+        }
+    }
+
+    private void prepareComplexEntityForDeletion(EntityTable currentTable,
+                                                 long[] currentLocalIds,
+                                                 Set<EntityTable> visitedTables,
+                                                 List<ContentProviderOperation> operations,
+                                                 PreCallbacks preCallbacks) {
+        if (visitedTables.contains(currentTable)) {
+            return;
+        }
+        if (currentTable.BACK_DEPENDENCY != null) {
+            long[] backDependencyIds = collectIdsForBackDependency(currentTable, currentLocalIds);
+            visitedTables.add(currentTable);
+            if (backDependencyIds.length > 0) {
+                prepareComplexEntityForDeletion(currentTable.BACK_DEPENDENCY.first, backDependencyIds, visitedTables, operations, preCallbacks);
+            }
+        }
+        if (currentTable.DIRECT_DEPENDENCIES.size() > 0) {
+            for (Map.Entry<EntityTable, String> dependency : currentTable.DIRECT_DEPENDENCIES.entrySet()) {
+                long[] directDependencyIds = collectIdsFromDirectDependency(dependency, currentLocalIds);
+                visitedTables.add(currentTable);
+                if (directDependencyIds.length > 0) {
+                    prepareComplexEntityForDeletion(dependency.getKey(), directDependencyIds, visitedTables, operations, preCallbacks);
+                }
+            }
+        }
+        for (int i = 0; i < currentLocalIds.length; i++) {
+            ContentProviderOperation.Builder opBuilder = ContentProviderOperation
+                    .newDelete(currentTable.URI)
+                    .withSelection(currentTable._ID + " = ?", new String[]{String.valueOf(currentLocalIds[i])});
+            opBuilder.withYieldAllowed(i == currentLocalIds.length - 1);
+            if (preCallbacks != null) {
+                if(preCallbacks.onPreDelete(currentTable, currentLocalIds[i])) {
+                    operations.add(opBuilder.build());
+                }
+            } else {
+                operations.add(opBuilder.build());
+            }
+        }
+    }
+
+    private long[] collectIdsFromDirectDependency(Map.Entry<EntityTable, String> dependency, long[] currentLocalIds) {
+        long[] resultIds = new long[0];
+        EntityTable depTable = dependency.getKey();
+        String foreignKey = dependency.getValue();
+        for (long currentLocalId : currentLocalIds) {
+            Cursor depId = getResolver().query(depTable.URI,
+                    new String[]{depTable._ID},
+                    foreignKey + " = ?",
+                    new String[]{String.valueOf(currentLocalId)},
+                    null);
+            if (depId.getCount() > 0) {
+                resultIds = Longs.concat(resultIds, extractIdsFromIdsCursor(depId));
+            }
+        }
+        return resultIds;
+    }
+
+    private long[] collectIdsForBackDependency(EntityTable targetTable, long[] localIds) {
+        long[] resultIds = new long[0];
+        String myForeignKey = targetTable.BACK_DEPENDENCY.second;
+        for (long localId : localIds) {
+            Cursor depId = getResolver().query(targetTable.URI,
+                    new String[]{myForeignKey},
+                    targetTable._ID + " = ?",
+                    new String[]{String.valueOf(localId)},
+                    null);
+            if (depId.getCount() > 0) {
+                resultIds = Longs.concat(resultIds, extractIdsFromIdsCursor(depId));
+            }
+        }
+        return resultIds;
+    }
+
+    private long[] extractIdsFromIdsCursor(Cursor cursor) {
+        long[] ids = new long[cursor.getCount()];
+        int i = 0;
+        do {
+            ids[i] = cursor.getLong(0);
+            i++;
+        } while (cursor.moveToNext());
+        return ids;
     }
 
     public Map<Long, Long> updateEntityWithJSONArray(int updatingMode,
@@ -134,7 +371,11 @@ public class LocalStorageManager {
         return updateEntityWithJSONArray(updatingMode, existingIds, table, json, jsonIdCol, jsonCols, entityTableCols, null);
     }
 
-    public Map.Entry<Long, Long> insertNewEntity(Contract.EntityTable table, JSONObject jsonDataRow, long insertingId, String[] from, String[] to) throws JSONException {
+    public Map.Entry<Long, Long> insertNewEntity(Contract.EntityTable table,
+                                                 JSONObject jsonDataRow,
+                                                 long insertingId,
+                                                 String[] from,
+                                                 String[] to) throws JSONException {
         ContentValues data = getContentValuesFromJson(jsonDataRow, from, to);
         data.put(table.REMOTE_ID, insertingId);
         data.put(table.ENTITY_STATUS, Contract.STATUS_IDLE);
@@ -150,7 +391,7 @@ public class LocalStorageManager {
     public void updateSingleEntity(Contract.EntityTable localTable, long localId, JSONObject jsonData,
                                    String[] from, String[] to, PreCallbacks callback) throws JSONException {
         ContentValues data = getContentValuesFromJson(jsonData, from, to);
-        if((callback != null && callback.onPreUpdate(data)) || callback == null) {
+        if((callback != null && callback.onPreUpdate(localTable, localId, data)) || callback == null) {
             mResolver.update(localTable.URI, data, String.format("%s = %d", localTable._ID, localId), null);
         }
     }
@@ -300,24 +541,24 @@ public class LocalStorageManager {
     }
 
     public interface PreCallbacks {
-        public boolean onPreInsert();
-        public boolean onPreUpdate(ContentValues toUpdate);
-        public boolean onPreDelete();
+        public boolean onPreInsert(EntityTable table, ContentValues toUpdate);
+        public boolean onPreUpdate(EntityTable table, long localId, ContentValues toUpdate);
+        public boolean onPreDelete(EntityTable table, long localId);
     }
 
     public abstract static class PreCallbacksAdapter implements PreCallbacks {
         @Override
-        public boolean onPreInsert() {
+        public boolean onPreInsert(EntityTable table, ContentValues toUpdate) {
             return true;
         }
 
         @Override
-        public boolean onPreUpdate(ContentValues toUpdate) {
+        public boolean onPreUpdate(EntityTable table, long localId, ContentValues toUpdate) {
             return true;
         }
 
         @Override
-        public boolean onPreDelete() {
+        public boolean onPreDelete(EntityTable table, long localId) {
             return true;
         }
     }

@@ -5,6 +5,7 @@ import android.database.Cursor;
 import com.despectra.android.journal.logic.helper.ApiAction;
 import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.LocalStorageManager;
+import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
 import com.despectra.android.journal.utils.Utils;
@@ -65,7 +66,7 @@ public class Groups extends QueryExecDelegate {
         return response;
     }
 
-    private void updateLocalGroups(JSONObject jsonResponse, String localParentId) throws JSONException {
+    private void updateLocalGroups(JSONObject jsonResponse, String localParentId) throws Exception {
         JSONArray groups = jsonResponse.getJSONArray("groups");
         Cursor localGroups = getLocalStorageManager().getResolver().query(
                 Contract.Groups.URI,
@@ -77,14 +78,11 @@ public class Groups extends QueryExecDelegate {
         for (int i = 0; i < groups.length(); i++) {
             groups.getJSONObject(i).put("parent_id", localParentId);
         }
-        getLocalStorageManager().updateEntityWithJSONArray(
-                LocalStorageManager.MODE_REPLACE,
+        getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localGroups,
-                Contract.Groups.HOLDER,
-                jsonResponse.getJSONArray("groups"),
-                "id",
-                new String[]{"name", "parent_id"},
-                new String[]{Contract.Groups.FIELD_NAME, Contract.Groups.FIELD_PARENT_ID}
+                TableModel.get().getTable(Contract.Groups.TABLE),
+                groups,
+                null
         );
     }
 

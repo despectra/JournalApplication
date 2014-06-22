@@ -356,6 +356,7 @@ public class ApiService extends Service {
                     mResponseHandler.sendMessage(Message.obtain(mResponseHandler, MSG_RESPONSE, response));
                 } catch (Exception ex) {
                     try {
+                        Log.e(TAG, ex.getMessage(), ex);
                         JSONObject jsonResponse = new JSONBuilder()
                                 .addKeyValue("success", "0")
                                 .addKeyValue("error_code", "1")
