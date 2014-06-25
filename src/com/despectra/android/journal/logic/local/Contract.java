@@ -40,7 +40,8 @@ public final class Contract {
         public static final EntityTable HOLDER = new EntityTable("Events")
                 .addDataField(REMOTE_ID, "event_id")
                 .addDataField(FIELD_TEXT, "text")
-                .addDataField(FIELD_DATETIME, "datetime");
+                .addDataField(FIELD_DATETIME, "datetime")
+                .addDataField(ENTITY_STATUS, "entity_status");
         public static final Uri URI = Uri.parse(STRING_URI + "/" + TABLE);
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
@@ -59,7 +60,8 @@ public final class Contract {
         public static final EntityTable HOLDER = new EntityTable("Groups")
                 .addDataField(REMOTE_ID, "group_id")
                 .addDataField(FIELD_NAME, "name")
-                .addDataField(FIELD_PARENT_ID, "parent_id");
+                .addDataField(FIELD_PARENT_ID, "parent_id")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final Uri URI = Uri.parse(STRING_URI + "/" + TABLE);
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
@@ -77,7 +79,8 @@ public final class Contract {
 
         public static final EntityTable HOLDER = new EntityTable("Students")
                 .addDataField(REMOTE_ID, "student_id")
-                .addDataField(FIELD_USER_ID, "user_id");
+                .addDataField(FIELD_USER_ID, "user_id")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String TABLE_JOIN_USERS = new SQLJoinBuilder(TABLE)
                 .join(Users.TABLE).onEq(FIELD_USER_ID, Users._ID).create();
@@ -110,7 +113,8 @@ public final class Contract {
                 .addDataField(FIELD_NAME, "name")
                 .addDataField(FIELD_SURNAME, "surname")
                 .addDataField(FIELD_MIDDLENAME, "middlename")
-                .addDataField(FIELD_LEVEL, "level");
+                .addDataField(FIELD_LEVEL, "level")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final Uri URI = Uri.parse(STRING_URI + "/users");
         public static final Uri URI_STUDENTS = Uri.parse(STRING_URI + "/students/users");
@@ -131,7 +135,8 @@ public final class Contract {
         public static final EntityTable HOLDER = new EntityTable("StudentsGroups")
                 .addDataField(REMOTE_ID, "student_group_id")
                 .addDataField(FIELD_GROUP_ID, "group_id")
-                .addDataField(FIELD_STUDENT_ID, "student_id");
+                .addDataField(FIELD_STUDENT_ID, "student_id")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final Uri URI = Uri.parse(STRING_URI + "/students_groups");
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
@@ -152,7 +157,8 @@ public final class Contract {
 
         public static final EntityTable HOLDER = new EntityTable("Subjects")
                 .addDataField(REMOTE_ID, "subject_id")
-                .addDataField(FIELD_NAME, "name");
+                .addDataField(FIELD_NAME, "name")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
@@ -170,7 +176,8 @@ public final class Contract {
 
         public static final EntityTable HOLDER = new EntityTable("Teachers")
                 .addDataField(REMOTE_ID, "teacher_id")
-                .addDataField(FIELD_USER_ID, "user_id");
+                .addDataField(FIELD_USER_ID, "user_id")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String TABLE_JOIN_USERS = new SQLJoinBuilder(TABLE)
                 .join(Users.TABLE).onEq(FIELD_USER_ID, Users._ID).create();
@@ -194,7 +201,8 @@ public final class Contract {
         public static final EntityTable HOLDER = new EntityTable("TeachersSubjects")
                 .addDataField(REMOTE_ID, "teacher_subject_id")
                 .addDataField(FIELD_SUBJECT_ID, "subject_id")
-                .addDataField(FIELD_TEACHER_ID, "teacher_id");
+                .addDataField(FIELD_TEACHER_ID, "teacher_id")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String TABLE_JOIN_SUBJECTS =  new SQLJoinBuilder(TABLE)
                 .join(Subjects.TABLE).onEq(FIELD_SUBJECT_ID, Subjects._ID).create();
@@ -221,7 +229,8 @@ public final class Contract {
         public static final EntityTable HOLDER = new EntityTable("TSG")
                 .addDataField(REMOTE_ID, "teacher_subject_group_id")
                 .addDataField(FIELD_TEACHER_SUBJECT_ID, "teacher_subject_id")
-                .addDataField(FIELD_GROUP_ID, "group_id");
+                .addDataField(FIELD_GROUP_ID, "group_id")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String TABLE_JOIN_GROUPS = new SQLJoinBuilder(TABLE)
                 .join(Groups.TABLE).onEq(FIELD_GROUP_ID, Groups._ID).create();
@@ -247,7 +256,8 @@ public final class Contract {
                 .addDataField(FIELD_DAY, "day")
                 .addDataField(FIELD_LESSON_NUMBER, "lesson_number")
                 .addDataField(FIELD_TSG_ID, "teacher_subject_group_id")
-                .addDataField(FIELD_COLOR, "color");
+                .addDataField(FIELD_COLOR, "color")
+                .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String TABLE_JOIN_TSG = new SQLJoinBuilder(TABLE)
                 .join(TSG.TABLE).onEq(FIELD_TSG_ID, TSG._ID).create();
