@@ -108,14 +108,14 @@ public class StudentsFragment extends AbstractUsersFragment {
     protected String[] getLoaderProjection() {
         return new String[]{Contract.Students._ID + " AS _id", Contract.Students.REMOTE_ID,
                 Contract.Users._ID, Contract.Users.REMOTE_ID,
-                Contract.Users.FIELD_NAME, Contract.Users.FIELD_SURNAME,
-                Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN,
+                Contract.Users.FIELD_FIRST_NAME, Contract.Users.FIELD_LAST_NAME,
+                Contract.Users.FIELD_MIDDLE_NAME, Contract.Users.FIELD_LOGIN,
                 Contract.Users.ENTITY_STATUS};
     }
 
     @Override
     protected String getLoaderOrderBy() {
-        return Contract.Users.FIELD_SURNAME + " ASC";
+        return Contract.Users.FIELD_LAST_NAME + " ASC";
     }
 
     @Override
@@ -157,7 +157,7 @@ public class StudentsFragment extends AbstractUsersFragment {
         return new MultipleRemoteIdsCursorAdapter(getActivity(),
                 R.layout.item_student_1,
                 mCursor,
-                new String[]{Contract.Users.FIELD_SURNAME, Contract.Users.FIELD_NAME, Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN},
+                new String[]{Contract.Users.FIELD_LAST_NAME, Contract.Users.FIELD_FIRST_NAME, Contract.Users.FIELD_MIDDLE_NAME, Contract.Users.FIELD_LOGIN},
                 new int[]{R.id.surname_view, R.id.name_view, R.id.middlename_view, R.id.login_view},
                 columns,
                 Contract.Users.ENTITY_STATUS,

@@ -16,6 +16,7 @@
             android:layout_height="match_parent"
             android:layout_marginBottom="@dimen/wall_fragment_bottom_margin"
             journalviews:card_title="Стена"
+            android:paddingRight="10dp"
             android:layout_weight="5">
 
         <FrameLayout

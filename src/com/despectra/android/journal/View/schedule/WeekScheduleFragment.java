@@ -23,7 +23,6 @@ import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract.*;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
-import com.despectra.android.journal.logic.services.ApiService;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
@@ -31,7 +30,6 @@ import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.AbstractApiFragment;
 import com.despectra.android.journal.view.RemoteIdsCursorAdapter;
 import com.despectra.android.journal.view.SimpleRemoteIdsAdapter;
-import com.despectra.android.journal.view.groups.GroupsFragment;
 import org.json.JSONObject;
 
 /**
@@ -138,7 +136,7 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
             case LOADER_SCHEDULE:
                 uri = Schedule.URI_FULL;
                 projection = new String[]{Schedule._ID + " as _id", Schedule.REMOTE_ID, Schedule.FIELD_COLOR, Schedule.FIELD_DAY, Schedule.FIELD_LESSON_NUMBER,
-                        Subjects.FIELD_NAME, Users.FIELD_SURNAME + "||" + Users.FIELD_NAME + " as teacher"};
+                        Subjects.FIELD_NAME, Users.FIELD_LAST_NAME + "||" + Users.FIELD_FIRST_NAME + " as teacher"};
                 selection = TSG.FIELD_GROUP_ID + " = ?";
                 String groupId = String.valueOf(mGroupsFragment.getGroupsAdapter().getSelectedEntityIdsByTable("groups").getLocalId());
                 selectionArgs = new String[]{groupId};

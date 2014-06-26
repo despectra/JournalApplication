@@ -8,7 +8,6 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.*;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.local.Contract;
@@ -84,9 +83,9 @@ public abstract class AbstractUserFragment extends AbstractApiFragment implement
         if (i == 0) {
             return new CursorLoader(getActivity(),
                     Contract.Users.URI,
-                    new String[]{Contract.Users.FIELD_NAME,
-                            Contract.Users.FIELD_SURNAME,
-                            Contract.Users.FIELD_MIDDLENAME,
+                    new String[]{Contract.Users.FIELD_FIRST_NAME,
+                            Contract.Users.FIELD_LAST_NAME,
+                            Contract.Users.FIELD_MIDDLE_NAME,
                             Contract.Users.FIELD_LEVEL},
                     Contract.Users._ID + " = ?",
                     new String[]{String.valueOf(mUserIds.getIdsByTable("users").getLocalId())},

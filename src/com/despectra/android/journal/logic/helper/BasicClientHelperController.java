@@ -75,8 +75,7 @@ public class BasicClientHelperController extends HelperController {
         JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
                 .addKeyValue("name", name)
-                .addKeyValue("LOCAL_parent_id", parentIds.getLocalId())
-                .addKeyValue("parent_id", parentIds.getRemoteId()).create();
+                .addEntityIds("parent_id", parentIds).create();
         runAction(APICodes.ACTION_ADD_GROUP, data, priority);
     }
 
@@ -127,13 +126,14 @@ public class BasicClientHelperController extends HelperController {
     }
 
     @Override
-    public void addStudentIntoGroup(String token, EntityIds groupIds, String name, String middlename, String surname, String login, int priority) {
+    public void addStudentIntoGroup(String token, EntityIds groupIds, String firstName, String middleName,
+                                    String lastName, String login, int priority) {
         JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
                 .addEntityIds("group_id", groupIds)
-                .addKeyValue("name", name)
-                .addKeyValue("middlename", middlename)
-                .addKeyValue("surname", surname)
+                .addKeyValue("first_name", firstName)
+                .addKeyValue("middle_name", middleName)
+                .addKeyValue("last_name", lastName)
                 .addKeyValue("login", login).create();
         runAction(APICodes.ACTION_ADD_STUDENT_IN_GROUP, data, priority);
     }
@@ -189,12 +189,12 @@ public class BasicClientHelperController extends HelperController {
     }
 
     @Override
-    public void addTeacher(String token, String firstName, String middleName, String secondName, String login, int priority) {
+    public void addTeacher(String token, String firstName, String middleName, String lastName, String login, int priority) {
         JSONObject data = new JSONBuilder()
                 .addKeyValue("token", token)
-                .addKeyValue("firstName", firstName)
-                .addKeyValue("middleName", middleName)
-                .addKeyValue("secondName", secondName)
+                .addKeyValue("first_name", firstName)
+                .addKeyValue("middle_name", middleName)
+                .addKeyValue("last_name", lastName)
                 .addKeyValue("login", login).create();
         runAction(APICodes.ACTION_ADD_TEACHER, data, priority);
     }

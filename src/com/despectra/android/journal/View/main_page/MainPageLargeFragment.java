@@ -1,6 +1,8 @@
 package com.despectra.android.journal.view.main_page;
 
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.*;
 import android.support.v4.view.PagerTabStrip;
@@ -27,6 +29,7 @@ public class MainPageLargeFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        getActivity().getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#eeeeee")));
         setHasOptionsMenu(false);
         WallFragment fstFragment = new WallFragment();
         CurrentDayScheduleFragment sndFragment = new CurrentDayScheduleFragment();

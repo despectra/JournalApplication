@@ -39,9 +39,9 @@ public class DBHelper extends SQLiteOpenHelper {
             "users_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "users_remote_id INTEGER DEFAULT 0 NOT NULL, " +
             "users_login TEXT NOT NULL, " +
-            "users_name TEXT NOT NULL, " +
-            "users_middlename TEXT NOT NULL, " +
-            "users_surname TEXT NOT NULL, " +
+            "users_first_name TEXT NOT NULL, " +
+            "users_middle_name TEXT NOT NULL, " +
+            "users_last_name TEXT NOT NULL, " +
             "users_level INTEGER NOT NULL, " +
             "users_entity_status INTEGER DEFAULT 0 NOT NULL)";
 

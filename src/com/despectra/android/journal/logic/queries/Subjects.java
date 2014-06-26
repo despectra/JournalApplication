@@ -8,6 +8,7 @@ import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
+import com.despectra.android.journal.utils.JSONBuilder;
 import com.despectra.android.journal.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,30 +21,29 @@ import java.util.Map;
 */
 public class Subjects extends QueryExecDelegate {
 
+    private Contract.EntityTable mSubjectsTable;
+    private Contract.EntityTable mTSGTable;
+
     public Subjects(DelegatingInterface holderInterface, Map<String, Object> configs) {
         super(holderInterface, configs);
+        mTSGTable = TableModel.getTable(Contract.TSG.TABLE);
+        mSubjectsTable = TableModel.getTable(Contract.Subjects.TABLE);
     }
 
     //#####################     ADDITION      ############################################
 
 
     public JSONObject add(ApiAction action) throws Exception {
-        long localId = preAddSubject(action.actionData);
+        long localId = getLocalStorageManager().preInsertEntity(mSubjectsTable, action.actionData);
         JSONObject jsonResponse = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(jsonResponse)) {
             //commit
-            getLocalStorageManager().persistTempEntity(Contract.Subjects.HOLDER, localId, jsonResponse.getLong("subject_id"));
+            getLocalStorageManager().commitInsertingEntity(mSubjectsTable, localId, jsonResponse);
         } else {
             //rollback
-            getLocalStorageManager().deleteEntityByLocalId(Contract.Subjects.HOLDER, localId);
+            getLocalStorageManager().deleteEntityByLocalId(mSubjectsTable, localId);
         }
         return jsonResponse;
-    }
-
-    private long preAddSubject(JSONObject jsonRequest) throws Exception {
-        ContentValues subj = new ContentValues();
-        subj.put(Contract.Subjects.FIELD_NAME, jsonRequest.getString("name"));
-        return getLocalStorageManager().insertTempEntity(Contract.Subjects.HOLDER, subj);
     }
 
     //##################     RETRIEVING     ############################
@@ -67,7 +67,7 @@ public class Subjects extends QueryExecDelegate {
         );
         getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localSubjects,
-                TableModel.get().getTable(Contract.Subjects.TABLE),
+                mSubjectsTable,
                 remoteSubjects,
                 null
         );
@@ -79,14 +79,14 @@ public class Subjects extends QueryExecDelegate {
         JSONObject request = action.actionData;
         long localSubjId = request.getLong("LOCAL_id");
         request.remove("LOCAL_id");
-        JSONObject subjectData = request.getJSONObject("data");
-        getLocalStorageManager().markEntityAsUpdating(Contract.Subjects.HOLDER, localSubjId);
+        JSONObject updatingData = request.getJSONObject("data");
+        getLocalStorageManager().preUpdateEntity(mSubjectsTable, localSubjId);
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
-            ContentValues updated = new ContentValues();
-            updated.put(Contract.Subjects.FIELD_NAME, subjectData.getString("name"));
-            getLocalStorageManager().persistUpdatingEntity(Contract.Subjects.HOLDER, localSubjId, updated);
+            getLocalStorageManager().commitUpdatingEntity(mSubjectsTable, localSubjId, updatingData);
+        } else {
+            getLocalStorageManager().rollbackUpdatingEntity(mSubjectsTable, localSubjId);
         }
         return response;
     }
@@ -95,21 +95,16 @@ public class Subjects extends QueryExecDelegate {
 
     public JSONObject delete(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
-        JSONArray deletingIds = request.getJSONArray("LOCAL_subjects");
-        preDeleteSubject(request);
+        long[] deletingIds = Utils.getIdsFromJSONArray(request.getJSONArray("LOCAL_subjects"));
+        request.remove("LOCAL_subjects");
+        getLocalStorageManager().preDeleteEntitiesCascade(mSubjectsTable, deletingIds);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
-            getLocalStorageManager().deleteMarkedEntities(Contract.Subjects.HOLDER);
+            getLocalStorageManager().commitDeletingEntitiesCascade(mSubjectsTable, deletingIds);
         } else {
-            getLocalStorageManager().markEntitiesAsIdle(Contract.Subjects.HOLDER, Utils.getIdsFromJSONArray(deletingIds));
+            getLocalStorageManager().rollbackDeletingEntityCascade(mSubjectsTable, deletingIds);
         }
         return response;
-    }
-
-    private void preDeleteSubject(JSONObject jsonRequest) throws JSONException {
-        JSONArray localIds = jsonRequest.getJSONArray("LOCAL_subjects");
-        jsonRequest.remove("LOCAL_subjects");
-        getLocalStorageManager().markEntitiesAsDeleting(Contract.Subjects.HOLDER, Utils.getIdsFromJSONArray(localIds));
     }
 
     //GROUPS OF TEACHER'S SUBJECT SECTION
@@ -166,7 +161,7 @@ public class Subjects extends QueryExecDelegate {
         }
         getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localLinks,
-                TableModel.get().getTable(Contract.TSG.TABLE),
+                mTSGTable,
                 remoteLinks,
                 null
         );
@@ -177,7 +172,7 @@ public class Subjects extends QueryExecDelegate {
     public JSONObject setGroupsOfTeachersSubject(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
         long localTeacherSubjectId = request.getLong("LOCAL_teacher_subject_id");
-        JSONArray localGroupsIds = request.getJSONArray("LOCAL_groups_ids");
+        long[] localGroupsIds = Utils.getIdsFromJSONArray(request.getJSONArray("LOCAL_groups_ids"));
         request.remove("LOCAL_teacher_subject_id");
         request.remove("LOCAL_groups_ids");
 
@@ -191,7 +186,7 @@ public class Subjects extends QueryExecDelegate {
             commitSetGroupsOfSubject(localLinksIds, response.getJSONArray("affected_links"));
         } else {
             // rollback
-            getLocalStorageManager().deleteEntitiesByLocalIds(Contract.TSG.HOLDER, localLinksIds);
+            rollbackSetGroupsOfSubject(localLinksIds);
         }
         getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
                 action,
@@ -199,50 +194,53 @@ public class Subjects extends QueryExecDelegate {
         return response;
     }
 
-    private long[] preSetGroupsForSubject(long localTeacherSubjectId, JSONArray localGroupsIds) throws Exception {
-        long[] tempIds = new long[localGroupsIds.length()];
-        for (int i = 0; i < localGroupsIds.length(); i++) {
-            ContentValues values = new ContentValues();
-            values.put(Contract.TSG.FIELD_TEACHER_SUBJECT_ID, localTeacherSubjectId);
-            values.put(Contract.TSG.FIELD_GROUP_ID, localGroupsIds.getString(i));
-            tempIds[i] = getLocalStorageManager().insertTempEntity(Contract.TSG.HOLDER, values);
+    private long[] preSetGroupsForSubject(long localTeacherSubjectId, long[] localGroupsIds) throws Exception {
+        long[] preInsertedIds = new long[localGroupsIds.length];
+        for (int i = 0; i < localGroupsIds.length; i++) {
+            JSONObject insertingRow = new JSONBuilder()
+                .addKeyValue("group_id", localGroupsIds[i])
+                .addKeyValue("teacher_subject_id", localTeacherSubjectId).create();
+            preInsertedIds[i] = getLocalStorageManager().preInsertEntity(mTSGTable, insertingRow);
         }
-        return tempIds;
+        return preInsertedIds;
     }
 
     private void commitSetGroupsOfSubject(long[] localTempIds, JSONArray affectedIds) throws Exception {
-        getLocalStorageManager().persistTempEntities(Contract.TSG.HOLDER, localTempIds, affectedIds);
+        for (int i = 0; i < localTempIds.length; i++) {
+            getLocalStorageManager().commitInsertingEntity(mTSGTable,
+                    localTempIds[i],
+                    new JSONBuilder().addKeyValue("teacher_student_group_id", affectedIds.getLong(i)).create());
+        }
+    }
+
+    private void rollbackSetGroupsOfSubject(long[] localLinksIds) throws Exception {
+        for (int i = 0; i < localLinksIds.length; i++) {
+            getLocalStorageManager().rollbackInsertingEntity(mTSGTable, localLinksIds[i]);
+        }
     }
 
     //##########   UNSETTING    ###########
 
     public JSONObject unsetGroupsOfTeachersSubject(ApiAction action) throws Exception {
         JSONObject request = action.actionData;
-        JSONArray localLinks = request.getJSONArray("LOCAL_links_ids");
+        long[] localLinks = Utils.getIdsFromJSONArray(request.getJSONArray("LOCAL_links_ids"));
         request.remove("LOCAL_links_ids");
 
-        preUnsetGroupsOfSubject(localLinks);
+        getLocalStorageManager().preDeleteEntitiesCascade(mTSGTable, localLinks);
         getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
                 action,
                 "GroupsForSubjectFragment");
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
-            commitUnsetGroupsOfSubject(localLinks);
-            getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
-                    action,
-                    "GroupsForSubjectFragment");
+            //commit
+            getLocalStorageManager().commitDeletingEntitiesCascade(mTSGTable, localLinks);
         } else {
             //rollback
-            getLocalStorageManager().markEntitiesAsIdle(Contract.TSG.HOLDER, localLinks);
+            getLocalStorageManager().rollbackDeletingEntityCascade(mTSGTable, localLinks);
         }
+        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
+                action,
+                "GroupsForSubjectFragment");
         return response;
-    }
-
-    private void preUnsetGroupsOfSubject(JSONArray localLinks) throws Exception {
-        getLocalStorageManager().markEntitiesAsDeleting(Contract.TSG.HOLDER, localLinks);
-    }
-
-    private void commitUnsetGroupsOfSubject(JSONArray localLinks) throws Exception {
-        getLocalStorageManager().deleteEntitiesByLocalIds(Contract.TSG.HOLDER, localLinks);
     }
 }

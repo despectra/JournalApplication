@@ -76,7 +76,7 @@ public class JournalFragment/* extends AbstractApiFragment implements
         mGroupsAdapter = new SimpleCursorAdapter(getActivity(),
                 android.R.layout.simple_list_item_1,
                 mCursor,
-                new String[]{Contract.Groups.FIELD_NAME},
+                new String[]{Contract.Groups.FIELD_FIRST_NAME},
                 new int[]{android.R.id.text1},
                 0);
         mGroupsList.setAdapter(mGroupsAdapter);
@@ -249,7 +249,7 @@ public class JournalFragment/* extends AbstractApiFragment implements
             case 0:
                 return new CursorLoader(getActivity(),
                         Contract.Groups.URI,
-                        new String[]{Contract.Groups._ID + " AS _id", Contract.Groups.FIELD_NAME},
+                        new String[]{Contract.Groups._ID + " AS _id", Contract.Groups.FIELD_FIRST_NAME},
                         null,
                         null,
                         null
@@ -260,12 +260,12 @@ public class JournalFragment/* extends AbstractApiFragment implements
                 return new CursorLoader(getActivity(),
                         Uri.parse(String.format("%s/groups_remote/%d/students_remote", Contract.STRING_URI, mGroupId)),
                         new String[]{Contract.Students._ID + " AS _id", Contract.Students.Remote.REMOTE_ID,
-                                Contract.Users.FIELD_SURNAME + "||\" \"||SUBSTR(" + Contract.Users.FIELD_NAME + ", 1, 1)||\".\" AS nameSurname",
-                                Contract.Users.FIELD_MIDDLENAME, Contract.Users.FIELD_LOGIN,
+                                Contract.Users.FIELD_LAST_NAME + "||\" \"||SUBSTR(" + Contract.Users.FIELD_FIRST_NAME + ", 1, 1)||\".\" AS nameSurname",
+                                Contract.Users.FIELD_MIDDLE_NAME, Contract.Users.FIELD_LOGIN,
                                 Contract.Users.ENTITY_STATUS},
                         Contract.StudentsGroups.FIELD_GROUP_ID + " = ?",
                         new String[]{String.valueOf(mGroupId)},
-                        Contract.Users.FIELD_SURNAME + " ASC");
+                        Contract.Users.FIELD_LAST_NAME + " ASC");
             case 2:
 
             default:

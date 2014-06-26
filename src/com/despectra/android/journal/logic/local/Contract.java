@@ -102,17 +102,17 @@ public final class Contract {
         public static final String REMOTE_ID = TABLE + "_remote_id";
         public static final String ENTITY_STATUS = TABLE + "_entity_status";
         public static final String FIELD_LOGIN = TABLE + "_login";
-        public static final String FIELD_NAME = TABLE + "_name";
-        public static final String FIELD_SURNAME = TABLE + "_surname";
-        public static final String FIELD_MIDDLENAME = TABLE + "_middlename";
+        public static final String FIELD_FIRST_NAME = TABLE + "_first_name";
+        public static final String FIELD_LAST_NAME = TABLE + "_last_name";
+        public static final String FIELD_MIDDLE_NAME = TABLE + "_middle_name";
         public static final String FIELD_LEVEL = TABLE + "_level";
 
         public static final EntityTable HOLDER = new EntityTable("Users")
                 .addDataField(REMOTE_ID, "user_id")
                 .addDataField(FIELD_LOGIN, "login")
-                .addDataField(FIELD_NAME, "name")
-                .addDataField(FIELD_SURNAME, "surname")
-                .addDataField(FIELD_MIDDLENAME, "middlename")
+                .addDataField(FIELD_FIRST_NAME, "first_name")
+                .addDataField(FIELD_LAST_NAME, "last_name")
+                .addDataField(FIELD_MIDDLE_NAME, "middle_name")
                 .addDataField(FIELD_LEVEL, "level")
                 .addDataField(ENTITY_STATUS, "entity_status");
 

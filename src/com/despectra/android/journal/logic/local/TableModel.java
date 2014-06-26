@@ -53,15 +53,11 @@ public class TableModel {
                 .addDirectDependency(mTables.get(Schedule.TABLE), Schedule.FIELD_TSG_ID);
     }
 
-    public synchronized static TableModel get() {
+    public synchronized static EntityTable getTable(String tableName) {
         if (sInstance == null) {
             sInstance = new TableModel();
         }
-        return sInstance;
-    }
-
-    public EntityTable getTable(String tableName) {
-        return mTables.get(tableName);
+        return sInstance.mTables.get(tableName);
     }
 
 

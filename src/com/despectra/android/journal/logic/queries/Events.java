@@ -16,8 +16,12 @@ import java.util.Map;
  * Created by Dmitry on 02.06.14.
  */
 public class Events extends QueryExecDelegate {
+
+    private Contract.EntityTable mTable;
+
     public Events(DelegatingInterface holderInterface, Map<String, Object> configs) {
         super(holderInterface, configs);
+        mTable = TableModel.getTable(Contract.Events.TABLE);
     }
 
     public JSONObject get(ApiAction action) throws Exception {
@@ -38,7 +42,7 @@ public class Events extends QueryExecDelegate {
         );
         getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localEvents,
-                TableModel.get().getTable(Contract.Events.TABLE),
+                mTable,
                 jsonResponse.getJSONArray("events"),
                 null
         );

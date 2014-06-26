@@ -8,6 +8,7 @@ import com.despectra.android.journal.logic.local.LocalStorageManager;
 import com.despectra.android.journal.logic.local.TableModel;
 import com.despectra.android.journal.logic.queries.common.DelegatingInterface;
 import com.despectra.android.journal.logic.queries.common.QueryExecDelegate;
+import com.despectra.android.journal.utils.JSONBuilder;
 import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.logic.local.Contract.*;
 import org.json.JSONArray;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class Schedule extends QueryExecDelegate {
     public Schedule(DelegatingInterface holderInterface, Map<String, Object> configs) {
         super(holderInterface, configs);
+        mTable = TableModel.getTable(Contract.Schedule.TABLE);
     }
 
     /**********************   RETRIEVING    ********************************/
@@ -64,7 +66,7 @@ public class Schedule extends QueryExecDelegate {
         };
         getLocalStorageManager().updateComplexEntityWithJsonResponse(LocalStorageManager.MODE_REPLACE,
                 localSchedule,
-                TableModel.get().getTable(Contract.Schedule.TABLE),
+                mTable,
                 remoteSchedule,
                 callback
         );
@@ -77,35 +79,23 @@ public class Schedule extends QueryExecDelegate {
         int day = request.getInt("day");
         int lessonNum = request.getInt("lesson_number");
         int color = request.getInt("color");
+        long localTSGId = request.getLong("LOCAL_teacher_subject_group_id");
         request.remove("color");
-        long localTSGId = request.getLong("teacher_subject_group_id");
-        request.remove("teacher_subject_group_id");
-        long localScheduleItemId = preAddScheduleItem(day, lessonNum, localTSGId, color);
+        request.remove("LOCAL_teacher_subject_group_id");
+        long localScheduleItemId = getLocalStorageManager().preInsertEntity(mTable,
+                new JSONBuilder()
+                    .addKeyValue("day", day)
+                    .addKeyValue("teacher_subject_group_id", localTSGId)
+                    .addKeyValue("lesson_number", lessonNum)
+                    .addKeyValue("color", color)
+                    .create());
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //commit
-            commitAddScheduleItem(localScheduleItemId, response);
+            getLocalStorageManager().commitInsertingEntity(mTable, localScheduleItemId, response);
         } else {
-            rollbackAddScheduleItem(localScheduleItemId);
+            getLocalStorageManager().rollbackInsertingEntity(mTable, localScheduleItemId);
         }
         return response;
     }
-
-    private long preAddScheduleItem(int day, int lessonNumber, long localTSGId, int color) {
-        ContentValues cv = new ContentValues();
-        cv.put(Contract.Schedule.FIELD_DAY, day);
-        cv.put(Contract.Schedule.FIELD_LESSON_NUMBER, lessonNumber);
-        cv.put(Contract.Schedule.FIELD_TSG_ID, localTSGId);
-        cv.put(Contract.Schedule.FIELD_COLOR, color);
-        return getLocalStorageManager().insertTempEntity(Contract.Schedule.HOLDER, cv);
-    }
-
-    private void commitAddScheduleItem(long localScheduleItemId, JSONObject response) throws Exception {
-        getLocalStorageManager().persistTempEntity(Contract.Schedule.HOLDER, localScheduleItemId, response.getLong("schedule_item_id"));
-    }
-
-    private void rollbackAddScheduleItem(long localScheduleItemId) {
-        getLocalStorageManager().deleteEntityByLocalId(Contract.Schedule.HOLDER, localScheduleItemId);
-    }
-
 }

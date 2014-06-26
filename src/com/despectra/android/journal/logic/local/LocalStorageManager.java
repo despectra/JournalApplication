@@ -31,6 +31,7 @@ public class LocalStorageManager {
     private Context mContext;
     private ContentResolver mResolver;
     private PostCallbacks mPostCallbacks;
+    private int mInsertionBackRef;
 
     public LocalStorageManager(Context context) {
         mContext = context;
@@ -62,6 +63,18 @@ public class LocalStorageManager {
         }
     }
 
+    /**
+     * Method for automatic sync a bunch of data received from the server with local DB
+     * Does inserting/updating/deleting rows according to received server data (master) and existing records
+     * @param updatingMode Mode of updating the rows
+     * @param existingInitIds Cursor of existing ids of entity from initial table
+     * @param jsonData Json data, received from the server
+     * @param initTable Initial table which we start traversals from
+     * @param preCallbacks Callbacks for handling
+     * @throws org.json.JSONException
+     * @throws android.content.OperationApplicationException
+     * @throws android.os.RemoteException
+     */
     public void updateComplexEntityWithJsonResponse(int updatingMode,
                                                     Cursor existingInitIds,
                                                     EntityTable initTable,
@@ -108,13 +121,12 @@ public class LocalStorageManager {
         runBatch(batch);
 
         //insert new
-        int backRefIndex = -1;
+        mInsertionBackRef = -1;
         for (int i = 0; i < receivedRows.size(); i++) {
             JSONObject row = receivedRows.valueAt(i);
             prepareEntityToInsertion(initTable,
                     row,
                     batch,
-                    backRefIndex,
                     false,
                     preCallbacks);
         }
@@ -130,13 +142,16 @@ public class LocalStorageManager {
                         false,
                         preCallbacks);
             }
+            runBatch(batch);
         }
-        runBatch(batch);
     }
+
+    /*****   MANUAL INSERTION    ******/
 
     public long preInsertEntity(EntityTable initTable, JSONObject insertingData) throws Exception {
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
-        prepareEntityToInsertion(initTable, insertingData, batch, 0, true, null);
+        mInsertionBackRef = -1;
+        prepareEntityToInsertion(initTable, insertingData, batch, true, null);
         ContentProviderResult[] result = runBatch(batch);
         if (result != null && result.length > 0) {
             return ContentUris.parseId(result[0].uri);
@@ -144,23 +159,54 @@ public class LocalStorageManager {
         return -1;
     }
 
-    public void markEntityAsIdle(EntityTable initTable, long initLocalId) throws Exception {
-        markEntityWithStatus(initTable, initLocalId, Contract.STATUS_IDLE);
+    public void commitInsertingEntity(EntityTable initTable, long localId, JSONObject remoteIds) throws Exception {
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        remoteIds.put("entity_status", Contract.STATUS_IDLE);
+        prepareEntityToUpdating(initTable, localId, remoteIds, batch, false, null);
+        runBatch(batch);
     }
 
-    public void markEntityAsUpdating(EntityTable initTable, long initLocalId) throws Exception {
+    public void rollbackInsertingEntity(EntityTable initTable, long localId) throws Exception {
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        prepareEntityForDeletionCascade(initTable, new long[]{localId}, batch, false, null);
+        runBatch(batch);
+    }
+
+    /*****   MANUAL UPDATING    ******/
+
+    public void preUpdateEntity(EntityTable initTable, long initLocalId) throws Exception {
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
         prepareEntityToUpdating(initTable, initLocalId, null, batch, true, null);
         runBatch(batch);
     }
 
-    public void markEntityAsDeletingCascade(EntityTable initTable, long initLocalId) throws Exception {
-        markEntitiesAdDeletingCascasde(initTable, new long[]{initLocalId});
+    public void commitUpdatingEntity(EntityTable initTable, long initLocalId, JSONObject updatingData) throws Exception {
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        prepareEntityToUpdating(initTable, initLocalId, updatingData, batch, false, null);
+        runBatch(batch);
     }
 
-    public void markEntitiesAdDeletingCascasde(EntityTable initTable, long[] initLocalIds) throws Exception {
+    public void rollbackUpdatingEntity(EntityTable initTable, long initLocalId) throws Exception {
+        markEntityWithStatus(initTable, initLocalId, Contract.STATUS_IDLE);
+    }
+
+    /*****   MANUAL DELETION    ******/
+
+    public void preDeleteEntitiesCascade(EntityTable initTable, long[] initLocalIds) throws Exception {
         ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
         prepareEntityForDeletionCascade(initTable, initLocalIds, batch, true, null);
+        runBatch(batch);
+    }
+
+    public void commitDeletingEntitiesCascade(EntityTable initTable, long[] initLocalIds) throws Exception {
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        prepareEntityForDeletionCascade(initTable, initLocalIds, batch, false, null);
+        runBatch(batch);
+    }
+
+    public void rollbackDeletingEntityCascade(EntityTable initTable, long[] localIds) throws Exception {
+        ArrayList<ContentProviderOperation> batch = new ArrayList<ContentProviderOperation>();
+        cascadeMarkEntitiesWithStatus(initTable, localIds, batch, Contract.STATUS_IDLE);
         runBatch(batch);
     }
 
@@ -184,7 +230,6 @@ public class LocalStorageManager {
     private void prepareEntityToInsertion(EntityTable currentTable,
                                           JSONObject insertingDataRow,
                                           List<ContentProviderOperation> operations,
-                                          int backRefIndex,
                                           boolean markAsInserting,
                                           PreCallbacks preCallbacks) throws JSONException {
         ContentProviderOperation.Builder opBuilder = ContentProviderOperation.newInsert(currentTable.URI);
@@ -192,11 +237,11 @@ public class LocalStorageManager {
         boolean hasBackDependency = dependency != null;
         if (hasBackDependency) {
             prepareEntityToInsertion(
-                    dependency.first, insertingDataRow, operations, backRefIndex, markAsInserting, preCallbacks
+                    dependency.first, insertingDataRow, operations, markAsInserting, preCallbacks
             );
-            opBuilder.withValueBackReference(dependency.second, backRefIndex);
+            opBuilder.withValueBackReference(dependency.second, mInsertionBackRef);
         }
-        backRefIndex++;
+        mInsertionBackRef++;
         ContentValues values = new ContentValues();
         if (markAsInserting) {
             values.put(currentTable.ENTITY_STATUS, Contract.STATUS_INSERTING);
@@ -206,12 +251,14 @@ public class LocalStorageManager {
         while (dataRowIterator.hasNext()) {
             String jsonKey = dataRowIterator.next();
             String tableColumn = currentTable.DATA_FIELDS.inverse().get(jsonKey);
-            if (hasBackDependency) {
-                if (!dependency.second.equals(tableColumn)) {
+            if (tableColumn != null) {
+                if (hasBackDependency) {
+                    if (!dependency.second.equals(tableColumn)) {
+                        values.put(tableColumn, insertingDataRow.getString(jsonKey));
+                    }
+                } else {
                     values.put(tableColumn, insertingDataRow.getString(jsonKey));
                 }
-            } else {
-                values.put(tableColumn, insertingDataRow.getString(jsonKey));
             }
         }
 
@@ -251,16 +298,19 @@ public class LocalStorageManager {
         if (justMark) {
             values.put(currentTable.ENTITY_STATUS, Contract.STATUS_UPDATING);
         } else {
+            values.put(currentTable.ENTITY_STATUS, Contract.STATUS_IDLE);
             Iterator<String> dataRowIterator = receivedRow.keys();
             while (dataRowIterator.hasNext()) {
                 String jsonKey = dataRowIterator.next();
                 String tableColumn = currentTable.DATA_FIELDS.inverse().get(jsonKey);
-                if (hasBackDependency) {
-                    if (!dependency.second.equals(tableColumn)) {
+                if (tableColumn != null) {
+                    if (hasBackDependency) {
+                        if (!dependency.second.equals(tableColumn)) {
+                            values.put(tableColumn, receivedRow.getString(jsonKey));
+                        }
+                    } else {
                         values.put(tableColumn, receivedRow.getString(jsonKey));
                     }
-                } else {
-                    values.put(tableColumn, receivedRow.getString(jsonKey));
                 }
             }
         }
@@ -285,8 +335,8 @@ public class LocalStorageManager {
                 long localId = args.second;
                 ContentProviderOperation.Builder opBuilder = justMark
                         ? ContentProviderOperation.newUpdate(table.URI).withValue(table.ENTITY_STATUS, Contract.STATUS_DELETING)
-                        : ContentProviderOperation.newDelete(table.URI)
-                        .withSelection(table._ID + " = ?", new String[]{String.valueOf(localId)});
+                        : ContentProviderOperation.newDelete(table.URI);
+                opBuilder.withSelection(table._ID + " = ?", new String[]{String.valueOf(localId)});
                 if (preCallbacks != null) {
                     if(preCallbacks.onPreDelete(table, localId)) {
                         operations.add(opBuilder.build());
@@ -298,6 +348,26 @@ public class LocalStorageManager {
             }
         };
         walkThroughAllDependencies(currentTable, currentLocalIds, new HashSet<EntityTable>(), callback);
+    }
+
+    private void cascadeMarkEntitiesWithStatus(EntityTable initTable,
+                                               long[] localIds,
+                                               final List<ContentProviderOperation> operations,
+                                               final int status) {
+        Function<Pair<EntityTable, Long>, Void> callback = new Function<Pair<EntityTable, Long>, Void>() {
+            @Override
+            public Void apply(Pair<EntityTable, Long> args) {
+                EntityTable table = args.first;
+                long localId = args.second;
+                ContentProviderOperation.Builder opBuilder = ContentProviderOperation
+                        .newUpdate(table.URI)
+                        .withValue(table.ENTITY_STATUS, status)
+                        .withSelection(table._ID + " = ?", new String[]{String.valueOf(localId)});
+                operations.add(opBuilder.build());
+                return null;
+            }
+        };
+        walkThroughAllDependencies(initTable, localIds, new HashSet<EntityTable>(), callback);
     }
 
     private void walkThroughAllDependencies(EntityTable currentTable,
@@ -366,6 +436,7 @@ public class LocalStorageManager {
     private long[] extractIdsFromIdsCursor(Cursor cursor) {
         long[] ids = new long[cursor.getCount()];
         int i = 0;
+        cursor.moveToFirst();
         do {
             ids[i] = cursor.getLong(0);
             i++;
@@ -583,7 +654,7 @@ public class LocalStorageManager {
         markEntitiesAsIdle(table, Utils.getIdsFromJSONArray(localIds));
     }
 
-    public void markEntityAsUpdating(Contract.EntityTable table, long localId) {
+    public void preUpdateEntity(Contract.EntityTable table, long localId) {
         markEntityWithStatus(table, localId, Contract.STATUS_UPDATING);
     }
 

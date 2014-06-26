@@ -313,7 +313,7 @@ public class ApiService extends Service {
                                     new String[]{Contract.Students._ID + " AS _id",},
                                     Contract.StudentsGroups.FIELD_GROUP_ID + " = ?",
                                     new String[]{String.valueOf(g)},
-                                    Contract.Users.FIELD_SURNAME + " ASC");
+                                    Contract.Users.FIELD_LAST_NAME + " ASC");
 
                             students.moveToFirst();
                             do {
