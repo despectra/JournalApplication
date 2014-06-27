@@ -3,6 +3,7 @@ package com.despectra.android.journal.view;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Matrix;
+import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,17 +16,18 @@ import com.despectra.android.journal.model.FixedColumnsMatrix;
 /**
  * Created by Dmitry on 18.06.14.
  */
-public abstract class PseudoGridAdapter<T> extends BaseAdapter {
+public abstract class PseudoGridAdapter<T> extends CursorAdapter {
 
     private Context mContext;
     private int mColumnsCount;
     private int mDataColumnsCount;
     private int[] mColumnsWidths;
     protected FixedColumnsMatrix<T> mData;
+    protected OnCellClickedListener mCellClickedListener;
 
-    public PseudoGridAdapter(Context context, int columnsCount, int dataColsCount, int[] colsWidths) {
+    public PseudoGridAdapter(Context context, Cursor cursor, int columnsCount, int dataColsCount, int[] colsWidths) {
         //super(context, cellLayout, c, idsColumns, entityStatusColumn, from, to, 0);
-        super();
+        super(context, cursor, 0);
         mContext = context;
         mColumnsCount = columnsCount;
         mDataColumnsCount = dataColsCount;
@@ -37,14 +39,17 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
         return mContext;
     }
 
-    @Override
-    public long getItemId(int i) {
-        return i;
+    public void setCellClickedListener(OnCellClickedListener listener) {
+        mCellClickedListener = listener;
     }
 
     @Override
-    public Object getItem(int i) {
-        return i;
+    public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+        return null;
+    }
+
+    @Override
+    public void bindView(View view, Context context, Cursor cursor) {
     }
 
     protected void setColumnsWidths(int[] widths, boolean notifyChanged) {
@@ -53,18 +58,6 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
             notifyDataSetChanged();
         }
     }
-
-    /*public void setColumnWidthAtPos(int position, int width) {
-        mColumnsWidths[position] = width;
-        notifyDataSetChanged();
-    }
-
-    protected void setCellLayoutAtPos(int position, int layout, boolean notifyChanged) {
-        mCellsLayouts[position] = layout;
-        if (notifyChanged) {
-            notifyDataSetChanged();
-        }
-    }*/
 
     @Override
     public boolean hasStableIds() {
@@ -82,6 +75,7 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
         );
 
         for (int column = 0; column < mColumnsCount; column++) {
+            final int col = column;
             boolean isDataCol = isDataColumn(column);
             int cellWidth;
             if (isDataCol) {
@@ -98,7 +92,8 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
                     cellWidth,
                     LinearLayout.LayoutParams.MATCH_PARENT);
 
-            row.addView(isDataCol ? newDataColumn(row) : newNonDataColumn(column), column, params);
+            View cellView = isDataCol ? newDataColumn(row) : newNonDataColumn(column);
+            row.addView(cellView, column, params);
         }
         return row;
     }
@@ -108,12 +103,24 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
         if (!(view instanceof LinearLayout)) {
             return;
         }
-        LinearLayout row = (LinearLayout)view;
-        for (int i = 0; i < row.getChildCount(); i++) {
+        LinearLayout rowView = (LinearLayout)view;
+        for (int i = 0; i < rowView.getChildCount(); i++) {
+            final int row = position;
+            final int column = i;
+            View cellView = rowView.getChildAt(i);
+            assert cellView != null;
+            cellView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mCellClickedListener != null) {
+                        mCellClickedListener.onCellClicked(row, column);
+                    }
+                }
+            });
             if (isDataColumn(i)) {
-                bindDataColumn(position, i, row.getChildAt(i));
+                bindDataColumn(position, i, cellView);
             } else {
-                bindNonDataColumn(position, i, row.getChildAt(i));
+                bindNonDataColumn(position, i, cellView);
             }
         }
     }
@@ -130,7 +137,8 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
         return v;
     }
 
-    public void swapCursor(Cursor c) {
+    @Override
+    public Cursor swapCursor(Cursor c) {
         mData.clearAll();
         c.moveToFirst();
         for (int i = 0; i < c.getCount(); i++) {
@@ -141,6 +149,7 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
         if (!c.isClosed()) {
             c.close();
         }
+        return super.swapCursor(c);
     }
 
     protected abstract void convertCursorItemToMatrixRow(Cursor cursor);
@@ -149,4 +158,8 @@ public abstract class PseudoGridAdapter<T> extends BaseAdapter {
     protected abstract View newDataColumn(ViewGroup parent);
     protected abstract void bindNonDataColumn(int row, int column, View cell);
     protected abstract void bindDataColumn(int row, int column, View cell);
+
+    public interface OnCellClickedListener {
+        public void onCellClicked(int row, int column);
+    }
 }

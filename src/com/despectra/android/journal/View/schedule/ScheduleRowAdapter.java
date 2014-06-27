@@ -46,8 +46,8 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
     private int mSubjectColumnIndex;
     private int mColorColumnIndex;
 
-    public ScheduleRowAdapter(Context context, int rowsCount) {
-        super(context, 9, 7, new int[]{50, 0, 0, 0, 0, 0, 0, 0, 50});
+    public ScheduleRowAdapter(Context context, Cursor cursor, int rowsCount) {
+        super(context, cursor, 9, 7, new int[]{50, 0, 0, 0, 0, 0, 0, 0, 50});
         mRowsCount = rowsCount;
     }
 
@@ -163,7 +163,7 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
     }
 
     @Override
-    public void swapCursor(Cursor c) {
+    public Cursor swapCursor(Cursor c) {
         mDayColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_DAY);
         mLessonNumColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_LESSON_NUMBER);
         mLocalIdColumnIndex = c.getColumnIndexOrThrow("_id");
@@ -171,7 +171,7 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
         mTeacherColumnIndex = c.getColumnIndexOrThrow("teacher");
         mSubjectColumnIndex = c.getColumnIndexOrThrow(Contract.Subjects.FIELD_NAME);
         mColorColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_COLOR);
-        super.swapCursor(c);
+        return super.swapCursor(c);
     }
 
     @Override

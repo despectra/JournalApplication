@@ -6,14 +6,9 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
+import android.widget.*;
 import com.despectra.android.journal.R;
-import com.despectra.android.journal.logic.local.Contract;
-import com.despectra.android.journal.logic.model.WeekSchedule;
-import com.despectra.android.journal.model.EntityIdsColumns;
+import com.despectra.android.journal.model.WeekScheduleItem;
 import com.despectra.android.journal.utils.Utils;
 
 /**
@@ -25,7 +20,6 @@ public class WeekScheduleView extends LinearLayout {
 
     public static final String[] DAYS = {"Пн.", "Вт.", "Ср.", "Чт.", "Пт.", "Сб.", "Вс."};
 
-    private OnEventSelectedListener mEventSelectedListener;
     private GridView mHeaderView;
     private ListView mDataView;
     private ScheduleRowAdapter mScheduleAdapter;
@@ -51,8 +45,10 @@ public class WeekScheduleView extends LinearLayout {
         init(context);
     }
 
-    public void setOnEventSelectedListener(OnEventSelectedListener listener) {
-        mEventSelectedListener = listener;
+    public void setOnEventSelectedListener(ScheduleRowAdapter.OnScheduleItemClickedListener listener) {
+        if (mScheduleAdapter != null) {
+            mScheduleAdapter.setScheduleItemClickedListener(listener);
+        }
     }
 
     public void updateSchedule(Cursor cursor) {
@@ -63,7 +59,7 @@ public class WeekScheduleView extends LinearLayout {
         LayoutInflater.from(context).inflate(R.layout.schedule_view, this, true);
         mHeaderView = (GridView) findViewById(R.id.schedule_top_header);
         mDataView = (ListView) findViewById(R.id.schedule_container);
-        mScheduleAdapter = new ScheduleRowAdapter(getContext(), 10);
+        mScheduleAdapter = new ScheduleRowAdapter(getContext(), mCursor, 10);
         mDataView.setAdapter(mScheduleAdapter);
         initHeader(context);
     }
@@ -97,9 +93,5 @@ public class WeekScheduleView extends LinearLayout {
                 return v;
             }
         };
-    }
-
-    public interface OnEventSelectedListener {
-        public void onEventSelected(int day, int position);
     }
 }

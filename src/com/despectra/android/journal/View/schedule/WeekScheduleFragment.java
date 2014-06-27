@@ -26,6 +26,7 @@ import com.despectra.android.journal.logic.net.WebApiServer;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
+import com.despectra.android.journal.model.WeekScheduleItem;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.view.AbstractApiFragment;
 import com.despectra.android.journal.view.RemoteIdsCursorAdapter;
@@ -273,6 +274,12 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.fragment_week_schedule, container, false);
             mScheduleView = (WeekScheduleView) view.findViewById(R.id.week_schedule_view);
+            mScheduleView.setOnEventSelectedListener(new ScheduleRowAdapter.OnScheduleItemClickedListener() {
+                @Override
+                public void onItemClicked(int day, int lessonNum, WeekScheduleItem item) {
+                    Toast.makeText(getActivity(), String.format("%d, %d", day, lessonNum), Toast.LENGTH_LONG).show();
+                }
+            });
             return view;
         }
 
