@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int VERSION = 27;
+    public static final int VERSION = 28;
 
     public static final String CREATE_TABLE_EVENTS = "" +
             "CREATE TABLE IF NOT EXISTS events (" +
@@ -93,20 +93,25 @@ public class DBHelper extends SQLiteOpenHelper {
             "schedule_color INTEGER NOT NULL," +
             "schedule_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
-/*    public static final String CREATE_TABLE_LESSONS = "" +
+    public static final String CREATE_TABLE_LESSONS = "" +
             "CREATE TABLE IF NOT EXISTS lessons (" +
             "lessons_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-            "lessons_group_id INTEGER NOT NULL," +
+            "lessons_remote_id INTEGER DEFAULT 0 NOT NULL," +
+            "lessons_schedule_item_id INTEGER NOT NULL," +
             "lessons_date TEXT NOT NULL," +
-            "lessons_title TEXT NOT NULL)";
+            "lessons_title TEXT NOT NULL," +
+            "lessons_type INTEGER DEFAULT 0 NOT NULL," +
+            "lessons_homework TEXT NOT NULL," +
+            "lessons_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_MARKS = "" +
             "CREATE TABLE IF NOT EXISTS marks (" +
             "marks_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "marks_remote_id INTEGER DEFAULT 0 NOT NULL," +
             "marks_lesson_id INTEGER NOT NULL," +
             "marks_student_id INTEGER NOT NULL," +
-            "marks_entity_status INTEGER DEFAULT 0 NOT NULL," +
-            "marks_mark TEXT NOT NULL)";*/
+            "marks_mark TEXT NOT NULL," +
+            "marks_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String DROP_TABLE = "" +
             "DROP TABLE %s";
@@ -125,9 +130,8 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         if (newVersion - oldVersion == 1) {
-            /*dropSchema(sqLiteDatabase);
-            buildSchema(sqLiteDatabase);*/
-            sqLiteDatabase.execSQL(CREATE_TABLE_SCHEDULE);
+            sqLiteDatabase.execSQL(CREATE_TABLE_LESSONS);
+            sqLiteDatabase.execSQL(CREATE_TABLE_MARKS);
         }
     }
 

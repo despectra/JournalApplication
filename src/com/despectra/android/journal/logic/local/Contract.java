@@ -279,39 +279,58 @@ public final class Contract {
     }
 
     //TODO I'll complete these contracts when time comes
-/*    public static final class Marks implements BaseColumns {
-        public static final EntityTable HOLDER = new EntityTable("Marks");
-        public static final String TABLE = "marks";
-        public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
-        public static final String FIELD_STUDENT_ID = "marks_student_id";
-        public static final String FIELD_LESSON_ID = "marks_lesson_id";
-        public static final String FIELD_MARK = "marks_mark";
-        public static final String TABLE_BY_GROUP = new SQLJoinBuilder(TABLE).join(Students.TABLE).onEq(FIELD_STUDENT_ID, Students._ID)
-                .join(StudentsGroups.TABLE).onEq(Students._ID, StudentsGroups.FIELD_STUDENT_ID).create();
-        public static final Uri URI = Uri.parse(STRING_URI + "/marks");
-        public static final Uri URI_BY_GROUP = Uri.parse(STRING_URI + "/marks/group");
-        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
-        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
-        public static final int URI_CODE = 300;
-        public static final int ID_URI_CODE = 301;
-        public static final int URI_BY_GROUP_CODE = 302;
-    }
-
     public static final class Lessons implements BaseColumns {
-        public static final EntityTable HOLDER = new EntityTable("Lessons");
         public static final String TABLE = "lessons";
         public static final String _ID = TABLE + EntityColumns._ID;
-        public static final String ENTITY_STATUS = TABLE + EntityColumns.ENTITY_STATUS;
-        public static final String FIELD_DATE = "lessons_date";
-        public static final String FIELD_TITLE = "lessons_title";
-        public static final String FIELD_GROUP_ID = "lessons_group_id";
+        public static final String REMOTE_ID = TABLE + "_" + EntityColumns.REMOTE_ID;
+        public static final String ENTITY_STATUS = TABLE + "_" + EntityColumns.ENTITY_STATUS;
+
+        public static final String FIELD_SCHED_ITEM_ID = TABLE + "_schedule_item_id";
+        public static final String FIELD_DATE = TABLE + "_date";
+        public static final String FIELD_TITLE = TABLE + "_title";
+        public static final String FIELD_TYPE = TABLE + "_type";
+        public static final String FIELD_HOMEWORK = TABLE + "_homework";
+        public static final EntityTable HOLDER = new EntityTable("Lessons")
+                .addDataField(REMOTE_ID, "lesson_id")
+                .addDataField(FIELD_SCHED_ITEM_ID, "schedule_item_id")
+                .addDataField(FIELD_DATE, "date")
+                .addDataField(FIELD_TITLE, "title")
+                .addDataField(FIELD_TYPE, "type")
+                .addDataField(FIELD_HOMEWORK, "homework");
+
+        public static final String TABLE_JOIN_SCHEDULE = new SQLJoinBuilder(TABLE)
+                .join(Schedule.TABLE).onEq(FIELD_SCHED_ITEM_ID, Schedule._ID).create();
         public static final Uri URI = Uri.parse(STRING_URI + "/lessons");
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
-        public static final int URI_CODE = 350;
-        public static final int ID_URI_CODE = 351;
-    }*/
+        public static final int URI_CODE = 400;
+        public static final int ID_URI_CODE = 401;
+    }
+
+    public static final class Marks implements BaseColumns {
+        public static final String TABLE = "marks";
+        public static final String _ID = TABLE + EntityColumns._ID;
+        public static final String REMOTE_ID = TABLE + "_remote_id";
+        public static final String ENTITY_STATUS = TABLE + "_entity_status";
+
+        public static final String FIELD_LESSON_ID = TABLE + "_lesson_id";
+        public static final String FIELD_STUDENT_ID = TABLE + "_student_id";
+        public static final String FIELD_MARK = TABLE + "_mark";
+        public static final EntityTable HOLDER = new EntityTable("Marks")
+                .addDataField(REMOTE_ID, "mark_id")
+                .addDataField(FIELD_LESSON_ID, "lesson_id")
+                .addDataField(FIELD_STUDENT_ID, "student_id")
+                .addDataField(FIELD_MARK, "mark");
+
+        public static final String TABLE_JOIN_LESSONS = new SQLJoinBuilder(TABLE)
+                .join(Lessons.TABLE).onEq(FIELD_LESSON_ID, Lessons._ID).create();
+        public static final Uri URI = Uri.parse(STRING_URI + "/marks");
+        public static final Uri URI_WITH_LESSONS = Uri.parse(STRING_URI + "/marks/lessons");
+        public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
+        public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
+        public static final int URI_CODE = 450;
+        public static final int ID_URI_CODE = 451;
+    }
 
     public static class EntityColumns implements BaseColumns {
         public static final String REMOTE_ID = "remote_id";

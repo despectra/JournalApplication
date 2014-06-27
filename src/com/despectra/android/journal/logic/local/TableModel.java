@@ -28,6 +28,8 @@ public class TableModel {
         mTables.put(TeachersSubjects.TABLE, TeachersSubjects.HOLDER);
         mTables.put(TSG.TABLE, TSG.HOLDER);
         mTables.put(Schedule.TABLE, Schedule.HOLDER);
+        mTables.put(Lessons.TABLE, Lessons.HOLDER);
+        mTables.put(Marks.TABLE, Marks.HOLDER);
     }
 
     private void createDependencies() {
@@ -36,6 +38,7 @@ public class TableModel {
                 .addDirectDependency(mTables.get(TSG.TABLE), TSG.FIELD_GROUP_ID);
         mTables.get(Students.TABLE)
                 .addDirectDependency(mTables.get(StudentsGroups.TABLE), StudentsGroups.FIELD_STUDENT_ID)
+                .addDirectDependency(mTables.get(Marks.TABLE), Marks.FIELD_STUDENT_ID)
                 .setBackDependency(mTables.get(Users.TABLE), Students.FIELD_USER_ID);
         mTables.get(Users.TABLE)
                 .addDirectDependency(mTables.get(Teachers.TABLE), Teachers.FIELD_USER_ID)
@@ -51,6 +54,10 @@ public class TableModel {
                 .addDirectDependency(mTables.get(TSG.TABLE), TSG.FIELD_TEACHER_SUBJECT_ID);
         mTables.get(TSG.TABLE)
                 .addDirectDependency(mTables.get(Schedule.TABLE), Schedule.FIELD_TSG_ID);
+        mTables.get(Schedule.TABLE)
+                .addDirectDependency(mTables.get(Lessons.TABLE), Lessons.FIELD_SCHED_ITEM_ID);
+        mTables.get(Lessons.TABLE)
+                .addDirectDependency(mTables.get(Marks.TABLE), Marks.FIELD_LESSON_ID);
     }
 
     public synchronized static EntityTable getTable(String tableName) {
@@ -59,6 +66,4 @@ public class TableModel {
         }
         return sInstance.mTables.get(tableName);
     }
-
-
 }
