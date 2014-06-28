@@ -80,4 +80,20 @@ public class JoinedEntityIds {
         JoinedEntityIds that = (JoinedEntityIds) o;
         return mIds.equals(that);
     }
+
+    public static class Builder {
+        JoinedEntityIds mIds;
+        public Builder() {
+            mIds = new JoinedEntityIds();
+        }
+
+        public Builder withIds(String table, long localId, long remoteId) {
+            mIds.mIds.put(table, new EntityIds(localId, remoteId));
+            return this;
+        }
+
+        public JoinedEntityIds build() {
+            return mIds;
+        }
+    }
 }

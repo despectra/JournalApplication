@@ -23,14 +23,13 @@ import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.logic.local.Contract.*;
 import com.despectra.android.journal.logic.net.APICodes;
 import com.despectra.android.journal.logic.net.WebApiServer;
+import com.despectra.android.journal.logic.services.ApiService;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
 import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.model.WeekScheduleItem;
 import com.despectra.android.journal.utils.ApiErrorResponder;
-import com.despectra.android.journal.view.AbstractApiFragment;
-import com.despectra.android.journal.view.RemoteIdsCursorAdapter;
-import com.despectra.android.journal.view.SimpleRemoteIdsAdapter;
+import com.despectra.android.journal.view.*;
 import org.json.JSONObject;
 
 /**
@@ -51,6 +50,18 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
 
     private boolean mLoading;
     private String mToken;
+    private EntityIds mSelectedGroupIds;
+    private AddEditScheduleItemDialog.DialogListener mScheduleDialogListener = new AddEditScheduleItemDialog.DialogListener() {
+        @Override
+        public void onAddScheduleItem(EntityIds tsgIds, int day, int lessonNum, int color) {
+            mServiceHelperController.addScheduleItem(mToken, tsgIds, day, lessonNum, color, ApiServiceHelper.PRIORITY_HIGH);
+        }
+
+        @Override
+        public void onEditScheduleItem(EntityIds scheduleItemIds, EntityIds oldTsgIds, EntityIds newTsgIds) {
+
+        }
+    };
 
     public void setGroupsFragment(GroupsFragment fragment) {
         mGroupsFragment = fragment;
@@ -136,8 +147,16 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
                 break;
             case LOADER_SCHEDULE:
                 uri = Schedule.URI_FULL;
-                projection = new String[]{Schedule._ID + " as _id", Schedule.REMOTE_ID, Schedule.FIELD_COLOR, Schedule.FIELD_DAY, Schedule.FIELD_LESSON_NUMBER,
-                        Subjects.FIELD_NAME, Users.FIELD_LAST_NAME + "||" + Users.FIELD_FIRST_NAME + " as teacher"};
+                projection = new String[]{Schedule._ID + " as _id", Schedule.REMOTE_ID,
+                        Schedule.FIELD_COLOR, Schedule.FIELD_DAY,
+                        Schedule.FIELD_LESSON_NUMBER, Schedule.ENTITY_STATUS,
+                        Schedule.FIELD_TSG_ID, TSG.REMOTE_ID,
+                        TSG.FIELD_TEACHER_SUBJECT_ID, TeachersSubjects.REMOTE_ID,
+                        TSG.FIELD_GROUP_ID, Groups.REMOTE_ID,
+                        TeachersSubjects.FIELD_SUBJECT_ID, Subjects.REMOTE_ID, Subjects.FIELD_NAME,
+                        TeachersSubjects.FIELD_TEACHER_ID, Teachers.REMOTE_ID,
+                        String.format("%s||' '||SUBSTR(%s, 1, 1)||'. '||SUBSTR(%s, 1, 1)||'.' as teacher",
+                                Users.FIELD_LAST_NAME, Users.FIELD_FIRST_NAME, Users.FIELD_MIDDLE_NAME)};
                 selection = TSG.FIELD_GROUP_ID + " = ?";
                 String groupId = String.valueOf(mGroupsFragment.getGroupsAdapter().getSelectedEntityIdsByTable("groups").getLocalId());
                 selectionArgs = new String[]{groupId};
@@ -156,7 +175,10 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
             case LOADER_GROUPS:
                 mGroupsFragment.getGroupsAdapter().swapCursor(cursor);
                 if (cursor.getCount() > 0) {
+                    cursor.moveToFirst();
                     mGroupsFragment.getGroupsAdapter().setItemSelectedAtPos(0, cursor);
+                    mSelectedGroupIds = mGroupsFragment.getGroupsAdapter().getSelectedEntityIdsByTable(Groups.TABLE);
+                    updateTitle(cursor.getString(2));
                     getLoaderManager().restartLoader(LOADER_SCHEDULE, null, this);
                 }
                 break;
@@ -173,7 +195,14 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
 
     public void onGroupItemClick(View itemView, int position, JoinedEntityIds ids) {
         getLoaderManager().restartLoader(LOADER_SCHEDULE, null, this);
+        mSelectedGroupIds = ids.getIdsByTable(Groups.TABLE);
         mServiceHelperController.getWeekScheduleForGroup(mToken, ids.getIdsByTable(Groups.TABLE), ApiServiceHelper.PRIORITY_LOW);
+        updateTitle(((TextView)itemView.findViewById(R.id.text1)).getText().toString());
+    }
+
+    private void updateTitle(String groupName) {
+        AbstractApiActionBarActivity activity = (AbstractApiActionBarActivity) getActivity();
+        activity.getSupportActionBar().setTitle("Расписание, " + groupName + " класс");
     }
 
     private static class PagerAdapter extends FragmentStatePagerAdapter {
@@ -251,7 +280,8 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
                     new EntityIdsColumns[]{new EntityIdsColumns(Groups.TABLE, "_id", Groups.REMOTE_ID)},
                     Groups.ENTITY_STATUS,
                     new String[]{Groups.FIELD_NAME},
-                    new int[]{R.id.text1});
+                    new int[]{R.id.text1},
+                    RemoteIdsCursorAdapter.FLAG_SELECTABLE);
             mGroupsAdapter.setOnItemClickListener(this);
             mGroupsListView.setAdapter(mGroupsAdapter);
         }
@@ -269,15 +299,24 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
     public static class ScheduleFragment extends Fragment {
         private WeekScheduleFragment mParentFragment;
         private WeekScheduleView mScheduleView;
-
+        private AddEditScheduleItemDialog mDialog;
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.fragment_week_schedule, container, false);
             mScheduleView = (WeekScheduleView) view.findViewById(R.id.week_schedule_view);
-            mScheduleView.setOnEventSelectedListener(new ScheduleRowAdapter.OnScheduleItemClickedListener() {
+            mScheduleView.setOnScheduleItemClickedListener(new ScheduleRowAdapter.OnScheduleItemClickedListener() {
                 @Override
                 public void onItemClicked(int day, int lessonNum, WeekScheduleItem item) {
-                    Toast.makeText(getActivity(), String.format("%d, %d", day, lessonNum), Toast.LENGTH_LONG).show();
+                    if (item == null) {
+                        String title = String.format("%s, %s урок", WeekScheduleView.DAYS_FULL[day - 1], lessonNum);
+                        mDialog = AddEditScheduleItemDialog.newInstance(getChildFragmentManager(), day, lessonNum,
+                                mParentFragment.mSelectedGroupIds, null, title, title);
+                        mDialog.setDialogListener(mParentFragment.mScheduleDialogListener);
+                        mDialog.showInMode(AddEditDialog.MODE_ADD, getChildFragmentManager(), AddEditScheduleItemDialog.TAG);
+                        //open add dialog
+                    } else {
+                        //open edit dialog
+                    }
                 }
             });
             return view;
@@ -288,7 +327,10 @@ public class WeekScheduleFragment extends AbstractApiFragment implements
             super.onActivityCreated(savedInstanceState);
             mParentFragment = (WeekScheduleFragment) getParentFragment();
             mParentFragment.setScheduleFragment(this);
-
+            mDialog = (AddEditScheduleItemDialog) getChildFragmentManager().findFragmentByTag(AddEditScheduleItemDialog.TAG);
+            if (mDialog != null) {
+                mDialog.setDialogListener(mParentFragment.mScheduleDialogListener);
+            }
         }
 
         public void updateSchedule(Cursor cursor) {

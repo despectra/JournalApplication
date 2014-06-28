@@ -140,6 +140,8 @@ public abstract class HelperController {
 
     public abstract void getWeekScheduleForGroup(String token, EntityIds groupIds, int priority);
 
+    public abstract void addScheduleItem(String token, EntityIds tsgIds, int day, int lessonNum, int color, int priority);
+
     // TEMPORARY
     public abstract void addMockMarks(long groupId);
 

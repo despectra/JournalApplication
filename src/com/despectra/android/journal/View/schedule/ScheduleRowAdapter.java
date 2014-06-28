@@ -2,15 +2,14 @@ package com.despectra.android.journal.view.schedule;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.StateListDrawable;
+import android.graphics.drawable.*;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.local.Contract;
+import com.despectra.android.journal.logic.local.Contract.*;
+import com.despectra.android.journal.model.JoinedEntityIds;
 import com.despectra.android.journal.model.WeekScheduleItem;
 import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.PseudoGridAdapter;
@@ -45,6 +44,15 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
     private int mTeacherColumnIndex;
     private int mSubjectColumnIndex;
     private int mColorColumnIndex;
+    private int mTSGLocalIdColumnIndex;
+    private int mTSGRemoteIdColumnIndex;
+    private int mTSLocalId;
+    private int mTSRemoteId;
+    private int mTeacherLocalIdColIndex;
+    private int mTeacherRemoteIdColIndex;
+    private int mSubjectRemoteIdColIndex;
+    private int mSubjectLocalIdColIndex;
+    private int mEntityStatusColIndex;
 
     public ScheduleRowAdapter(Context context, Cursor cursor, int rowsCount) {
         super(context, cursor, 9, 7, new int[]{50, 0, 0, 0, 0, 0, 0, 0, 50});
@@ -134,12 +142,32 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
         ViewHolder vh = (ViewHolder) cell.getTag();
         if (item != null) {
             vh.fill(item.label1, item.label2);
+            int bgResId;
+            boolean isIdle = item.status == Contract.STATUS_IDLE;
+            if (isIdle) {
+                bgResId = item.color;
+            } else {
+                switch(item.status) {
+                    case Contract.STATUS_INSERTING:
+                        bgResId = R.drawable.item_inserting;
+                        break;
+                    case Contract.STATUS_UPDATING:
+                        bgResId = R.drawable.item_updating;
+                        break;
+                    case Contract.STATUS_DELETING:
+                        bgResId = R.drawable.item_deleting;
+                        break;
+                    default:
+                        bgResId = 0;
+                        break;
+                }
+            }
             background.addState(new int[]{android.R.attr.state_pressed},
                     getContext().getResources().getDrawable(R.drawable.mark_item_background));
             background.addState(new int[]{},
                     new LayerDrawable(
                             new Drawable[]{
-                                    new ColorDrawable(item.color),
+                                    isIdle ? new ColorDrawable(bgResId) : getContext().getResources().getDrawable(bgResId),
                                     getContext().getResources().getDrawable(R.drawable.border_left_bottom)
                             }
                     ));
@@ -164,13 +192,22 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
 
     @Override
     public Cursor swapCursor(Cursor c) {
-        mDayColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_DAY);
-        mLessonNumColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_LESSON_NUMBER);
+        mEntityStatusColIndex = c.getColumnIndexOrThrow(Schedule.ENTITY_STATUS);
+        mDayColumnIndex = c.getColumnIndexOrThrow(Schedule.FIELD_DAY);
+        mLessonNumColumnIndex = c.getColumnIndexOrThrow(Schedule.FIELD_LESSON_NUMBER);
         mLocalIdColumnIndex = c.getColumnIndexOrThrow("_id");
-        mRemoteIdColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.REMOTE_ID);
+        mRemoteIdColumnIndex = c.getColumnIndexOrThrow(Schedule.REMOTE_ID);
         mTeacherColumnIndex = c.getColumnIndexOrThrow("teacher");
-        mSubjectColumnIndex = c.getColumnIndexOrThrow(Contract.Subjects.FIELD_NAME);
-        mColorColumnIndex = c.getColumnIndexOrThrow(Contract.Schedule.FIELD_COLOR);
+        mSubjectColumnIndex = c.getColumnIndexOrThrow(Subjects.FIELD_NAME);
+        mColorColumnIndex = c.getColumnIndexOrThrow(Schedule.FIELD_COLOR);
+        mTSGLocalIdColumnIndex = c.getColumnIndexOrThrow(Schedule.FIELD_TSG_ID);
+        mTSGRemoteIdColumnIndex = c.getColumnIndexOrThrow(TSG.REMOTE_ID);
+        mTSLocalId = c.getColumnIndexOrThrow(TSG.FIELD_TEACHER_SUBJECT_ID);
+        mTSRemoteId = c.getColumnIndexOrThrow(TeachersSubjects.REMOTE_ID);
+        mTeacherLocalIdColIndex = c.getColumnIndexOrThrow(TeachersSubjects.FIELD_TEACHER_ID);
+        mTeacherRemoteIdColIndex = c.getColumnIndexOrThrow(Teachers.REMOTE_ID);
+        mSubjectLocalIdColIndex = c.getColumnIndexOrThrow(TeachersSubjects.FIELD_SUBJECT_ID);
+        mSubjectRemoteIdColIndex = c.getColumnIndexOrThrow(Subjects.REMOTE_ID);
         return super.swapCursor(c);
     }
 
@@ -178,12 +215,19 @@ public class ScheduleRowAdapter extends PseudoGridAdapter<WeekScheduleItem> {
     protected void convertCursorItemToMatrixRow(Cursor cursor) {
         long day = cursor.getLong(mDayColumnIndex);
         long lessonNum = cursor.getLong(mLessonNumColumnIndex);
+        JoinedEntityIds relatedScheduleIds = new JoinedEntityIds.Builder()
+                .withIds(Schedule.TABLE, cursor.getLong(mLocalIdColumnIndex), cursor.getLong(mRemoteIdColumnIndex))
+                .withIds(TSG.TABLE, cursor.getLong(mTSGLocalIdColumnIndex), cursor.getLong(mTSGRemoteIdColumnIndex))
+                .withIds(TeachersSubjects.TABLE, cursor.getLong(mTSLocalId), cursor.getLong(mTSRemoteId))
+                .withIds(Teachers.TABLE, cursor.getLong(mTeacherLocalIdColIndex), cursor.getLong(mTeacherRemoteIdColIndex))
+                .withIds(Subjects.TABLE, cursor.getLong(mSubjectLocalIdColIndex), cursor.getLong(mSubjectRemoteIdColIndex))
+                .build();
         mData.putCell(lessonNum, day,
-                new WeekScheduleItem(cursor.getLong(mLocalIdColumnIndex),
-                        cursor.getLong(mRemoteIdColumnIndex),
+                new WeekScheduleItem(relatedScheduleIds,
                         cursor.getString(mSubjectColumnIndex),
                         cursor.getString(mTeacherColumnIndex),
-                        cursor.getInt(mColorColumnIndex)));
+                        cursor.getInt(mColorColumnIndex),
+                        cursor.getInt(mEntityStatusColIndex)));
     }
 
     @Override

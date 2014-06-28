@@ -29,9 +29,8 @@ public class MultipleRemoteIdsCursorAdapter extends RemoteIdsCursorAdapter {
                                           EntityIdsColumns[] idsColumns,
                                           String entityStatusColumn,
                                           int checkBoxId,
-                                          int popupMenuBtn,
-                                          int flags) {
-        super(context, layout, c, idsColumns, entityStatusColumn, from, to, flags);
+                                          int popupMenuBtn) {
+        super(context, layout, c, idsColumns, entityStatusColumn, from, to, FLAG_CHECKABLE);
         mCheckBoxId = checkBoxId;
         mPopupMenuBtnId = popupMenuBtn;
     }

@@ -19,6 +19,7 @@ public class WeekScheduleView extends LinearLayout {
     public static final String TAG = "VIEW_Schedule";
 
     public static final String[] DAYS = {"Пн.", "Вт.", "Ср.", "Чт.", "Пт.", "Сб.", "Вс."};
+    public static final String[] DAYS_FULL = {"Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"};
 
     private GridView mHeaderView;
     private ListView mDataView;
@@ -45,7 +46,7 @@ public class WeekScheduleView extends LinearLayout {
         init(context);
     }
 
-    public void setOnEventSelectedListener(ScheduleRowAdapter.OnScheduleItemClickedListener listener) {
+    public void setOnScheduleItemClickedListener(ScheduleRowAdapter.OnScheduleItemClickedListener listener) {
         if (mScheduleAdapter != null) {
             mScheduleAdapter.setScheduleItemClickedListener(listener);
         }

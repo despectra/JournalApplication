@@ -73,6 +73,7 @@ public class WebApiServer implements ApplicationServer {
         METHODS_MAP.put(APICodes.ACTION_GET_SUBJECTS_OF_ALL_TEACHERS, "teachers.getSubjectsOfAllTeachers");
         METHODS_MAP.put(APICodes.ACTION_GET_GROUPS_OF_ALL_TS, "subjects.getGroupsOfAllTeachersSubjects");
         METHODS_MAP.put(APICodes.ACTION_GET_WEEK_SCHEDULE_FOR_GROUP, "schedule.getWeekScheduleForGroup");
+        METHODS_MAP.put(APICodes.ACTION_ADD_SCHEDULE_ITEM, "schedule.addScheduleItem");
     }
 
     private WebApiServer(Context context, String host) {

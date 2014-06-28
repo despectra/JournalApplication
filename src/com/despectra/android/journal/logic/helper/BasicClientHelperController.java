@@ -303,6 +303,18 @@ public class BasicClientHelperController extends HelperController {
     }
 
     @Override
+    public void addScheduleItem(String token, EntityIds tsgIds, int day, int lessonNum, int color, int priority) {
+        JSONObject data = new JSONBuilder()
+                .addKeyValue("token", token)
+                .addEntityIds("teacher_subject_group_id", tsgIds)
+                .addKeyValue("day", day)
+                .addKeyValue("lesson_number", lessonNum)
+                .addKeyValue("color", color).create();
+        runAction(APICodes.ACTION_ADD_SCHEDULE_ITEM, data, priority);
+    }
+
+
+    @Override
     public void addMockMarks(long groupId) {
         /*if (mBound) {
             try {

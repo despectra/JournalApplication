@@ -89,6 +89,7 @@ public class Schedule extends QueryExecDelegate {
                     .addKeyValue("lesson_number", lessonNum)
                     .addKeyValue("color", color)
                     .create());
+        getLocalStorageManager().notifyUri(Contract.Schedule.URI_FULL);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //commit
@@ -96,6 +97,7 @@ public class Schedule extends QueryExecDelegate {
         } else {
             getLocalStorageManager().rollbackInsertingEntity(mTable, localScheduleItemId);
         }
+        getLocalStorageManager().notifyUri(Contract.Schedule.URI_FULL);
         return response;
     }
 }

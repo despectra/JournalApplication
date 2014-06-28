@@ -146,9 +146,6 @@ public abstract class PseudoGridAdapter<T> extends CursorAdapter {
             convertCursorItemToMatrixRow(c);
         }
         notifyDataSetChanged();
-        if (!c.isClosed()) {
-            c.close();
-        }
         return super.swapCursor(c);
     }
 
