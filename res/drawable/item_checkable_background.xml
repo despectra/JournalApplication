@@ -7,8 +7,8 @@
     <item
         android:state_pressed="true"
         android:drawable="@drawable/pressed_list_item_bg"/>
-    <item
+    <!--<item
         android:state_selected="true"
-        android:drawable="@drawable/selected_list_item_bg"/>
+        android:drawable="@drawable/selected_list_item_bg"/>-->
     <item android:drawable="@drawable/border_bottom"/>
 </selector>

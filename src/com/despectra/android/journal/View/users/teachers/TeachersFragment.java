@@ -139,8 +139,8 @@ public class TeachersFragment extends AbstractUsersFragment {
                 idsColumns,
                 Contract.Users.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.item_popup_menu_btn1,
-                0);
+                R.id.item_popup_menu_btn1
+        );
     }
 
     @Override

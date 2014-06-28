@@ -26,10 +26,12 @@ public abstract class AddEditDialog extends DialogFragment {
     public static final String KEY_NEUTRAL_ADD_BTN_TEXT = "neutralAddBtnText";
     public static final String KEY_NEUTRAL_EDIT_BTN_TEXT = "neutralEditBtnText";
     public static final String KEY_DIALOG_DATA = "dialogData";
+    private static final String KEY_USE_CONTINUE_BUTTON = "useContBtn";
 
     protected View mMainView;
     protected int mMode;
     protected int mMainViewId;
+    protected boolean mUseContinueBtn;
     protected String mAdditionTitle;
     protected String mEditionTitle;
     protected String mNegativeBtnText;
@@ -90,6 +92,7 @@ public abstract class AddEditDialog extends DialogFragment {
         mNeutralEditBtnText = args.getString(KEY_NEUTRAL_EDIT_BTN_TEXT);
         mPositiveBtnText = args.getString(KEY_POS_BTN_TEXT);
         mDialogData = args.getParcelable(KEY_DIALOG_DATA);
+        mUseContinueBtn = args.getBoolean(KEY_USE_CONTINUE_BUTTON, false);
         return args;
     }
 
@@ -115,7 +118,9 @@ public abstract class AddEditDialog extends DialogFragment {
                 .setNegativeButton(mNegativeBtnText, null)
                 .setNeutralButton(inAddMode() ? mNeutralAddBtnText : mNeutralEditBtnText, null);
         if (inAddMode()) {
-            builder.setPositiveButton(mPositiveBtnText, null);
+            if (mUseContinueBtn) {
+                builder.setPositiveButton(mPositiveBtnText, null);
+            }
         }
         completeDialogCreation(builder);
         Dialog dialog = builder.create();

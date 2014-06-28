@@ -264,6 +264,12 @@ public class ApiService extends Service {
                 return mQueryExecutor.forSubjects(action.extras).getGroupsOfAllTeachersSubjects(action);
             }
         });
+        mActionsImpls.put(APICodes.ACTION_ADD_SCHEDULE_ITEM, new ActionImpl() {
+            @Override
+            public JSONObject doAction(ApiAction action) throws Exception {
+                return mQueryExecutor.forSchedule(action.extras).addScheduleItem(action);
+            }
+        });
     }
 
     @Override

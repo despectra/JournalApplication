@@ -16,6 +16,11 @@ import java.util.Map;
  * Created by Dmitry on 18.06.14.
  */
 public abstract class RemoteIdsCursorAdapter extends SimpleCursorAdapter {
+
+    public static final int FLAG_SELECTABLE = 1;
+    public static final int FLAG_CHECKABLE = 2;
+    public static final int FLAG_SPINNER_ADAPTER = 4;
+
     protected Context mContext;
     protected EntityIdsColumns[] mIdsColumns;
     protected String mEntityStatusColName;
@@ -26,13 +31,26 @@ public abstract class RemoteIdsCursorAdapter extends SimpleCursorAdapter {
     protected OnItemClickListener mItemClickListener;
     protected OnItemCheckedListener mItemCheckedListener;
 
+    protected int mInteractionFlags;
+
     public RemoteIdsCursorAdapter(Context context, int layout, Cursor c, EntityIdsColumns[] idsColumns, String entityStatusColumn,
-                                  String[] from, int[] to, int flags) {
-        super(context, layout, c, from, to, flags);
+                                  String[] from, int[] to) {
+        super(context, layout, c, from, to, 0);
+        init(context, idsColumns, entityStatusColumn, 0);
+    }
+
+    public RemoteIdsCursorAdapter(Context context, int layout, Cursor c, EntityIdsColumns[] idsColumns, String entityStatusColumn,
+                                  String[] from, int[] to, int interactionFlags) {
+        super(context, layout, c, from, to, 0);
+        init(context, idsColumns, entityStatusColumn, interactionFlags);
+    }
+
+    private void init(Context context, EntityIdsColumns[] idsColumns, String entityStatusColumn, int interactionFlags) {
         mContext = context;
         mIdsColumns = idsColumns;
         mEntityStatusColName = entityStatusColumn;
         mCheckedItemIds = new HashMap<Long, JoinedEntityIds>();
+        mInteractionFlags = interactionFlags;
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -47,9 +65,32 @@ public abstract class RemoteIdsCursorAdapter extends SimpleCursorAdapter {
         return mContext;
     }
 
+    public boolean isSelectable() {
+        return (mInteractionFlags & FLAG_SELECTABLE) == FLAG_SELECTABLE;
+    }
+
+    public boolean isCheckable() {
+        return (mInteractionFlags & FLAG_CHECKABLE) == FLAG_CHECKABLE;
+    }
+
+    public boolean isSpinnerAdapter() {
+        return (mInteractionFlags & FLAG_SPINNER_ADAPTER) == FLAG_SPINNER_ADAPTER;
+    }
+
+    public JoinedEntityIds getItemIds(int position) {
+        Cursor dataCursor = getCursor();
+        if (dataCursor != null) {
+            dataCursor.moveToPosition(position);
+            return JoinedEntityIds.fromCursor(dataCursor, mIdsColumns);
+        }
+        return null;
+    }
+
     public void setCheckedNone() {
-        mCheckedItemIds.clear();
-        notifyDataSetChanged();
+        if (isCheckable()) {
+            mCheckedItemIds.clear();
+            notifyDataSetChanged();
+        }
     }
 
     public Bundle getCheckedItems() {
@@ -61,21 +102,27 @@ public abstract class RemoteIdsCursorAdapter extends SimpleCursorAdapter {
     }
 
     public JoinedEntityIds[] getCheckedIds() {
-        JoinedEntityIds[] ids = new JoinedEntityIds[mCheckedItemIds.size()];
-        int i = 0;
-        for (Long key : mCheckedItemIds.keySet()) {
-            ids[i++] = mCheckedItemIds.get(key);
+        if (isCheckable()) {
+            JoinedEntityIds[] ids = new JoinedEntityIds[mCheckedItemIds.size()];
+            int i = 0;
+            for (Long key : mCheckedItemIds.keySet()) {
+                ids[i++] = mCheckedItemIds.get(key);
+            }
+            return ids;
         }
-        return ids;
+        return null;
     }
 
     public EntityIds[] getCheckedIdsOfTable(String table) {
-        EntityIds[] ids = new EntityIds[mCheckedItemIds.size()];
-        int i = 0;
-        for (Long key : mCheckedItemIds.keySet()) {
-            ids[i++] = mCheckedItemIds.get(key).getIdsByTable(table);
+        if (isCheckable()) {
+            EntityIds[] ids = new EntityIds[mCheckedItemIds.size()];
+            int i = 0;
+            for (Long key : mCheckedItemIds.keySet()) {
+                ids[i++] = mCheckedItemIds.get(key).getIdsByTable(table);
+            }
+            return ids;
         }
-        return ids;
+        return null;
     }
 
     public JoinedEntityIds getSelectedEntityIds() {
@@ -83,24 +130,28 @@ public abstract class RemoteIdsCursorAdapter extends SimpleCursorAdapter {
     }
 
     public boolean isItemSelected(long id) {
-        return id == mSelectedItemId;
+        return isSelectable() && id == mSelectedItemId;
     }
 
     public EntityIds getSelectedEntityIdsByTable(String tableName) {
-        if (mSelectedItemIds != null) {
-            return mSelectedItemIds.getIdsByTable(tableName);
+        if (isSelectable()) {
+            if (mSelectedItemIds != null) {
+                return mSelectedItemIds.getIdsByTable(tableName);
+            }
         }
         return null;
     }
 
     public void restoreCheckedItems(Bundle checkedItems, boolean notifyAdapter) {
-        for (String key : checkedItems.keySet()) {
-            Long newKey = Long.valueOf(key);
-            JoinedEntityIds newValue = JoinedEntityIds.fromBundle(checkedItems.getBundle(key));
-            mCheckedItemIds.put(newKey, newValue);
-        }
-        if (notifyAdapter) {
-            notifyDataSetChanged();
+        if (isCheckable()) {
+            for (String key : checkedItems.keySet()) {
+                Long newKey = Long.valueOf(key);
+                JoinedEntityIds newValue = JoinedEntityIds.fromBundle(checkedItems.getBundle(key));
+                mCheckedItemIds.put(newKey, newValue);
+            }
+            if (notifyAdapter) {
+                notifyDataSetChanged();
+            }
         }
     }
 
@@ -121,29 +172,35 @@ public abstract class RemoteIdsCursorAdapter extends SimpleCursorAdapter {
     }
 
     protected void setItemChecking(int position, JoinedEntityIds ids, boolean checked) {
-        if (checked) {
-            mCheckedItemIds.put(getItemId(position), ids);
-        } else {
-            mCheckedItemIds.remove(getItemId(position));
-        }
-        if (mItemCheckedListener != null) {
-            mItemCheckedListener.onItemChecked(ids, mCheckedItemIds.size(), checked);
+        if (isCheckable()) {
+            if (checked) {
+                mCheckedItemIds.put(getItemId(position), ids);
+            } else {
+                mCheckedItemIds.remove(getItemId(position));
+            }
+            if (mItemCheckedListener != null) {
+                mItemCheckedListener.onItemChecked(ids, mCheckedItemIds.size(), checked);
+            }
         }
     }
 
     protected void setItemSelected(int position, JoinedEntityIds ids) {
-        long itemId = getItemId(position);
-        if (mSelectedItemId != itemId) {
-            mSelectedItemIds = ids;
-            mSelectedItemId = itemId;
+        if (isSelectable()) {
+            long itemId = getItemId(position);
+            if (mSelectedItemId != itemId) {
+                mSelectedItemIds = ids;
+                mSelectedItemId = itemId;
+            }
         }
     }
 
     public void setItemSelectedAtPos(int position, Cursor dataCursor) {
-        dataCursor.moveToPosition(position);
-        JoinedEntityIds ids = JoinedEntityIds.fromCursor(dataCursor, mIdsColumns);
-        setItemSelected(position, ids);
-        notifyDataSetChanged();
+        if (isSelectable()) {
+            dataCursor.moveToPosition(position);
+            JoinedEntityIds ids = JoinedEntityIds.fromCursor(dataCursor, mIdsColumns);
+            setItemSelected(position, ids);
+            notifyDataSetChanged();
+        }
     }
 
     public interface OnItemCheckedListener {

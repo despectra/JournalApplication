@@ -11,7 +11,6 @@ import android.view.MenuItem;
 import android.view.View;
 import com.despectra.android.journal.R;
 import com.despectra.android.journal.logic.helper.ApiServiceHelper;
-import com.despectra.android.journal.logic.local.Contract;
 import com.despectra.android.journal.logic.local.Contract.*;
 import com.despectra.android.journal.model.EntityIds;
 import com.despectra.android.journal.model.EntityIdsColumns;
@@ -135,8 +134,8 @@ public class GroupsForSubjectFragment extends LinksFragment {
                 new EntityIdsColumns[]{new EntityIdsColumns(Groups.TABLE, "_id", Groups.REMOTE_ID)},
                 Groups.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.item_popup_menu_btn1,
-                0);
+                R.id.item_popup_menu_btn1
+        );
     }
 
     @Override
@@ -173,8 +172,8 @@ public class GroupsForSubjectFragment extends LinksFragment {
                 columns,
                 TSG.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.item_popup_menu_btn1,
-                0);
+                R.id.item_popup_menu_btn1
+        );
     }
 
     @Override

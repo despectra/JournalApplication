@@ -43,7 +43,6 @@ public class Lessons extends QueryExecDelegate {
         Cursor existingLessonsIds;
         switch (selectionMode) {
             case GET_BY_TSG_ON_INTERVAL:
-                existingLessonsIds = getLocalStorageManager().getResolver().query()
                 break;
             default:
                 return;

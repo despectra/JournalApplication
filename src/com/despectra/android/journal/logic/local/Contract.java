@@ -181,12 +181,17 @@ public final class Contract {
 
         public static final String TABLE_JOIN_USERS = new SQLJoinBuilder(TABLE)
                 .join(Users.TABLE).onEq(FIELD_USER_ID, Users._ID).create();
+        public static final String TABLE_JOIN_TSG = new SQLJoinBuilder(TABLE_JOIN_USERS)
+                .join(TeachersSubjects.TABLE).onEq(_ID, TeachersSubjects.FIELD_TEACHER_ID)
+                .join(TSG.TABLE).onEq(TeachersSubjects._ID, TSG.FIELD_TEACHER_SUBJECT_ID).create();
         public static final Uri URI = Uri.parse(STRING_URI + "/teachers");
+        public static final Uri URI_WITH_TSG = Uri.parse(STRING_URI + "/teachers/tsg");
         public static final Uri URI_AS_USERS = Uri.parse(STRING_URI + "/teachers/as_users");
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
         public static final int URI_CODE = 260;
         public static final int URI_AS_USERS_CODE = 262;
+        public static final int URI_WITH_TSG_CODE = 263;
         public static final int ID_URI_CODE = 261;
     }
 
@@ -234,11 +239,23 @@ public final class Contract {
 
         public static final String TABLE_JOIN_GROUPS = new SQLJoinBuilder(TABLE)
                 .join(Groups.TABLE).onEq(FIELD_GROUP_ID, Groups._ID).create();
+        public static final String TABLE_JOIN_TEACHERS_SUBJECTS = new SQLJoinBuilder(TABLE)
+                .join(TeachersSubjects.TABLE).onEq(FIELD_TEACHER_SUBJECT_ID, TeachersSubjects._ID).create();
+        public static final String TABLE_JOIN_SUBJECTS = new SQLJoinBuilder(TABLE_JOIN_TEACHERS_SUBJECTS)
+                .join(Subjects.TABLE).onEq(TeachersSubjects.FIELD_SUBJECT_ID, Subjects._ID).create();
+        public static final String TABLE_JOIN_TEACHERS_USERS = new SQLJoinBuilder(TABLE_JOIN_TEACHERS_SUBJECTS)
+                .join(Teachers.TABLE).onEq(TeachersSubjects.FIELD_TEACHER_ID, Teachers._ID)
+                .join(Users.TABLE).onEq(Teachers.FIELD_USER_ID, Users._ID).create();
         public static final Uri URI = Uri.parse(STRING_URI + "/teachers_subjects_groups");
         public static final Uri URI_WITH_GROUPS = Uri.parse(STRING_URI + "/teachers_subjects_groups/g");
+        public static final Uri URI_WITH_TEACHERS = Uri.parse(STRING_URI + "/teachers_subjects_groups/t");
+        public static final Uri URI_WITH_SUBJECTS = Uri.parse(STRING_URI + "/teachers_subjects_groups/s");
         public static final int URI_CODE = 300;
         public static final int ID_URI_CODE = 301;
         public static final int URI_WITH_GROUPS_CODE = 302;
+        public static final int URI_WITH_TEACHERS_CODE = 303;
+
+        public static final int URI_WITH_SUBJECTS_CODE = 304;
     }
 
     public static final class Schedule extends EntityColumns {

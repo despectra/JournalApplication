@@ -39,19 +39,21 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Subjects.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers", Teachers.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Teachers.URI_AS_USERS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers/tsg", Teachers.URI_WITH_TSG_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects", TeachersSubjects.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/s", TeachersSubjects.URI_WITH_SUBJECTS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects/t", TeachersSubjects.URI_WITH_TEACHERS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups", TSG.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/g", TSG.URI_WITH_GROUPS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/t", TSG.URI_WITH_TEACHERS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/s", TSG.URI_WITH_SUBJECTS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule", Schedule.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule/full", Schedule.URI_FULL_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule/tsg", Schedule.URI_TSG_CODE);
-
-        /*mMatcher.addURI(Contract.AUTHORITY, "marks", Marks.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "marks/group", Marks.URI_BY_GROUP_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "lessons", Lessons.URI_CODE);
-        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Lessons.ID_URI_CODE);*/
+        mMatcher.addURI(Contract.AUTHORITY, "lessons/#", Lessons.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "marks", Marks.URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "marks/#", Marks.ID_URI_CODE);
     }
 
     private static final SparseArray<String> mReadTables;
@@ -79,17 +81,18 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(Subjects.ID_URI_CODE, Subjects.TABLE);
         mReadTables.append(Teachers.URI_CODE, Teachers.TABLE);
         mReadTables.append(Teachers.URI_AS_USERS_CODE, Teachers.TABLE_JOIN_USERS);
+        mReadTables.append(Teachers.URI_WITH_TSG_CODE, Teachers.TABLE_JOIN_TSG);
         mReadTables.append(TeachersSubjects.URI_CODE, TeachersSubjects.TABLE_JOIN_SUBJECTS);
         mReadTables.append(TeachersSubjects.URI_WITH_SUBJECTS_CODE, TeachersSubjects.TABLE_JOIN_SUBJECTS);
         mReadTables.append(TSG.URI_CODE, TSG.TABLE);
         mReadTables.append(TSG.URI_WITH_GROUPS_CODE, TSG.TABLE_JOIN_GROUPS);
+        mReadTables.append(TSG.URI_WITH_TEACHERS_CODE, TSG.TABLE_JOIN_TEACHERS_USERS);
+        mReadTables.append(TSG.URI_WITH_SUBJECTS_CODE, TSG.TABLE_JOIN_SUBJECTS);
         mReadTables.append(Schedule.URI_CODE, Schedule.TABLE);
         mReadTables.append(Schedule.URI_FULL_CODE, Schedule.TABLE_JOIN_FULL);
         mReadTables.append(Schedule.URI_TSG_CODE, Schedule.TABLE_JOIN_TSG);
-
-        /*mReadTables.append(Marks.URI_BY_GROUP_CODE, Marks.TABLE_BY_GROUP);
-        mReadTables.append(Lessons.URI_CODE, Lessons.TABLE);*/
-
+        mReadTables.append(Lessons.URI_CODE, Lessons.TABLE);
+        mReadTables.append(Marks.URI_CODE, Marks.TABLE);
     }
 
     private static final SparseArray<String> mWriteTables;
@@ -112,10 +115,10 @@ public class MainProvider extends ContentProvider {
         mWriteTables.append(TeachersSubjects.URI_CODE, TeachersSubjects.TABLE);
         mWriteTables.append(TSG.URI_CODE, TSG.TABLE);
         mWriteTables.append(Schedule.URI_CODE, Schedule.TABLE);
-
-       /* mWriteTables.append(Marks.URI_CODE, Marks.TABLE);
+        mWriteTables.append(Lessons.URI_CODE, Lessons.TABLE);
+        mWriteTables.append(Lessons.ID_URI_CODE, Lessons.TABLE);
+        mWriteTables.append(Marks.URI_CODE, Marks.TABLE);
         mWriteTables.append(Marks.ID_URI_CODE, Marks.TABLE);
-        mWriteTables.append(Lessons.URI_CODE, Lessons.TABLE);*/
     }
 
     private static final SparseArray<String> mPrimaryColumns;
@@ -131,9 +134,8 @@ public class MainProvider extends ContentProvider {
         mPrimaryColumns.append(TeachersSubjects.ID_URI_CODE, TeachersSubjects._ID);
         mPrimaryColumns.append(TSG.ID_URI_CODE, TSG._ID);
         mPrimaryColumns.append(Schedule.ID_URI_CODE, Schedule._ID);
-        
-        /*mPrimaryColumns.append(Marks.ID_URI_CODE, Marks._ID);
-        mPrimaryColumns.append(Lessons.ID_URI_CODE, Lessons._ID);*/
+        mPrimaryColumns.append(Marks.ID_URI_CODE, Marks._ID);
+        mPrimaryColumns.append(Lessons.ID_URI_CODE, Lessons._ID);
 
     }
 

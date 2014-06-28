@@ -59,8 +59,8 @@ public class SubjectsOfTeacherFragment extends LinksFragment {
                 columns,
                 Contract.TeachersSubjects.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.item_popup_menu_btn1,
-                0);
+                R.id.item_popup_menu_btn1
+        );
     }
 
     @Override
@@ -175,7 +175,7 @@ public class SubjectsOfTeacherFragment extends LinksFragment {
                 new EntityIdsColumns[]{new EntityIdsColumns(Subjects.TABLE, "_id", Subjects.REMOTE_ID)},
                 Subjects.ENTITY_STATUS,
                 R.id.checkbox1,
-                R.id.item_popup_menu_btn1,
-                0);
+                R.id.item_popup_menu_btn1
+        );
     }
 }
