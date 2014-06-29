@@ -38,7 +38,7 @@ public class Teachers extends QueryExecDelegate {
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalTeachers(response);
-            getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+            getLocalStorageManager().notifyUri(Contract.Teachers.URI_AS_USERS);
         }
         return response;
     }
@@ -97,7 +97,7 @@ public class Teachers extends QueryExecDelegate {
         request.put("level", 4);
         long localTeacherId = getLocalStorageManager().preInsertEntity(mTeachersTable, request);
         //notify UI loaders
-        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        getLocalStorageManager().notifyUri(Contract.Teachers.URI_AS_USERS);
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
@@ -107,7 +107,7 @@ public class Teachers extends QueryExecDelegate {
             //rollback
             getLocalStorageManager().rollbackInsertingEntity(mTeachersTable, localTeacherId);
         }
-        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        getLocalStorageManager().notifyUri(Contract.Teachers.URI_AS_USERS);
         return response;
     }
 
@@ -118,7 +118,7 @@ public class Teachers extends QueryExecDelegate {
         long[] localTeachersIds = Utils.getIdsFromJSONArray(request.getJSONArray("LOCAL_teachers"));
         getLocalStorageManager().preDeleteEntitiesCascade(mTeachersTable, localTeachersIds);
 
-        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        getLocalStorageManager().notifyUri(Contract.Teachers.URI_AS_USERS);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //commit
@@ -127,7 +127,7 @@ public class Teachers extends QueryExecDelegate {
             //rollback
             getLocalStorageManager().rollbackDeletingEntityCascade(mTeachersTable, localTeachersIds);
         }
-        getLocalStorageManager().notifyUriForClients(Contract.Teachers.URI_AS_USERS, action, "TeachersFragment");
+        getLocalStorageManager().notifyUri(Contract.Teachers.URI_AS_USERS);
         return response;
     }
 
@@ -153,9 +153,7 @@ public class Teachers extends QueryExecDelegate {
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalSubjectsLinks(forAllTeachers, localTeacherId, response);
             if (!forAllTeachers) {
-                getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                        action,
-                        "SubjectsOfTeacherFragment");
+                getLocalStorageManager().notifyUri(Contract.TeachersSubjects.URI_WITH_SUBJECTS);
             }
         }
         return response;
@@ -203,18 +201,14 @@ public class Teachers extends QueryExecDelegate {
         request.remove("LOCAL_subjects_ids");
 
         long[] localLinksIds = preSetLocalSubjectsOfTeacher(localTeacherId, localSubjectsIds);
-        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                action,
-                "SubjectsOfTeacherFragment");
+        getLocalStorageManager().notifyUri(Contract.TeachersSubjects.URI_WITH_SUBJECTS);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             commitSetSubjectsOfTeacher(localLinksIds, Utils.getIdsFromJSONArray(response.getJSONArray("affected_links")));
         } else {
             rollbackSetSubjectsOfTeacher(localLinksIds);
         }
-        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                action,
-                "SubjectsOfTeacherFragment");
+        getLocalStorageManager().notifyUri(Contract.TeachersSubjects.URI_WITH_SUBJECTS);
         return response;
     }
 
@@ -251,18 +245,14 @@ public class Teachers extends QueryExecDelegate {
         request.remove("LOCAL_links_ids");
 
         preUnsetSubjectsOfTeacher(localLinks);
-        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                action,
-                "SubjectsOfTeacherFragment");
+        getLocalStorageManager().notifyUri(Contract.TeachersSubjects.URI_WITH_SUBJECTS);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             commitUnsetSubjectsOfTeacher(localLinks);
         } else {
             rollbackUnsetSubjectsOfTeacher(localLinks);
         }
-        getLocalStorageManager().notifyUriForClients(Contract.TeachersSubjects.URI_WITH_SUBJECTS,
-                action,
-                "SubjectsOfTeacherFragment");
+        getLocalStorageManager().notifyUri(Contract.TeachersSubjects.URI_WITH_SUBJECTS);
         return response;
     }
 

@@ -16,7 +16,7 @@
         android:layout_centerVertical="true"
         android:textAppearance="?android:textAppearanceListItem"
         android:text="Это красивый текст"
-        android:textColor="@drawable/list_item_text_color"
+        android:textColor="@drawable/list_item_text_color_light"
         />
 
     <include layout="@layout/item_popup_menu_btn"/>

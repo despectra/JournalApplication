@@ -1,6 +1,8 @@
 package com.despectra.android.journal.view;
 
+import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import com.despectra.android.journal.JournalApplication;
 import com.despectra.android.journal.logic.helper.ApiClientWithProgress;
@@ -16,6 +18,9 @@ import org.json.JSONObject;
 public abstract class AbstractApiFragment extends Fragment implements ApiClientWithProgress {
     protected JournalApplication mApplicationContext;
     protected HelperController mServiceHelperController;
+    protected Cursor mCursor;
+    protected String mToken;
+    protected boolean mLoading;
 
     protected AbstractApiFragment() {
         super();
@@ -26,6 +31,14 @@ public abstract class AbstractApiFragment extends Fragment implements ApiClientW
         super.onActivityCreated(savedInstanceState);
         mApplicationContext = (JournalApplication) getActivity().getApplicationContext();
         mApplicationContext.lifecycleStateChanged(getClass().getSimpleName(), JournalApplication.ONCREATE);
+        mToken = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(JournalApplication.PREFERENCE_KEY_TOKEN, "");
+        mLoading = savedInstanceState != null && savedInstanceState.getBoolean("loading");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("loading", mLoading);
     }
 
     @Override

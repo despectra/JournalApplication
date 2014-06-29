@@ -130,9 +130,7 @@ public class Subjects extends QueryExecDelegate {
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalGroupsLinks(localTeacherSubjectId, response, forAllTS);
-            if (!forAllTS) {
-                getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS, action, "GroupsForSubjectFragment");
-            }
+            getLocalStorageManager().notifyUri(Contract.TSG.URI_WITH_GROUPS);
         }
         return response;
     }
@@ -177,9 +175,7 @@ public class Subjects extends QueryExecDelegate {
         request.remove("LOCAL_groups_ids");
 
         long[] localLinksIds = preSetGroupsForSubject(localTeacherSubjectId, localGroupsIds);
-        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
-                action,
-                "GroupsForSubjectFragment");
+        getLocalStorageManager().notifyUri(Contract.TSG.URI_WITH_GROUPS);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //commit
@@ -188,9 +184,7 @@ public class Subjects extends QueryExecDelegate {
             // rollback
             rollbackSetGroupsOfSubject(localLinksIds);
         }
-        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
-                action,
-                "GroupsForSubjectFragment");
+        getLocalStorageManager().notifyUri(Contract.TSG.URI_WITH_GROUPS);
         return response;
     }
 
@@ -227,9 +221,7 @@ public class Subjects extends QueryExecDelegate {
         request.remove("LOCAL_links_ids");
 
         getLocalStorageManager().preDeleteEntitiesCascade(mTSGTable, localLinks);
-        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
-                action,
-                "GroupsForSubjectFragment");
+        getLocalStorageManager().notifyUri(Contract.TSG.URI_WITH_GROUPS);
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             //commit
@@ -238,9 +230,7 @@ public class Subjects extends QueryExecDelegate {
             //rollback
             getLocalStorageManager().rollbackDeletingEntityCascade(mTSGTable, localLinks);
         }
-        getLocalStorageManager().notifyUriForClients(Contract.TSG.URI_WITH_GROUPS,
-                action,
-                "GroupsForSubjectFragment");
+        getLocalStorageManager().notifyUri(Contract.TSG.URI_WITH_GROUPS);
         return response;
     }
 }

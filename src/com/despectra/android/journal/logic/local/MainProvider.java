@@ -37,6 +37,7 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "students_groups/#", StudentsGroups.ID_URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects", Subjects.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "subjects/#", Subjects.ID_URI_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "subjects/tsg", Subjects.URI_WITH_TSG_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers", Teachers.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers/as_users", Teachers.URI_AS_USERS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers/tsg", Teachers.URI_WITH_TSG_CODE);
@@ -47,6 +48,7 @@ public class MainProvider extends ContentProvider {
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/g", TSG.URI_WITH_GROUPS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/t", TSG.URI_WITH_TEACHERS_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/s", TSG.URI_WITH_SUBJECTS_CODE);
+        mMatcher.addURI(Contract.AUTHORITY, "teachers_subjects_groups/all", TSG.URI_ALL_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule", Schedule.URI_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule/full", Schedule.URI_FULL_CODE);
         mMatcher.addURI(Contract.AUTHORITY, "schedule/tsg", Schedule.URI_TSG_CODE);
@@ -79,6 +81,7 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(StudentsGroups.ID_URI_CODE, StudentsGroups.TABLE);
         mReadTables.append(Subjects.URI_CODE, Subjects.TABLE);
         mReadTables.append(Subjects.ID_URI_CODE, Subjects.TABLE);
+        mReadTables.append(Subjects.URI_WITH_TSG_CODE, Subjects.TABLE_JOIN_TSG);
         mReadTables.append(Teachers.URI_CODE, Teachers.TABLE);
         mReadTables.append(Teachers.URI_AS_USERS_CODE, Teachers.TABLE_JOIN_USERS);
         mReadTables.append(Teachers.URI_WITH_TSG_CODE, Teachers.TABLE_JOIN_TSG);
@@ -88,6 +91,7 @@ public class MainProvider extends ContentProvider {
         mReadTables.append(TSG.URI_WITH_GROUPS_CODE, TSG.TABLE_JOIN_GROUPS);
         mReadTables.append(TSG.URI_WITH_TEACHERS_CODE, TSG.TABLE_JOIN_TEACHERS_USERS);
         mReadTables.append(TSG.URI_WITH_SUBJECTS_CODE, TSG.TABLE_JOIN_SUBJECTS);
+        mReadTables.append(TSG.URI_ALL_CODE, TSG.TABLE_JOIN_ALL);
         mReadTables.append(Schedule.URI_CODE, Schedule.TABLE);
         mReadTables.append(Schedule.URI_FULL_CODE, Schedule.TABLE_JOIN_FULL);
         mReadTables.append(Schedule.URI_TSG_CODE, Schedule.TABLE_JOIN_TSG);

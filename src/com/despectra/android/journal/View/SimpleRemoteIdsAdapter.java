@@ -17,6 +17,7 @@ import com.despectra.android.journal.model.JoinedEntityIds;
 public class SimpleRemoteIdsAdapter extends RemoteIdsCursorAdapter {
 
     private static final String TAG = "SimpleRemoteIdsAdapter";
+    private int mItemBackgroundIdle;
 
     public SimpleRemoteIdsAdapter(Context context,
                                   int layout,
@@ -27,6 +28,20 @@ public class SimpleRemoteIdsAdapter extends RemoteIdsCursorAdapter {
                                   int[] to,
                                   int interactionFlags) {
         super(context, layout, c, idsColumns, entityStatusColumn, from, to, interactionFlags);
+        mItemBackgroundIdle = R.drawable.item_checkable_background;
+    }
+
+    public SimpleRemoteIdsAdapter(Context context,
+                                  int layout,
+                                  int itemBgResIdle,
+                                  Cursor c,
+                                  EntityIdsColumns[]idsColumns,
+                                  String entityStatusColumn,
+                                  String[] from,
+                                  int[] to,
+                                  int interactionFlags) {
+        super(context, layout, c, idsColumns, entityStatusColumn, from, to, interactionFlags);
+        mItemBackgroundIdle = itemBgResIdle;
     }
 
     @Override

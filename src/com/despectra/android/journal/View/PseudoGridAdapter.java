@@ -75,7 +75,6 @@ public abstract class PseudoGridAdapter<T> extends CursorAdapter {
         );
 
         for (int column = 0; column < mColumnsCount; column++) {
-            final int col = column;
             boolean isDataCol = isDataColumn(column);
             int cellWidth;
             if (isDataCol) {

@@ -35,10 +35,6 @@
         <activity
             android:name=".view.groups.GroupActivity"
             android:parentActivityName=".view.MainActivity">
-            <!--<intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>-->
         </activity>
 
         <activity
@@ -48,12 +44,18 @@
 
         </activity>
 
+        <activity android:name=".view.journal.GroupsJournalActivity"
+                  android:parentActivityName=".view.MainActivity">
+
+        </activity>
+
         <service android:name=".logic.services.ApiService">
         </service>
 
         <provider
             android:authorities="com.despectra.android.journal.provider"
-            android:name=".logic.local.MainProvider"/>
+            android:name=".logic.local.MainProvider"
+            android:exported="false"/>
 
     </application>
 </manifest>

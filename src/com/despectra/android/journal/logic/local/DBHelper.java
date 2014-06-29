@@ -101,7 +101,7 @@ public class DBHelper extends SQLiteOpenHelper {
             "lessons_date TEXT NOT NULL," +
             "lessons_title TEXT NOT NULL," +
             "lessons_type INTEGER DEFAULT 0 NOT NULL," +
-            "lessons_homework TEXT NOT NULL," +
+            "lessons_homework TEXT DEFAULT '' NOT NULL," +
             "lessons_entity_status INTEGER DEFAULT 0 NOT NULL)";
 
     public static final String CREATE_TABLE_MARKS = "" +

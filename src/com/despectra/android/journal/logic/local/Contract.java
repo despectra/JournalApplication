@@ -154,15 +154,21 @@ public final class Contract {
         public static final String ENTITY_STATUS = TABLE + "_entity_status";
         public static final String FIELD_NAME = TABLE + "_name";
         public static final Uri URI = Uri.parse(STRING_URI + "/subjects");
+        public static final Uri URI_WITH_TSG = Uri.parse(STRING_URI+"/subjects/tsg");
 
         public static final EntityTable HOLDER = new EntityTable("Subjects")
                 .addDataField(REMOTE_ID, "subject_id")
                 .addDataField(FIELD_NAME, "name")
                 .addDataField(ENTITY_STATUS, "entity_status");
 
+        public static final String TABLE_JOIN_TSG = new SQLJoinBuilder(TABLE)
+                .join(TeachersSubjects.TABLE).onEq(_ID, TeachersSubjects.FIELD_SUBJECT_ID)
+                .join(TSG.TABLE).onEq(TeachersSubjects._ID, TSG.FIELD_TEACHER_SUBJECT_ID).create();
+
         public static final String CONTENT_TYPE = DIR_VND + AUTHORITY + "." + TABLE;
         public static final String CONTENT_ITEM_TYPE = ITEM_VND + AUTHORITY + "." + TABLE;
         public static final int URI_CODE = 250;
+        public static final int URI_WITH_TSG_CODE = 252;
         public static final int ID_URI_CODE = 251;
 
     }
@@ -238,7 +244,8 @@ public final class Contract {
                 .addDataField(ENTITY_STATUS, "entity_status");
 
         public static final String TABLE_JOIN_GROUPS = new SQLJoinBuilder(TABLE)
-                .join(Groups.TABLE).onEq(FIELD_GROUP_ID, Groups._ID).create();
+                .join(Groups.TABLE).onEq(FIELD_GROUP_ID, Groups._ID)
+                .join(TeachersSubjects.TABLE).onEq(FIELD_TEACHER_SUBJECT_ID, TeachersSubjects._ID).create();
         public static final String TABLE_JOIN_TEACHERS_SUBJECTS = new SQLJoinBuilder(TABLE)
                 .join(TeachersSubjects.TABLE).onEq(FIELD_TEACHER_SUBJECT_ID, TeachersSubjects._ID).create();
         public static final String TABLE_JOIN_SUBJECTS = new SQLJoinBuilder(TABLE_JOIN_TEACHERS_SUBJECTS)
@@ -246,14 +253,20 @@ public final class Contract {
         public static final String TABLE_JOIN_TEACHERS_USERS = new SQLJoinBuilder(TABLE_JOIN_TEACHERS_SUBJECTS)
                 .join(Teachers.TABLE).onEq(TeachersSubjects.FIELD_TEACHER_ID, Teachers._ID)
                 .join(Users.TABLE).onEq(Teachers.FIELD_USER_ID, Users._ID).create();
+        public static final String TABLE_JOIN_ALL = new SQLJoinBuilder(TABLE_JOIN_GROUPS)
+                .join(Subjects.TABLE).onEq(TeachersSubjects.FIELD_SUBJECT_ID, Subjects._ID)
+                .join(Teachers.TABLE).onEq(TeachersSubjects.FIELD_TEACHER_ID, Teachers._ID)
+                .join(Users.TABLE).onEq(Teachers.FIELD_USER_ID, Users._ID).create();
         public static final Uri URI = Uri.parse(STRING_URI + "/teachers_subjects_groups");
         public static final Uri URI_WITH_GROUPS = Uri.parse(STRING_URI + "/teachers_subjects_groups/g");
         public static final Uri URI_WITH_TEACHERS = Uri.parse(STRING_URI + "/teachers_subjects_groups/t");
         public static final Uri URI_WITH_SUBJECTS = Uri.parse(STRING_URI + "/teachers_subjects_groups/s");
+        public static final Uri URI_ALL = Uri.parse(STRING_URI + "/teachers_subjects_groups/all");
         public static final int URI_CODE = 300;
         public static final int ID_URI_CODE = 301;
         public static final int URI_WITH_GROUPS_CODE = 302;
         public static final int URI_WITH_TEACHERS_CODE = 303;
+        public static final int URI_ALL_CODE = 305;
 
         public static final int URI_WITH_SUBJECTS_CODE = 304;
     }

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/text1"
-    android:minHeight="60dp"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/item_checkable_background"
-    android:textAppearance="?android:textAppearanceLarge"
-    android:textColor="@drawable/list_item_text_color"
-    android:gravity="center_vertical">
-
-</TextView>
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/text1"
+        android:minHeight="60dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/item_checkable_background"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textColor="@drawable/list_item_text_color_light"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:text="PADDING"
+        android:gravity="center_vertical"
+        android:paddingLeft="100dp">
+    </TextView>

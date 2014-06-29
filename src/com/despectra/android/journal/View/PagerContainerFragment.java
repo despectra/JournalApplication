@@ -16,9 +16,9 @@ import com.despectra.android.journal.R;
  */
 public abstract class PagerContainerFragment extends Fragment {
 
-    private ViewPager mPager;
-    private PagerTabStrip mTabStrip;
-    private PagerAdapter mPagerAdapter;
+    protected ViewPager mPager;
+    protected PagerTabStrip mTabStrip;
+    protected PagerAdapter mPagerAdapter;
 
     public PagerContainerFragment() {
         super();
@@ -33,7 +33,13 @@ public abstract class PagerContainerFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         setHasOptionsMenu(true);
         mPager = (ViewPager) getView().findViewById(R.id.fragment_main_page_single);
-        mPagerAdapter = new PagerAdapter(getChildFragmentManager());
+        mPagerAdapter = new PagerAdapter(getChildFragmentManager()) {
+
+            @Override
+            public int getItemPosition(Object object) {
+                return POSITION_NONE;
+            }
+        };
         /*mPager.post(new Runnable() {
             @Override
             public void run() {
@@ -49,6 +55,10 @@ public abstract class PagerContainerFragment extends Fragment {
     public abstract Fragment getPagerItem(int position);
     public abstract int getPagerItemsCount();
     public abstract String getPagerItemTitle(int position);
+
+    public float getPagerItemWidth(int position) {
+        return 1;
+    }
 
     private class PagerAdapter extends FragmentStatePagerAdapter {
 
@@ -70,5 +80,10 @@ public abstract class PagerContainerFragment extends Fragment {
         public CharSequence getPageTitle(int position) {
             return getPagerItemTitle(position);
         }
+        @Override
+        public float getPageWidth(int position) {
+            return getPagerItemWidth(position);
+        }
+
     }
 }

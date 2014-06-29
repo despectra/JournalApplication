@@ -28,4 +28,5 @@
     <color name="mark_5">#cc63ff84</color>
 
     <color name="pressed_list_item_bg">#9933b5e5</color>
+    <color name="gray220">#dcdcdc</color>
 </resources>

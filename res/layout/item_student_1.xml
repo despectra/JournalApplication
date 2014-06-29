@@ -23,7 +23,7 @@
         android:layout_above="@+id/center_vertical"
         android:textAppearance="?android:textAppearanceListItem"
         android:text="Мансур"
-        android:textColor="@drawable/list_item_text_color"/>
+        android:textColor="@drawable/list_item_text_color_light"/>
 
     <TextView
         android:id="@+id/name_view"
@@ -34,7 +34,7 @@
         android:textAppearance="?android:textAppearanceListItemSmall"
         android:paddingRight="5dp"
         android:text="Миша"
-        android:textColor="@drawable/list_item_text_color"/>
+        android:textColor="@drawable/list_item_text_color_light"/>
 
     <TextView
         android:id="@+id/middlename_view"
@@ -44,7 +44,7 @@
         android:layout_toRightOf="@+id/name_view"
         android:textAppearance="?android:textAppearanceListItemSmall"
         android:text="Александрович"
-        android:textColor="@drawable/list_item_text_color"/>
+        android:textColor="@drawable/list_item_text_color_light"/>
 
     <TextView
         android:id="@+id/login_view"
@@ -54,7 +54,7 @@
         android:layout_toLeftOf="@+id/item_popup_menu_btn1"
         android:textAppearance="?android:textAppearanceListItemSmall"
         android:text="omg"
-        android:textColor="@drawable/list_item_text_color"/>
+        android:textColor="@drawable/list_item_text_color_light"/>
 
     <include layout="@layout/item_popup_menu_btn"/>
 

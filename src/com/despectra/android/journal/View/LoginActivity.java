@@ -165,10 +165,10 @@ public class LoginActivity extends AbstractApiFragmentActivity implements TextVi
                     mServiceHelperController.getMinProfile(token, ApiServiceHelper.PRIORITY_LOW);
                     break;
                 case APICodes.ACTION_GET_MIN_PROFILE:
-                    int uid = jsonData.getInt("uid");
-                    String name = jsonData.getString("name");
-                    String middleName = jsonData.getString("middlename");
-                    String surname = jsonData.getString("surname");
+                    int uid = jsonData.getInt("user_id");
+                    String name = jsonData.getString("first_name");
+                    String middleName = jsonData.getString("middle_name");
+                    String surname = jsonData.getString("last_name");
                     int level = jsonData.getInt("level");
                     PreferenceManager.getDefaultSharedPreferences(this)
                             .edit()

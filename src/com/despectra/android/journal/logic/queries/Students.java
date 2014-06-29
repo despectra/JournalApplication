@@ -37,8 +37,8 @@ public class Students extends QueryExecDelegate {
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
             updateLocalStudents(response, localGroupId);
-            Uri notifyUri = Uri.parse(String.format("%s/groups/%s/students", Contract.STRING_URI, localGroupId));
-            getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
+            Uri notifyUri = Uri.parse(String.format("%s/groups/#/students", Contract.STRING_URI));
+            getLocalStorageManager().notifyUri(notifyUri);
         }
         return response;
     }
@@ -74,8 +74,8 @@ public class Students extends QueryExecDelegate {
         long localGroupId = request.getLong("LOCAL_group_id");
         request.remove("LOCAL_group_id");
         long localSG = getLocalStorageManager().preInsertEntity(mTable, request);
-        Uri notifyUri = Uri.parse(String.format("%s/groups/%d/students", Contract.STRING_URI, localGroupId));
-        getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
+        Uri notifyUri = Uri.parse(String.format("%s/groups/#/students", Contract.STRING_URI));
+        getLocalStorageManager().notifyUri(notifyUri);
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
         if (Utils.isApiJsonSuccess(response)) {
@@ -83,7 +83,7 @@ public class Students extends QueryExecDelegate {
         } else {
             getLocalStorageManager().rollbackInsertingEntity(mTable, localSG);
         }
-        getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
+        getLocalStorageManager().notifyUri(notifyUri);
         return response;
     }
 
@@ -97,7 +97,7 @@ public class Students extends QueryExecDelegate {
         request.remove("LOCAL_students");
         getLocalStorageManager().preDeleteEntitiesCascade(mTable, localIds);
         Uri notifyUri = Uri.parse(String.format("%s/groups/#/students", Contract.STRING_URI));
-        getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
+        getLocalStorageManager().notifyUri(notifyUri);
 
         JSONObject response = getApplicationServer().executeGetApiQuery(action);
 
@@ -106,7 +106,7 @@ public class Students extends QueryExecDelegate {
         } else {
             getLocalStorageManager().rollbackDeletingEntityCascade(mTable, localIds);
         }
-        getLocalStorageManager().notifyUriForClients(notifyUri, action, "StudentsFragment");
+        getLocalStorageManager().notifyUri(notifyUri);
         return response;
     }
 

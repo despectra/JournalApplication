@@ -18,6 +18,7 @@ import com.despectra.android.journal.logic.helper.ApiServiceHelper;
 import com.despectra.android.journal.utils.ApiErrorResponder;
 import com.despectra.android.journal.utils.Utils;
 import com.despectra.android.journal.view.groups.GroupsFragment;
+import com.despectra.android.journal.view.journal.JournalsListFragment;
 import com.despectra.android.journal.view.main_page.MainPageFragmentFactory;
 import com.despectra.android.journal.view.preferences.PreferencesActivity;
 import com.despectra.android.journal.view.schedule.WeekScheduleFragment;
@@ -228,6 +229,13 @@ public class MainActivity extends AbstractApiActionBarActivity implements Adapte
                 fragment = getSupportFragmentManager().findFragmentByTag(SubjectsFragment.FRAGMENT_TAG);
                 if (fragment == null) {
                     fragment = new SubjectsFragment();
+                }
+                break;
+            case ACTION_JOURNAL:
+                fragmentTag = JournalsListFragment.TAG;
+                fragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
+                if (fragment == null) {
+                    fragment = new JournalsListFragment();
                 }
                 break;
             case ACTION_SCHEDULE:
